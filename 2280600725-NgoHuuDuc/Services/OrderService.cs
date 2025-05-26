@@ -94,6 +94,7 @@ namespace NgoHuuDuc_2280600725.Services
                 ShippingAddress = orderDto.ShippingAddress,
                 Notes = orderDto.Notes,
                 Status = OrderStatus.Pending,
+                PaymentMethod = orderDto.PaymentMethod,
                 TotalPrice = cart.Items.Sum(i => i.Price * i.Quantity),
                 OrderDetails = new List<OrderDetail>()
             };
@@ -212,6 +213,7 @@ namespace NgoHuuDuc_2280600725.Services
                 ShippingAddress = order.ShippingAddress,
                 Notes = order.Notes,
                 Status = order.Status,
+                PaymentMethod = order.PaymentMethod,
                 OrderDetails = order.OrderDetails?.Select(od => new OrderDetailDTO
                 {
                     Id = od.Id,

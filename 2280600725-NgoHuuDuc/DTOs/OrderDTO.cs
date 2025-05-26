@@ -22,6 +22,8 @@ namespace NgoHuuDuc_2280600725.DTOs
 
         public OrderStatus Status { get; set; }
 
+        public PaymentMethod PaymentMethod { get; set; }
+
         public List<OrderDetailDTO> OrderDetails { get; set; } = new List<OrderDetailDTO>();
     }
 
@@ -50,6 +52,9 @@ namespace NgoHuuDuc_2280600725.DTOs
         public string ShippingAddress { get; set; } = "";
 
         public string? Notes { get; set; }
+
+        [Required(ErrorMessage = "Phương thức thanh toán không được để trống")]
+        public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CashOnDelivery;
     }
 
     public class UpdateOrderStatusDTO

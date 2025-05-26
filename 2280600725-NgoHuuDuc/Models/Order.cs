@@ -22,6 +22,10 @@ namespace NgoHuuDuc_2280600725.Models
         [Display(Name = "Trạng thái")]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
+        [Required(ErrorMessage = "Phương thức thanh toán không được để trống")]
+        [Display(Name = "Phương thức thanh toán")]
+        public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CashOnDelivery;
+
         [ForeignKey("UserId")]
         [ValidateNever]
         public ApplicationUser? User { get; set; }

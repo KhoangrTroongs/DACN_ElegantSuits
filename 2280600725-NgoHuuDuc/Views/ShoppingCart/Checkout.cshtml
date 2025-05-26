@@ -36,6 +36,36 @@
                             <textarea id="Notes" name="Notes" class="form-control" rows="3"></textarea>
                         </div>
 
+                        <div class="mb-3">
+                            <label class="form-label">Phương thức thanh toán</label>
+                            <div class="payment-methods">
+                                <div class="form-check payment-option">
+                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="cod" value="0" checked>
+                                    <label class="form-check-label payment-label" for="cod">
+                                        <div class="payment-icon">
+                                            <i class="fas fa-truck"></i>
+                                        </div>
+                                        <div class="payment-info">
+                                            <strong>Thanh toán khi nhận hàng (COD)</strong>
+                                            <small class="text-muted d-block">Thanh toán bằng tiền mặt khi nhận hàng</small>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="form-check payment-option">
+                                    <input class="form-check-input" type="radio" name="PaymentMethod" id="online" value="1">
+                                    <label class="form-check-label payment-label" for="online">
+                                        <div class="payment-icon">
+                                            <i class="fas fa-credit-card"></i>
+                                        </div>
+                                        <div class="payment-info">
+                                            <strong>Thanh toán online</strong>
+                                            <small class="text-muted d-block">Thanh toán qua thẻ tín dụng, ví điện tử</small>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary">Place Order</button>
                         </div>
@@ -91,3 +121,81 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+
+<style>
+.payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.payment-option {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+    margin-bottom: 0;
+}
+
+.payment-option:hover {
+    border-color: #007bff;
+    background-color: #f8f9fa;
+}
+
+.payment-option input[type="radio"]:checked + .payment-label {
+    color: #007bff;
+}
+
+.payment-option input[type="radio"]:checked {
+    border-color: #007bff;
+}
+
+.payment-option input[type="radio"]:checked ~ * {
+    border-color: #007bff;
+}
+
+.payment-option:has(input[type="radio"]:checked) {
+    border-color: #007bff;
+    background-color: #e7f3ff;
+}
+
+.payment-label {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.payment-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    color: #6c757d;
+    font-size: 18px;
+}
+
+.payment-option:has(input[type="radio"]:checked) .payment-icon {
+    background-color: #007bff;
+    color: white;
+}
+
+.payment-info {
+    flex: 1;
+}
+
+.payment-info strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.form-check-input {
+    margin-top: 0;
+    margin-right: 10px;
+}
+</style>
