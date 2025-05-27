@@ -344,7 +344,7 @@
         <!-- Tiêu đề phần sản phẩm nổi bật -->
         <div class="col-12 text-center mb-5">
             <h2 class="display-5 fw-bold text-elegant-gold">Sản phẩm nổi bật</h2>
-            <p class="lead">Khám phá bộ sưu tập mới nhất của chúng tôi</p>
+            <p class="lead m-3">Khám phá bộ sưu tập mới nhất của chúng tôi</p>
             <div class="elegant-divider mb-4"></div>
         </div>
 
@@ -365,7 +365,7 @@
                             <!-- Carousel wrapper -->
                             <div id="carousel-@category.Key.Replace(" ", "")" class="carousel slide" data-bs-interval="false">
                                 <!-- Indicators -->
-                                <div class="carousel-indicators">
+                                <div class="carousel-indicators p-3">
                                     @for (int i = 0; i < (displayedProducts + 3) / 4; i++)
                                     {
                                         <button type="button"
@@ -469,22 +469,86 @@
         <hr class="featurette-divider">
 
         <div class="row featurette mb-5">
-            <div class="col-md-7 order-md-2">
-                <h2 class="featurette-heading fw-normal lh-1">Về Elegant Suits <span class="text-body-secondary">Đẳng cấp và phong cách</span></h2>
-                <p class="lead">Elegant Suits là thương hiệu thời trang nam cao cấp chuyên cung cấp các sản phẩm vest, quần tây, áo sơ mi với chất lượng hàng đầu.</p>
-                <p>Chúng tôi cam kết:</p>
-                <ul>
-                    <li>Sử dụng chất liệu cao cấp, nhập khẩu từ các thương hiệu nổi tiếng</li>
-                    <li>Thiết kế tinh tế, phù hợp với xu hướng thời trang hiện đại</li>
-                    <li>Đa dạng mẫu mã, kích cỡ phù hợp với mọi vóc dáng</li>
-                    <li>Dịch vụ chăm sóc khách hàng tận tâm</li>
-                </ul>
-                <p><a href="#" class="btn btn-elegant-secondary mt-3">Tìm hiểu thêm về chúng tôi</a></p>
-            </div>
-            <div class="col-md-5 order-md-1">
-                <img class="bd-placeholder-img bd-placeholder-img-lg featurette-image img-fluid mx-auto rounded-5 shadow" width="500" height="500" src="~/images/img/maydo.jpg" alt="Elegant Suits" style="border: 3px solid var(--elegant-gold-light);">
+            <div class="col-12">
+                <h2 class="featurette-heading fw-normal lh-1 text-center mb-4">Khám phá showroom Elegant Suits <span class="text-body-secondary">Tour 360°</span></h2>
+                <p class="lead text-center mb-4">Trải nghiệm không gian mua sắm đẳng cấp của chúng tôi qua tour ảo 360 độ</p>
+                <div class="position-relative rounded-4 overflow-hidden shadow-lg" style="border: 3px solid var(--elegant-gold-light);">
+                    <iframe id="tour-embeded"
+                            name="shopvest"
+                            src="https://tour.panoee.net/iframe/683482823a317702201d5755"
+                            frameBorder="0"
+                            width="100%"
+                            height="500px"
+                            scrolling="no"
+                            allowvr="yes"
+                            allow="vr; xr; accelerometer; gyroscope; autoplay;"
+                            allowFullScreen="false"
+                            webkitallowfullscreen="false"
+                            mozallowfullscreen="false"
+                            loading="eager"
+                            class="w-100">
+                    </iframe>
+                </div>
+                <div class="text-center mt-4">
+                    <p class="text-muted mb-2">
+                        <i class="fas fa-mouse-pointer me-2"></i>Kéo để xoay •
+                        <i class="fas fa-search-plus me-2"></i>Cuộn để zoom •
+                        <i class="fas fa-mobile-alt me-2"></i>Hỗ trợ VR trên mobile
+                    </p>
+                    <a href="#products" class="btn btn-elegant-primary me-3">Xem sản phẩm</a>
+                    <a href="#contact" class="btn btn-elegant-secondary">Liên hệ tư vấn</a>
+                </div>
             </div>
         </div>
+
+        <script>
+            var pano_iframe_name = "tour-embeded";
+            window.addEventListener("devicemotion", function(e){
+                var iframe = document.getElementById(pano_iframe_name);
+                if (iframe) {
+                    iframe.contentWindow.postMessage({
+                        type:"devicemotion",
+                        deviceMotionEvent:{
+                            acceleration:{
+                                x:e.acceleration.x,
+                                y:e.acceleration.y,
+                                z:e.acceleration.z
+                            },
+                            accelerationIncludingGravity:{
+                                x:e.accelerationIncludingGravity.x,
+                                y:e.accelerationIncludingGravity.y,
+                                z:e.accelerationIncludingGravity.z
+                            },
+                            rotationRate:{
+                                alpha:e.rotationRate.alpha,
+                                beta:e.rotationRate.beta,
+                                gamma:e.rotationRate.gamma
+                            },
+                            interval:e.interval,
+                            timeStamp:e.timeStamp
+                        }
+                    }, "*");
+                }
+            });
+
+            // Responsive iframe height adjustment
+            function adjustIframeHeight() {
+                var iframe = document.getElementById('tour-embeded');
+                if (iframe) {
+                    if (window.innerWidth < 768) {
+                        iframe.style.height = '300px';
+                    } else if (window.innerWidth < 992) {
+                        iframe.style.height = '400px';
+                    } else {
+                        iframe.style.height = '500px';
+                    }
+                }
+            }
+
+            // Adjust on load and resize
+            window.addEventListener('load', adjustIframeHeight);
+            window.addEventListener('resize', adjustIframeHeight);
+        </script>
 
         <hr class="featurette-divider">
 
