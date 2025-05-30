@@ -34,7 +34,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index(int? categoryId, int pageNumber = 1)
+        public async Task<IActionResult> Index(int? categoryId, int pageNumber = 1, string sortBy = "", string order = "asc")
         {
             const int pageSize = 12; // 12 sản phẩm mỗi trang
 
@@ -46,10 +46,15 @@ namespace NgoHuuDuc_2280600725.Controllers
                 ViewBag.CurrentPage = pageNumber;
                 ViewBag.PageSize = pageSize;
 
+                // Pass sorting parameters to view
+                ViewBag.SortBy = sortBy;
+                ViewBag.Order = order;
+                ViewBag.CurrentSort = !string.IsNullOrEmpty(sortBy) ? $"{sortBy}-{order}" : "";
+
                 // Nếu là admin, hiển thị tất cả sản phẩm, ngược lại chỉ hiển thị sản phẩm không bị ẩn
                 var products = User.IsInRole("Administrator")
-                    ? await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize)
-                    : await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, false);
+                    ? await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, null, sortBy, order)
+                    : await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, false, sortBy, order);
 
                 if (products == null || products.Count == 0)
                 {
@@ -90,7 +95,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> Search(string keyword, int pageNumber = 1)
+        public async Task<IActionResult> Search(string keyword, int pageNumber = 1, string sortBy = "", string order = "asc")
         {
             if (string.IsNullOrWhiteSpace(keyword))
             {
@@ -107,10 +112,15 @@ namespace NgoHuuDuc_2280600725.Controllers
                 ViewBag.CurrentPage = pageNumber;
                 ViewBag.PageSize = pageSize;
 
+                // Pass sorting parameters to view
+                ViewBag.SortBy = sortBy;
+                ViewBag.Order = order;
+                ViewBag.CurrentSort = !string.IsNullOrEmpty(sortBy) ? $"{sortBy}-{order}" : "";
+
                 // Nếu là admin, hiển thị tất cả sản phẩm, ngược lại chỉ hiển thị sản phẩm không bị ẩn
                 var products = User.IsInRole("Administrator")
-                    ? await _productRepository.SearchProductsAsync(keyword, pageNumber, pageSize)
-                    : await _productRepository.SearchProductsAsync(keyword, pageNumber, pageSize, false);
+                    ? await _productRepository.SearchProductsAsync(keyword, pageNumber, pageSize, true, sortBy, order)
+                    : await _productRepository.SearchProductsAsync(keyword, pageNumber, pageSize, false, sortBy, order);
 
                 if (products == null || products.Count == 0)
                 {

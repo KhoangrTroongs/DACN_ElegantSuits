@@ -10,7 +10,6 @@ const Checkout = () => {
   const { currentUser } = useContext(AuthContext);
   const [shippingAddress, setShippingAddress] = useState(currentUser?.address || '');
   const [notes, setNotes] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState(0); // 0 = COD, 1 = Online
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -36,8 +35,7 @@ const Checkout = () => {
     try {
       const response = await axios.post('/api/Orders', {
         shippingAddress,
-        notes,
-        paymentMethod
+        notes
       });
 
       if (response.data.isSuccess) {
@@ -129,30 +127,6 @@ const Checkout = () => {
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Nhập ghi chú cho đơn hàng (nếu có)"
                     />
-                  </Form.Group>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label>Phương thức thanh toán</Form.Label>
-                    <div>
-                      <Form.Check
-                        type="radio"
-                        id="cod"
-                        name="paymentMethod"
-                        label="Thanh toán khi nhận hàng (COD)"
-                        value={0}
-                        checked={paymentMethod === 0}
-                        onChange={(e) => setPaymentMethod(parseInt(e.target.value))}
-                      />
-                      <Form.Check
-                        type="radio"
-                        id="online"
-                        name="paymentMethod"
-                        label="Thanh toán online"
-                        value={1}
-                        checked={paymentMethod === 1}
-                        onChange={(e) => setPaymentMethod(parseInt(e.target.value))}
-                      />
-                    </div>
                   </Form.Group>
 
                   <Button

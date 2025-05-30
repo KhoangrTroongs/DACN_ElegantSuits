@@ -169,6 +169,108 @@ namespace NgoHuuDuc_2280600725.Responsitories
             return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
         }
 
+        public async Task<PaginatedList<Product>> GetProductsByCategoryAsync(int? categoryId, int pageIndex, int pageSize, bool? includeHidden, string sortBy = "", string order = "asc")
+        {
+            var query = _context.Products.Include(p => p.Category).AsQueryable();
+
+            // Apply category filter
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            // Apply hidden filter
+            if (includeHidden.HasValue && !includeHidden.Value)
+            {
+                query = query.Where(p => !p.IsHidden);
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                switch (sortBy.ToLower())
+                {
+                    case "price":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Price)
+                            : query.OrderBy(p => p.Price);
+                        break;
+                    case "name":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Name)
+                            : query.OrderBy(p => p.Name);
+                        break;
+                    case "stock":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Quantity)
+                            : query.OrderBy(p => p.Quantity);
+                        break;
+                    default:
+                        // Default sorting by name ascending
+                        query = query.OrderBy(p => p.Name);
+                        break;
+                }
+            }
+            else
+            {
+                // Default sorting by name ascending
+                query = query.OrderBy(p => p.Name);
+            }
+
+            return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
+        }
+
+        public async Task<PaginatedList<Product>> SearchProductsAsync(string keyword, int pageIndex, int pageSize, bool includeHidden, string sortBy = "", string order = "asc")
+        {
+            if (string.IsNullOrWhiteSpace(keyword))
+                return await GetProductsByCategoryAsync(null, pageIndex, pageSize, includeHidden, sortBy, order);
+
+            keyword = keyword.ToLower();
+            var query = _context.Products
+                .Include(p => p.Category)
+                .Where(p => p.Name.ToLower().Contains(keyword) ||
+                           p.Description.ToLower().Contains(keyword) ||
+                           p.Category.Name.ToLower().Contains(keyword));
+
+            if (!includeHidden)
+            {
+                query = query.Where(p => !p.IsHidden);
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                switch (sortBy.ToLower())
+                {
+                    case "price":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Price)
+                            : query.OrderBy(p => p.Price);
+                        break;
+                    case "name":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Name)
+                            : query.OrderBy(p => p.Name);
+                        break;
+                    case "stock":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Quantity)
+                            : query.OrderBy(p => p.Quantity);
+                        break;
+                    default:
+                        // Default sorting by name ascending
+                        query = query.OrderBy(p => p.Name);
+                        break;
+                }
+            }
+            else
+            {
+                // Default sorting by name ascending
+                query = query.OrderBy(p => p.Name);
+            }
+
+            return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
+        }
 
     }
 }

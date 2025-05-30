@@ -139,8 +139,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     TotalPrice = cart.Items.Sum(i => i.Price * i.Quantity),
                     Status = OrderStatus.Pending,
                     ShippingAddress = order.ShippingAddress,
-                    Notes = order.Notes,
-                    PaymentMethod = order.PaymentMethod
+                    Notes = order.Notes
                 };
 
                 _context.Orders.Add(newOrder);

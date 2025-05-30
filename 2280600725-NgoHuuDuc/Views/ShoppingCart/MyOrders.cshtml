@@ -42,7 +42,7 @@
                                 <th>Mã đơn hàng</th>
                                 <th>Ngày đặt</th>
                                 <th>Tổng tiền</th>
-                                <th>Phương thức thanh toán</th>
+                                <th>Địa chỉ giao hàng</th>
                                 <th>Trạng thái</th>
                                 <th>Thao tác</th>
                             </tr>
@@ -54,17 +54,7 @@
                                     <td>@order.Id</td>
                                     <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td>@order.TotalPrice.ToString("C0")</td>
-                                    <td>
-                                        @{
-                                            var paymentIcon = order.PaymentMethod switch
-                                            {
-                                                PaymentMethod.CashOnDelivery => "fas fa-truck",
-                                                PaymentMethod.OnlinePayment => "fas fa-credit-card",
-                                                _ => "fas fa-question"
-                                            };
-                                        }
-                                        <i class="@paymentIcon me-1"></i>@order.PaymentMethod.GetDisplayName()
-                                    </td>
+                                    <td>@order.ShippingAddress</td>
                                     <td>
                                         @{
                                             var badgeClass = order.Status switch

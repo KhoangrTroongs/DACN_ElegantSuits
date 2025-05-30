@@ -37,18 +37,6 @@
                     <p><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
                     <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("C0")</p>
                     <p>
-                        <strong>Phương thức thanh toán:</strong>
-                        @{
-                            var paymentIcon = Model.PaymentMethod switch
-                            {
-                                PaymentMethod.CashOnDelivery => "fas fa-truck",
-                                PaymentMethod.OnlinePayment => "fas fa-credit-card",
-                                _ => "fas fa-question"
-                            };
-                        }
-                        <i class="@paymentIcon me-1"></i>@Model.PaymentMethod.GetDisplayName()
-                    </p>
-                    <p>
                         <strong>Trạng thái:</strong>
                         @{
                             var badgeClass = Model.Status switch

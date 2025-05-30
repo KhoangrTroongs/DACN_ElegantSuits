@@ -1,4 +1,0 @@
-Đã thêm cột IsHidden vào bảng Products
-
-(1 rows affected)
-Migration history updated successfully.

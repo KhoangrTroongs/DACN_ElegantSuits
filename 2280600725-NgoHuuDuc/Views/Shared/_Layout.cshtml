@@ -11,6 +11,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    @* Render custom styles from individual views *@
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="d-flex flex-column h-100 @(User.IsInRole("Administrator") ? "admin-mode" : "")" style="padding-top: 70px;">
     <!-- Back to top button -->
@@ -167,13 +170,21 @@
         // Cart count update
         function updateCartCount() {
             if (document.querySelector('.cart-count')) {
-                $.get('/Home/GetCartCount', function(response) {
-                    if (response.count > 0) {
-                        $('.cart-count').html(`${response.count}<span class="visually-hidden">items in cart</span>`);
-                    } else {
+                console.log('Updating cart count...');
+                $.get('/Home/GetCartCount')
+                    .done(function(response) {
+                        console.log('Cart count response:', response);
+                        if (response.count > 0) {
+                            $('.cart-count').html(`${response.count}<span class="visually-hidden">items in cart</span>`);
+                        } else {
+                            $('.cart-count').empty();
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        console.error('Cart count error:', status, error);
+                        console.error('Response:', xhr.responseText);
                         $('.cart-count').empty();
-                    }
-                });
+                    });
             }
         }
 

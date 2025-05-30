@@ -11,14 +11,29 @@
             </div>
             <div class="card-body p-0">
                 <div class="list-group category-list-elegant">
-                    <a href="@Url.Action("Index", "Product")" class="list-group-item list-group-item-action @(ViewBag.SelectedCategory == null ? "active" : "")">
+                    @{
+                        var sortParams = new Dictionary<string, string>();
+                        if (!string.IsNullOrEmpty(ViewBag.SortBy?.ToString()))
+                        {
+                            sortParams.Add("sortBy", ViewBag.SortBy.ToString());
+                        }
+                        if (!string.IsNullOrEmpty(ViewBag.Order?.ToString()))
+                        {
+                            sortParams.Add("order", ViewBag.Order.ToString());
+                        }
+                    }
+
+                    <a href="@Url.Action("Index", "Product", sortParams)" class="list-group-item list-group-item-action @(ViewBag.SelectedCategory == null ? "active" : "")">
                         <i class="fas fa-tags me-2"></i>Tất cả danh mục
                     </a>
                     @if (ViewBag.Categories != null)
                     {
                         foreach (var category in ViewBag.Categories)
                         {
-                            <a href="@Url.Action("Index", "Product", new { categoryId = category.Id })"
+                            var categoryParams = new Dictionary<string, string>(sortParams);
+                            categoryParams.Add("categoryId", category.Id.ToString());
+
+                            <a href="@Url.Action("Index", "Product", categoryParams)"
                                class="list-group-item list-group-item-action @(ViewBag.SelectedCategory?.Id == category.Id ? "active" : "")">
                                 <i class="fas fa-tag me-2"></i>@category.Name
                             </a>
@@ -44,14 +59,99 @@
     </div>
     <div class="col-md-10">
         <div class="dashboard-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>
-                    <i class="fas fa-tshirt me-2"></i>
-                    @(ViewBag.SelectedCategory == null ? "Tất cả sản phẩm" : ViewBag.SelectedCategory?.Name ?? "Danh mục không xác định")
-                </span>
-                <span class="badge bg-primary">@(ViewBag.TotalItems ?? 0) sản phẩm</span>
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span>
+                        <i class="fas fa-tshirt me-2"></i>
+                        @(ViewBag.SelectedCategory == null ? "Tất cả sản phẩm" : ViewBag.SelectedCategory?.Name ?? "Danh mục không xác định")
+                    </span>
+                    <span class="badge bg-primary">@(ViewBag.TotalItems ?? 0) sản phẩm</span>
+                </div>
+
+                <!-- Sorting Controls for All Users -->
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <label class="form-label me-2 mb-0">Sắp xếp theo:</label>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" id="sortDropdown">
+                                <i class="fas fa-sort me-1"></i>
+                                <span id="currentSortText">
+                                    @{
+                                        var currentSort = ViewBag.CurrentSort?.ToString() ?? "";
+                                        var sortText = currentSort switch
+                                        {
+                                            "price-asc" => "Giá: Thấp đến Cao",
+                                            "price-desc" => "Giá: Cao đến Thấp",
+                                            "name-asc" => "Tên: A đến Z",
+                                            "name-desc" => "Tên: Z đến A",
+                                            _ => "Mặc định"
+                                        };
+                                    }
+                                    @sortText
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item sort-option @(ViewBag.CurrentSort == "name-asc" ? "active" : "")" href="#" data-sort="name" data-order="asc">
+                                    <i class="fas fa-sort-alpha-down me-2"></i>Tên: A đến Z
+                                </a></li>
+                                <li><a class="dropdown-item sort-option @(ViewBag.CurrentSort == "name-desc" ? "active" : "")" href="#" data-sort="name" data-order="desc">
+                                    <i class="fas fa-sort-alpha-up me-2"></i>Tên: Z đến A
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item sort-option @(ViewBag.CurrentSort == "price-asc" ? "active" : "")" href="#" data-sort="price" data-order="asc">
+                                    <i class="fas fa-sort-numeric-down me-2"></i>Giá: Thấp đến Cao
+                                </a></li>
+                                <li><a class="dropdown-item sort-option @(ViewBag.CurrentSort == "price-desc" ? "active" : "")" href="#" data-sort="price" data-order="desc">
+                                    <i class="fas fa-sort-numeric-up me-2"></i>Giá: Cao đến Thấp
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    @if (!User.IsInRole("Administrator"))
+                    {
+                        <div class="d-flex align-items-center">
+                            <div class="input-group input-group-sm" style="width: 250px;">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm sản phẩm..." value="@ViewBag.SearchKeyword">
+                                <button class="btn btn-elegant-primary" type="button" id="searchBtn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
             </div>
             <div class="card-body">
+                @* Display TempData messages *@
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Warning"] != null)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Warning"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Info"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <i class="fas fa-info-circle me-2"></i>@TempData["Info"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
                 @if (User.IsInRole("Administrator"))
                 {
                     <div class="mb-3 d-flex justify-content-between align-items-center">
@@ -235,9 +335,17 @@
                                                         <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-elegant-secondary" title="Chi tiết">
                                                             <i class="fas fa-info-circle"></i>
                                                         </a>
-                                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger" title="Xóa">
-                                                            <i class="fas fa-trash-alt"></i>
-                                                        </a>
+                                                        @if (item.Quantity > 0)
+                                                        {
+                                                            <button type="button" class="btn btn-secondary" disabled title="Không thể xóa sản phẩm còn hàng. Vui lòng ẩn sản phẩm hoặc cập nhật tồn kho về 0 trước khi xóa.">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </button>
+                                                        }
+                                                        {
+                                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger" title="Xóa sản phẩm">
+                                                                <i class="fas fa-trash-alt"></i>
+                                                            </a>
+                                                        }
                                                         <button type="button" class="btn btn-success quick-edit-btn"
                                                                 data-id="@item.Id"
                                                                 data-name="@item.Name"
@@ -386,9 +494,89 @@
     </div>
 </div>
 
+@section Styles {
+    <style>
+        .sort-option.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .sort-option.active i {
+            color: white;
+        }
+
+        .dropdown-menu .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown-menu .dropdown-item.active:hover {
+            background-color: #0056b3;
+        }
+
+        /* Disabled delete button styling */
+        .btn-group .btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-group .btn[disabled]:hover {
+            opacity: 0.5;
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Sorting functionality
+            $('.sort-option').click(function(e) {
+                e.preventDefault();
+                var sortBy = $(this).data('sort');
+                var order = $(this).data('order');
+                var categoryId = '@ViewBag.CategoryId';
+
+                // Build URL with sorting parameters
+                var url = '@Url.Action("Index", "Product")';
+                var params = [];
+
+                if (categoryId && categoryId !== '') {
+                    params.push('categoryId=' + categoryId);
+                }
+                params.push('sortBy=' + sortBy);
+                params.push('order=' + order);
+
+                if (params.length > 0) {
+                    url += '?' + params.join('&');
+                }
+
+                // Navigate to sorted results
+                window.location.href = url;
+            });
+
+            // Search functionality
+            $('#searchBtn').click(function() {
+                var keyword = $('#searchInput').val().trim();
+                if (keyword) {
+                    var url = '@Url.Action("Search", "Product")' + '?keyword=' + encodeURIComponent(keyword);
+                    window.location.href = url;
+                } else {
+                    window.location.href = '@Url.Action("Index", "Product")';
+                }
+            });
+
+            // Search on Enter key
+            $('#searchInput').keypress(function(e) {
+                if (e.which === 13) {
+                    $('#searchBtn').click();
+                }
+            });
+
+            // Initialize Bootstrap tooltips for disabled delete buttons
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"], [title]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
             // Add hover effect to product cards
             $('.card-elegant').hover(function() {
                 $(this).addClass('shadow-lg').css('cursor', 'pointer');

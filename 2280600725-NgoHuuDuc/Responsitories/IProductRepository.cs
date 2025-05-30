@@ -9,6 +9,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
 
         Task<PaginatedList<Product>> GetProductsByCategoryAsync(int? categoryId, int pageIndex, int pageSize);
         Task<PaginatedList<Product>> GetProductsByCategoryAsync(int? categoryId, int pageIndex, int pageSize, bool includeHidden);
+        Task<PaginatedList<Product>> GetProductsByCategoryAsync(int? categoryId, int pageIndex, int pageSize, bool? includeHidden, string sortBy = "", string order = "asc");
 
         Task<Product> GetProductByIdAsync(int id);
         Task AddProductAsync(Product product);
@@ -20,6 +21,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
 
         Task<PaginatedList<Product>> SearchProductsAsync(string keyword, int pageIndex, int pageSize);
         Task<PaginatedList<Product>> SearchProductsAsync(string keyword, int pageIndex, int pageSize, bool includeHidden);
+        Task<PaginatedList<Product>> SearchProductsAsync(string keyword, int pageIndex, int pageSize, bool includeHidden, string sortBy = "", string order = "asc");
 
     }
 }

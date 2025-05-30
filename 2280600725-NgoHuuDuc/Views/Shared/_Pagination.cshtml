@@ -20,6 +20,16 @@
     {
         routeValues.Add("categoryId", ViewBag.CategoryId.ToString());
     }
+
+    // Add sorting parameters if they exist
+    if (ViewBag.SortBy != null && !string.IsNullOrEmpty(ViewBag.SortBy.ToString()))
+    {
+        routeValues.Add("sortBy", ViewBag.SortBy.ToString());
+    }
+    if (ViewBag.Order != null && !string.IsNullOrEmpty(ViewBag.Order.ToString()))
+    {
+        routeValues.Add("order", ViewBag.Order.ToString());
+    }
 }
 
 @if (totalPages > 1)

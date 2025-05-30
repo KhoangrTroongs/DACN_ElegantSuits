@@ -258,17 +258,41 @@ namespace NgoHuuDuc_2280600725.Controllers
             return Json(new { success = false });
         }
 
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetCartCount()
         {
-            var userId = User.Identity.Name;
-            var cart = await _context.Carts
-                .Include(c => c.Items)
-                .FirstOrDefaultAsync(c => c.UserId == userId);
+            try
+            {
+                // Kiểm tra authentication
+                if (!User.Identity.IsAuthenticated)
+                {
+                    Console.WriteLine("GetCartCount - User not authenticated");
+                    return Json(new { count = 0 });
+                }
 
-            var count = cart?.Items.Sum(x => x.Quantity) ?? 0;
-            return Json(new { count });
+                var userId = User.Identity.Name;
+                Console.WriteLine($"GetCartCount - User ID: {userId}");
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    Console.WriteLine("GetCartCount - User ID is null or empty");
+                    return Json(new { count = 0 });
+                }
+
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                var count = cart?.Items.Sum(x => x.Quantity) ?? 0;
+                Console.WriteLine($"GetCartCount - Cart count: {count}");
+
+                return Json(new { count });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetCartCount Error: {ex.Message}");
+                return Json(new { count = 0 });
+            }
         }
 
         [Authorize]
@@ -319,6 +343,60 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
 
             return Json(new { success = false });
+        }
+
+        // Test method để debug GetCartCount
+        [HttpGet]
+        public async Task<IActionResult> TestCartCount()
+        {
+            try
+            {
+                Console.WriteLine("=== TEST CART COUNT START ===");
+                Console.WriteLine($"User.Identity.IsAuthenticated: {User.Identity?.IsAuthenticated}");
+                Console.WriteLine($"User.Identity.Name: {User.Identity?.Name}");
+
+                if (!User.Identity.IsAuthenticated)
+                {
+                    return Json(new {
+                        success = false,
+                        message = "User not authenticated",
+                        isAuthenticated = false
+                    });
+                }
+
+                var userId = User.Identity.Name;
+                Console.WriteLine($"UserId: {userId}");
+
+                var cart = await _context.Carts
+                    .Include(c => c.Items)
+                    .FirstOrDefaultAsync(c => c.UserId == userId);
+
+                Console.WriteLine($"Cart found: {cart != null}");
+                Console.WriteLine($"Cart items count: {cart?.Items?.Count ?? 0}");
+
+                var totalQuantity = cart?.Items.Sum(x => x.Quantity) ?? 0;
+                Console.WriteLine($"Total quantity: {totalQuantity}");
+
+                return Json(new {
+                    success = true,
+                    isAuthenticated = true,
+                    userId = userId,
+                    cartFound = cart != null,
+                    itemsCount = cart?.Items?.Count ?? 0,
+                    totalQuantity = totalQuantity,
+                    message = "Test completed successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"TestCartCount Error: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return Json(new {
+                    success = false,
+                    message = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
+            }
         }
     }
 }
