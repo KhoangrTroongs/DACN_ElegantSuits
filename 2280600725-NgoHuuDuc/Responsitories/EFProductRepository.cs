@@ -272,5 +272,55 @@ namespace NgoHuuDuc_2280600725.Responsitories
             return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
         }
 
+        public async Task<PaginatedList<Product>> GetProductsByCategoryAsync(int? categoryId, int pageIndex, int pageSize, bool? includeHidden, string sortBy = "", string order = "asc", bool? inStock = null)
+        {
+            var query = _context.Products.Include(p => p.Category).AsQueryable();
+
+            // Apply category filter
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            // Apply hidden filter
+            if (includeHidden.HasValue && !includeHidden.Value)
+            {
+                query = query.Where(p => !p.IsHidden);
+            }
+
+            // Apply stock filter
+            if (inStock.HasValue)
+            {
+                query = inStock.Value
+                    ? query.Where(p => p.Quantity > 0)
+                    : query.Where(p => p.Quantity == 0);
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                switch (sortBy.ToLower())
+                {
+                    case "price":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Price)
+                            : query.OrderBy(p => p.Price);
+                        break;
+                    case "name":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Name)
+                            : query.OrderBy(p => p.Name);
+                        break;
+                    case "stock":
+                        query = order.ToLower() == "desc"
+                            ? query.OrderByDescending(p => p.Quantity)
+                            : query.OrderBy(p => p.Quantity);
+                        break;
+                }
+            }
+
+            return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
+        }
+
     }
 }

@@ -23,9 +23,8 @@
                 <div class="card-header">
                     <h5 class="mb-0">Thông tin đơn hàng</h5>
                 </div>
-                <div class="card-body">
-                    <p><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("C0")</p>
+                <div class="card-body">                    <p><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("N0")đ</p>
                     <p>
                         <strong>Trạng thái:</strong>
                         @{
@@ -101,18 +100,16 @@
                                         {
                                             <span class="text-muted">-</span>
                                         }
-                                    </td>
-                                    <td>@item.Price.ToString("C0")</td>
+                                    </td>                                    <td>@item.Price.ToString("N0")đ</td>
                                     <td>@item.Quantity</td>
-                                    <td>@((item.Price * item.Quantity).ToString("C0"))</td>
+                                    <td>@((item.Price * item.Quantity).ToString("N0"))đ</td>
                                 </tr>
                             }
                         }
                     </tbody>
                     <tfoot>
-                        <tr>
-                            <td colspan="4" class="text-end"><strong>Tổng cộng:</strong></td>
-                            <td><strong>@Model.TotalPrice.ToString("C0")</strong></td>
+                        <tr>                            <td colspan="4" class="text-end"><strong>Tổng cộng:</strong></td>
+                            <td><strong>@Model.TotalPrice.ToString("N0")đ</strong></td>
                         </tr>
                     </tfoot>
                 </table>

@@ -1124,46 +1124,37 @@
                     $.each(rows, function(index, row) {
                         $('tbody').append(row);
                     });
-                });
-
-                // Filtering functionality
+                });                // Filtering functionality
                 $('.filter-option').click(function(e) {
                     e.preventDefault();
                     var filterType = $(this).data('filter');
+                    var categoryId = '@ViewBag.CategoryId';
+                    var sortBy = '@ViewBag.SortBy';
+                    var order = '@ViewBag.Order';
 
-                    // Highlight active filter
-                    $('.filter-option').removeClass('active');
-                    $(this).addClass('active');
+                    // Build URL with filtering parameters
+                    var url = '@Url.Action("Index", "Product")';
+                    var params = [];
 
-                    // Show all rows first
-                    $('tbody tr').show();
-
-                    // Apply filter
-                    if (filterType === 'in-stock') {
-                        $('tbody tr').each(function() {
-                            var stockText = $(this).find('.product-stock').text();
-                            if (stockText === 'Hết hàng') {
-                                $(this).hide();
-                            }
-                        });
-                    } else if (filterType === 'out-of-stock') {
-                        $('tbody tr').each(function() {
-                            var stockText = $(this).find('.product-stock').text();
-                            if (stockText !== 'Hết hàng') {
-                                $(this).hide();
-                            }
-                        });
+                    if (categoryId && categoryId !== '') {
+                        params.push('categoryId=' + categoryId);
+                    }
+                    if (sortBy && sortBy !== '') {
+                        params.push('sortBy=' + sortBy);
+                    }
+                    if (order && order !== '') {
+                        params.push('order=' + order);
+                    }
+                    if (filterType) {
+                        params.push('filter=' + filterType);
                     }
 
-                    // Update selected count after filtering
-                    updateSelectedCount();
+                    if (params.length > 0) {
+                        url += '?' + params.join('&');
+                    }
 
-                    // Update filter button text
-                    var filterText = 'Lọc';
-                    if (filterType === 'in-stock') filterText = 'Còn hàng';
-                    else if (filterType === 'out-of-stock') filterText = 'Hết hàng';
-
-                    $('.btn-group:last .dropdown-toggle').html('<i class="fas fa-filter me-1"></i>' + filterText);
+                    // Navigate to filtered results
+                    window.location.href = url;
                 });
 
                 // Quick edit functionality
@@ -1576,6 +1567,17 @@
                     });
                 }
             });
+
+            // Hiển thị trạng thái bộ lọc hiện tại trên nút Lọc
+            var currentFilter = '@ViewBag.CurrentFilter';
+            var filterText = 'Lọc';
+            if (currentFilter === 'in-stock') filterText = 'Còn hàng';
+            else if (currentFilter === 'out-of-stock') filterText = 'Hết hàng';
+
+            $('.btn-group:last .dropdown-toggle').html('<i class="fas fa-filter me-1"></i>' + filterText);
+
+            // Highlight active filter option
+            $('.filter-option[data-filter="' + currentFilter + '"]').addClass('active');
         });
     </script>
 

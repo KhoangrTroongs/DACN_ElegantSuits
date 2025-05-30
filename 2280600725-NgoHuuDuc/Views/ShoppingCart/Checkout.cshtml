@@ -5,7 +5,7 @@
 @inject ApplicationDbContext Context
 
 <div class="container mt-4">
-    <h2 class="mb-4">Checkout</h2>
+    <h2 class="mb-4">Thanh Toán</h2>
 
     @if (TempData["ErrorMessage"] != null)
     {
@@ -19,25 +19,25 @@
         <div class="col-md-8">
             <div class="card mb-4">
                 <div class="card-header">
-                    <h5 class="mb-0">Shipping Information</h5>
+                    <h5 class="mb-0">Thông Tin Giao Hàng</h5>
                 </div>
                 <div class="card-body">
                     <form asp-action="Checkout" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         <div class="mb-3">
-                            <label for="ShippingAddress" class="form-label">Shipping Address</label>
+                            <label for="ShippingAddress" class="form-label">Địa Chỉ Giao Hàng</label>
                             <textarea id="ShippingAddress" name="ShippingAddress" class="form-control" rows="3" required></textarea>
                             <span asp-validation-for="ShippingAddress" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label for="Notes" class="form-label">Order Notes (Optional)</label>
+                            <label for="Notes" class="form-label">Ghi Chú Đơn Hàng (Không bắt buộc)</label>
                             <textarea id="Notes" name="Notes" class="form-control" rows="3"></textarea>
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Place Order</button>
+                            <button type="submit" class="btn btn-primary">Đặt Hàng</button>
                         </div>
                     </form>
                 </div>
@@ -47,7 +47,7 @@
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Order Summary</h5>
+                    <h5 class="mb-0">Tổng Quan Đơn Hàng</h5>
                 </div>
                 <div class="card-body">
                     @{
@@ -62,23 +62,21 @@
                                 @foreach (var item in cart.Items)
                                 {
                                     <li class="list-group-item d-flex justify-content-between lh-sm">
-                                        <div>
-                                            <h6 class="my-0">@item.ProductName</h6>
-                                            <small class="text-muted">@item.Quantity x @item.Price.ToString("C")</small>
+                                        <div>                                            <h6 class="my-0">@item.ProductName</h6>
+                                            <small class="text-muted">@item.Quantity x @item.Price.ToString("N0")đ</small>
                                         </div>
-                                        <span class="text-muted">@((item.Price * item.Quantity).ToString("C"))</span>
+                                        <span class="text-muted">@((item.Price * item.Quantity).ToString("N0"))đ</span>
                                     </li>
-                                }
-                                <li class="list-group-item d-flex justify-content-between">
-                                    <span>Total</span>
-                                    <strong>@cart.Items.Sum(i => i.Price * i.Quantity).ToString("C")</strong>
+                                }                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Tổng Cộng</span>
+                                    <strong>@cart.Items.Sum(i => i.Price * i.Quantity).ToString("N0")đ</strong>
                                 </li>
                             </ul>
                         }
                         else
                         {
                             <div class="alert alert-warning">
-                                Your cart is empty. Please add items to your cart before checkout.
+                                Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi thanh toán.
                             </div>
                         }
                     }

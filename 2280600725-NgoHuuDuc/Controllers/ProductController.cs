@@ -34,7 +34,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index(int? categoryId, int pageNumber = 1, string sortBy = "", string order = "asc")
+        public async Task<IActionResult> Index(int? categoryId, int pageNumber = 1, string sortBy = "", string order = "asc", string filter = "")
         {
             const int pageSize = 12; // 12 sản phẩm mỗi trang
 
@@ -51,10 +51,18 @@ namespace NgoHuuDuc_2280600725.Controllers
                 ViewBag.Order = order;
                 ViewBag.CurrentSort = !string.IsNullOrEmpty(sortBy) ? $"{sortBy}-{order}" : "";
 
+                // Pass filter to view
+                ViewBag.CurrentFilter = filter;
+
+                // Convert filter to bool?
+                bool? inStock = null;
+                if (filter == "in-stock") inStock = true;
+                else if (filter == "out-of-stock") inStock = false;
+
                 // Nếu là admin, hiển thị tất cả sản phẩm, ngược lại chỉ hiển thị sản phẩm không bị ẩn
                 var products = User.IsInRole("Administrator")
-                    ? await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, null, sortBy, order)
-                    : await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, false, sortBy, order);
+                    ? await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, null, sortBy, order, inStock)
+                    : await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, false, sortBy, order, inStock);
 
                 if (products == null || products.Count == 0)
                 {
@@ -90,7 +98,6 @@ namespace NgoHuuDuc_2280600725.Controllers
                 TempData["Error"] = "Có lỗi xảy ra khi tải danh sách sản phẩm.";
                 // Trả về một danh sách rỗng thay vì null
                 return View(new PaginatedList<Product>(new List<Product>(), 0, pageNumber, pageSize));
-                // return RedirectToAction("Index");
             }
         }
 
