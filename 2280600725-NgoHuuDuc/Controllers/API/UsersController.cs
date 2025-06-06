@@ -136,41 +136,6 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
         }
 
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<ResponseDTO<bool>>> DeleteUser(string id)
-        {
-            try
-            {
-                // Kiểm tra quyền: chỉ admin hoặc chính chủ mới được xóa user này
-                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var isAdmin = User.IsInRole("Administrator");
-                
-                if (currentUserId != id && !isAdmin)
-                {
-                    return Forbid();
-                }
 
-                // Xóa user theo id
-                var result = await _userService.DeleteUserAsync(id);
-                if (!result)
-                {
-                    return NotFound(ResponseDTO<bool>.Fail("User not found."));
-                }
-
-                return Ok(ResponseDTO<bool>.Success(true, "User deleted successfully."));
-            }
-            catch (UnauthorizedAccessException)
-            {
-                // Nếu không có quyền thì trả về 403
-                return Forbid();
-            }
-            catch (Exception ex)
-            {
-                // Ghi log lỗi khi xóa user
-                _logger.LogError(ex, "Error deleting user {Id}", id);
-                return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while deleting the user."));
-            }
-        }
     }
 }

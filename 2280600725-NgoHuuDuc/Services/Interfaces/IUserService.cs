@@ -8,6 +8,6 @@ namespace NgoHuuDuc_2280600725.Services.Interfaces
         Task<UserDTO?> GetUserByIdAsync(string id);
         Task<UserDTO?> GetCurrentUserAsync();
         Task<UserDTO?> UpdateUserAsync(string id, UpdateUserDTO userDto, IFormFile? avatarFile);
-        Task<bool> DeleteUserAsync(string id);
+
     }
 }

@@ -98,20 +98,7 @@ namespace NgoHuuDuc_2280600725.Services
             return MapToUserDTO(user);
         }
 
-        public async Task<bool> DeleteUserAsync(string id)
-        {
-            // Kiểm tra quyền: chỉ cho phép chính chủ hoặc admin xóa user này
-            var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole("Administrator") ?? false;
-            
-            if (currentUserId != id && !isAdmin)
-            {
-                throw new UnauthorizedAccessException("You are not authorized to delete this user.");
-            }
 
-            var result = await _userRepository.DeleteUserAsync(id);
-            return result.Succeeded;
-        }
 
         private async Task<string> SaveAvatar(IFormFile avatar)
         {

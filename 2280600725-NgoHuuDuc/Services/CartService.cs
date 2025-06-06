@@ -210,7 +210,8 @@ namespace NgoHuuDuc_2280600725.Services
                     ProductName = i.ProductName,
                     Price = i.Price,
                     Quantity = i.Quantity,
-                    ImageUrl = i.ImageUrl
+                    ImageUrl = i.ImageUrl,
+                    Size = i.Size
                 }).ToList(),
                 CreatedAt = cart.CreatedAt,
                 UpdatedAt = cart.UpdatedAt

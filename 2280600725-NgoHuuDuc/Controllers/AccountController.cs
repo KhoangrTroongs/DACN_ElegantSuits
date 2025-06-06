@@ -459,22 +459,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             return View(model);
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Administrator")]
-        public async Task<IActionResult> Delete(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                return NotFound();
-            }
 
-            var userDetails = await _userRepository.GetUserDetailsAsync(id);
-            if (userDetails == null)
-            {
-                return NotFound();
-            }
-            return View(userDetails);
-        }
 
         [HttpPost]
         [Authorize(Roles = "Administrator")]
@@ -557,50 +542,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost, ActionName("Delete")]
-        [Authorize(Roles = "Administrator")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(string id)
-        {
-            // Kiểm tra xem người dùng có phải là admin duy nhất không
-            var userToDelete = await _userRepository.GetUserByIdAsync(id);
-            if (userToDelete == null)
-            {
-                TempData["ErrorMessage"] = "Không tìm thấy người dùng.";
-                return RedirectToAction(nameof(Index));
-            }
 
-            // Kiểm tra xem người dùng có vai trò Administrator không
-            var userRoles = await _userRepository.GetUserRolesAsync(id);
-            if (userRoles.Contains("Administrator"))
-            {
-                // Kiểm tra xem có admin nào khác không
-                var adminUsers = await _userRepository.GetUsersInRoleAsync("Administrator");
-                if (adminUsers.Count <= 1) // Chỉ có người dùng này là admin
-                {
-                    TempData["ErrorMessage"] = "Không thể xóa quản trị viên duy nhất của hệ thống.";
-                    return RedirectToAction(nameof(Index));
-                }
-            }
-
-            // Kiểm tra xem người dùng có phải là người dùng hiện tại không
-            var currentUser = await _userRepository.GetCurrentUserAsync();
-            if (currentUser?.Id == id || currentUser?.Email == userToDelete.Email)
-            {
-                TempData["ErrorMessage"] = "Không thể xóa tài khoản của chính bạn.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var result = await _userRepository.DeleteUserAsync(id);
-            if (result.Succeeded)
-            {
-                TempData["SuccessMessage"] = "Xóa người dùng thành công.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            TempData["ErrorMessage"] = $"Không thể xóa người dùng: {string.Join(", ", result.Errors.Select(e => e.Description))}";
-            return RedirectToAction(nameof(Index));
-        }
 
         private void AddErrors(IdentityResult result)
         {

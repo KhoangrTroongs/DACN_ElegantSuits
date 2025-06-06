@@ -85,13 +85,6 @@ namespace NgoHuuDuc_2280600725.Responsitories
                 // Bật tính năng khóa tài khoản sau nhiều lần đăng nhập sai (lockoutOnFailure: true)
                 var result = await _signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: true);
 
-                // Nếu đăng nhập thành công, có thể cập nhật thời gian đăng nhập cuối (nếu cần)
-                if (result.Succeeded)
-                {
-                    // Tạm thời bỏ cập nhật LastLoginTime vì chưa có migration
-                    // user.LastLoginTime = DateTime.Now;
-                    // await _userManager.UpdateAsync(user);
-                }
 
                 return result;
             }

@@ -461,8 +461,8 @@
                                         {
                                             @if (item.Quantity > 0)
                                             {
-                                                <a href="#" class="btn btn-elegant-primary add-to-cart" data-product-id="@item.Id">
-                                                    <i class="fas fa-cart-plus me-1"></i>Thêm vào giỏ
+                                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-elegant-primary">
+                                                    <i class="fas fa-cart-plus me-1"></i>Chọn size
                                                 </a>
                                             }
                                             else

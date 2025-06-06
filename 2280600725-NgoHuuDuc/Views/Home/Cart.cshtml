@@ -12,6 +12,7 @@
                         <thead>
                             <tr>
                                 <th>Sản Phẩm</th>
+                                <th>Size</th>
                                 <th>Giá</th>
                                 <th>Số Lượng</th>
                                 <th>Tổng</th>
@@ -24,10 +25,14 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="@item.ImageUrl" style="width:50px; height:50px; object-fit:cover" class="me-2" /> 
+                                            <img src="@item.ImageUrl" alt="@item.ProductName" style="width:50px; height:50px; object-fit:cover" class="me-2" />
                                             <span>@item.ProductName</span>
                                         </div>
-                                    </td>                            <td>@item.Price.ToString("N0")đ</td>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@(item.Size ?? "Chưa chọn")</span>
+                                    </td>
+                                    <td>@item.Price.ToString("N0")đ</td>
                                     <td>
                                         <div class="input-group" style="width: 120px;">
                                             <button class="btn btn-outline-secondary btn-sm quantity-btn" data-action="decrease" data-product-id="@item.ProductId">-</button>
@@ -49,8 +54,8 @@
                         </tbody>
                         <tfoot>
                             <tr>                                
-                                <td colspan="3" class="text-end"><strong>Tổng Cộng:</strong></td>
-                                <td><strong>@Model.Sum(i => i.Price * i.Quantity).ToString("N0")đ</strong></td>
+                                <td colspan="4" class="text-end"><strong>Tổng Cộng:</strong></td>
+                                <td><strong id="cart-total">@Model.Sum(i => i.Price * i.Quantity).ToString("N0")đ</strong></td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -116,19 +121,19 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            quantityInput.val(currentQuantity);                            // Cập nhật tổng tiền của sản phẩm
-                            const price = parseFloat(button.closest('tr').find('td:eq(1)').text().replace('đ', '').replace(/\./g, '').replace(/,/g, ''));
+                            quantityInput.val(currentQuantity);                            // Cập nhật tổng tiền của sản phẩm (cần điều chỉnh index vì đã thêm cột Size)
+                            const price = parseFloat(button.closest('tr').find('td:eq(2)').text().replace('đ', '').replace(/\./g, '').replace(/,/g, ''));
                             const newTotal = Math.round(price * currentQuantity).toLocaleString('vi-VN');
                             button.closest('tr').find('.item-total').text(newTotal + 'đ');
-                            
-                            // Cập nhật tổng tiền giỏ hàng
+
+                            // Cập nhật tổng tiền giỏ hàng (chỉ cập nhật số tiền, giữ nguyên label "Tổng Cộng:")
                             let cartTotal = 0;
                             $('.item-total').each(function() {
                                 const itemText = $(this).text();
                                 const itemValue = parseFloat(itemText.replace('đ', '').replace(/\./g, '').replace(/,/g, ''));
                                 cartTotal += itemValue;
                             });
-                            $('tfoot strong').text(Math.round(cartTotal).toLocaleString('vi-VN') + 'đ');
+                            $('#cart-total').text(Math.round(cartTotal).toLocaleString('vi-VN') + 'đ');
                             
                             // Cập nhật số lượng trên biểu tượng giỏ hàng
                             $('.cart-count').text(response.cartCount);

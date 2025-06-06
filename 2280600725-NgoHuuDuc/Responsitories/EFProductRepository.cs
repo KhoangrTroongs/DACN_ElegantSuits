@@ -158,8 +158,8 @@ namespace NgoHuuDuc_2280600725.Responsitories
             var query = _context.Products
                 .Include(p => p.Category)
                 .Where(p => p.Name.ToLower().Contains(keyword) ||
-                           p.Description.ToLower().Contains(keyword) ||
-                           p.Category.Name.ToLower().Contains(keyword));
+                            p.Description.ToLower().Contains(keyword) ||
+                            p.Category.Name.ToLower().Contains(keyword));
 
             if (!includeHidden)
             {
@@ -230,8 +230,8 @@ namespace NgoHuuDuc_2280600725.Responsitories
             var query = _context.Products
                 .Include(p => p.Category)
                 .Where(p => p.Name.ToLower().Contains(keyword) ||
-                           p.Description.ToLower().Contains(keyword) ||
-                           p.Category.Name.ToLower().Contains(keyword));
+                            p.Description.ToLower().Contains(keyword) ||
+                            p.Category.Name.ToLower().Contains(keyword));
 
             if (!includeHidden)
             {
