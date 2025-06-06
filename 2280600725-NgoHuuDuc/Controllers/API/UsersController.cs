@@ -29,11 +29,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy danh sách tất cả user (chỉ cho admin)
                 var users = await _userService.GetAllUsersAsync();
                 return Ok(ResponseDTO<IEnumerable<UserDTO>>.Success(users));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy danh sách user
                 _logger.LogError(ex, "Error getting users");
                 return StatusCode(500, ResponseDTO<IEnumerable<UserDTO>>.Fail("An error occurred while retrieving users."));
             }
@@ -45,7 +47,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
-                // Check if user is authorized to view this user
+                // Kiểm tra quyền: chỉ admin hoặc chính chủ mới được xem thông tin user này
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var isAdmin = User.IsInRole("Administrator");
                 
@@ -63,6 +65,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy user theo id
                 _logger.LogError(ex, "Error getting user {Id}", id);
                 return StatusCode(500, ResponseDTO<UserDTO>.Fail("An error occurred while retrieving the user."));
             }
@@ -74,6 +77,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy user hiện tại dựa trên context đăng nhập
                 var user = await _userService.GetCurrentUserAsync();
                 if (user == null)
                 {
@@ -83,6 +87,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy user hiện tại
                 _logger.LogError(ex, "Error getting current user");
                 return StatusCode(500, ResponseDTO<UserDTO>.Fail("An error occurred while retrieving the current user."));
             }
@@ -94,7 +99,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
-                // Check if user is authorized to update this user
+                // Kiểm tra quyền: chỉ admin hoặc chính chủ mới được cập nhật user này
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var isAdmin = User.IsInRole("Administrator");
                 
@@ -103,11 +108,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return Forbid();
                 }
 
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<UserDTO>.Fail("Invalid user data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Cập nhật thông tin user
                 var user = await _userService.UpdateUserAsync(id, userDto, avatarFile);
                 if (user == null)
                 {
@@ -118,10 +125,12 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (UnauthorizedAccessException)
             {
+                // Nếu không có quyền thì trả về 403
                 return Forbid();
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi cập nhật user
                 _logger.LogError(ex, "Error updating user {Id}", id);
                 return StatusCode(500, ResponseDTO<UserDTO>.Fail("An error occurred while updating the user."));
             }
@@ -133,7 +142,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
-                // Check if user is authorized to delete this user
+                // Kiểm tra quyền: chỉ admin hoặc chính chủ mới được xóa user này
                 var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var isAdmin = User.IsInRole("Administrator");
                 
@@ -142,6 +151,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return Forbid();
                 }
 
+                // Xóa user theo id
                 var result = await _userService.DeleteUserAsync(id);
                 if (!result)
                 {
@@ -152,10 +162,12 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (UnauthorizedAccessException)
             {
+                // Nếu không có quyền thì trả về 403
                 return Forbid();
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi xóa user
                 _logger.LogError(ex, "Error deleting user {Id}", id);
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while deleting the user."));
             }

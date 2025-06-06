@@ -39,10 +39,10 @@ namespace NgoHuuDuc_2280600725.Controllers
         {
             try
             {
-                // Tạo query cơ bản
+                // Tạo query cơ bản lấy sản phẩm, bao gồm cả thông tin danh mục
                 var query = _context.Products.Include(p => p.Category).AsQueryable();
 
-                // Áp dụng lọc theo ID nếu có
+                // Áp dụng lọc theo danh sách ID nếu có
                 if (!string.IsNullOrEmpty(ids))
                 {
                     var productIds = ids.Split(',')
@@ -62,7 +62,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     query = query.Where(p => p.CategoryId == categoryId.Value);
                 }
 
-                // Áp dụng lọc theo tình trạng tồn kho
+                // Áp dụng lọc theo tồn kho
                 if (!string.IsNullOrEmpty(stockFilter))
                 {
                     if (stockFilter == "in-stock")
@@ -86,7 +86,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     query = query.Where(p => p.Price <= priceMax.Value);
                 }
 
-                // Áp dụng sắp xếp
+                // Áp dụng sắp xếp theo yêu cầu
                 if (!string.IsNullOrEmpty(sortBy))
                 {
                     switch (sortBy)
@@ -131,31 +131,29 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                 if (products.Count == 0)
                 {
-                    // Trả về thông báo lỗi dưới dạng JSON để JavaScript có thể xử lý
+                    // Nếu không có sản phẩm nào, trả về JSON báo lỗi cho phía client xử lý
                     return Json(new {
                         success = false,
                         message = "Không tìm thấy sản phẩm nào thỏa mãn điều kiện lọc"
                     });
                 }
 
-                // Tạo file Excel sử dụng EPPlus
+                // Tạo file Excel sử dụng thư viện EPPlus
                 using (var package = new OfficeOpenXml.ExcelPackage())
                 {
-                    // Tạo một worksheet
+                    // Tạo worksheet mới
                     var worksheet = package.Workbook.Worksheets.Add("Products");
 
-                    // Thiết lập header
+                    // Thiết lập header cho các cột
                     int col = 1;
                     worksheet.Cells[1, col++].Value = "ID";
                     worksheet.Cells[1, col++].Value = "Tên sản phẩm";
                     worksheet.Cells[1, col++].Value = "Danh mục";
                     worksheet.Cells[1, col++].Value = "Giá";
                     worksheet.Cells[1, col++].Value = "Tồn kho";
-
-                    // Thêm cột kích thước
                     worksheet.Cells[1, col++].Value = "Kích thước";
 
-                    // Định dạng header
+                    // Định dạng header (in đậm, màu nền, màu chữ)
                     using (var range = worksheet.Cells[1, 1, 1, col - 1])
                     {
                         range.Style.Font.Bold = true;
@@ -164,7 +162,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                         range.Style.Font.Color.SetColor(System.Drawing.Color.Black);
                     }
 
-                    // Thêm dữ liệu
+                    // Thêm dữ liệu từng sản phẩm vào file Excel
                     for (int i = 0; i < products.Count; i++)
                     {
                         var product = products[i];
@@ -177,7 +175,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                         worksheet.Cells[row, col++].Value = product.Price;
                         worksheet.Cells[row, col++].Value = product.Quantity;
 
-                        // Trích xuất thông tin kích thước
+                        // Trích xuất thông tin kích thước từ mô tả sản phẩm (nếu có)
                         string sizeInfo = "Không có thông tin";
                         if (!string.IsNullOrEmpty(product.Description))
                         {
@@ -198,13 +196,11 @@ namespace NgoHuuDuc_2280600725.Controllers
                         worksheet.Cells[row, col++].Value = sizeInfo;
                     }
 
-                    // Tự động điều chỉnh độ rộng cột
+                    // Tự động điều chỉnh độ rộng các cột cho đẹp
                     worksheet.Cells.AutoFitColumns();
 
-                    // Tạo tên file Excel với thông tin về bộ lọc
+                    // Tạo tên file Excel dựa trên các bộ lọc
                     string fileNamePrefix = "Products";
-
-                    // Thêm thông tin về danh mục vào tên file
                     if (categoryId.HasValue && categoryId.Value > 0)
                     {
                         var category = await _context.Categories.FindAsync(categoryId.Value);
@@ -213,20 +209,15 @@ namespace NgoHuuDuc_2280600725.Controllers
                             fileNamePrefix += $"_{category.Name.Replace(" ", "")}";
                         }
                     }
-
-                    // Thêm thông tin về tình trạng tồn kho vào tên file
                     if (!string.IsNullOrEmpty(stockFilter))
                     {
                         fileNamePrefix += $"_{stockFilter}";
                     }
-
-                    // Thêm thông tin về sắp xếp vào tên file
                     if (!string.IsNullOrEmpty(sortBy))
                     {
                         fileNamePrefix += $"_{sortBy}";
                     }
 
-                    // Tạo file Excel
                     var fileName = $"{fileNamePrefix}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                     var fileBytes = package.GetAsByteArray();
 
@@ -235,6 +226,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi xuất Excel và trả về mã lỗi 500
                 _logger.LogError(ex, "Error exporting products to Excel");
                 return StatusCode(500, "Có lỗi xảy ra khi xuất Excel: " + ex.Message);
             }
@@ -353,10 +345,10 @@ namespace NgoHuuDuc_2280600725.Controllers
 
             try
             {
-                // Get all categories
+                // Lấy toàn bộ danh mục để kiểm tra khi import
                 var categories = await _context.Categories.ToListAsync();
 
-                // Get all existing products for update check
+                // Lấy toàn bộ sản phẩm hiện có để kiểm tra cập nhật
                 var existingProducts = new Dictionary<string, Product>();
                 if (updateExisting)
                 {
@@ -419,13 +411,13 @@ namespace NgoHuuDuc_2280600725.Controllers
                         {
                             try
                             {
-                                // Đọc dữ liệu từ các ô
+                                // Đọc dữ liệu từng ô trong dòng
                                 var name = worksheet.Cells[row, 1].Value?.ToString();
                                 var categoryName = worksheet.Cells[row, 2].Value?.ToString();
                                 var priceValue = worksheet.Cells[row, 3].Value;
                                 var description = worksheet.Cells[row, descriptionColumnIndex].Value?.ToString();
 
-                                // Validate data
+                                // Validate dữ liệu tên sản phẩm
                                 if (string.IsNullOrWhiteSpace(name))
                                 {
                                     errors.Add($"Dòng {row}: Tên sản phẩm không được để trống");
@@ -433,7 +425,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                                     continue;
                                 }
 
-                                // Validate category
+                                // Validate danh mục
                                 if (string.IsNullOrWhiteSpace(categoryName))
                                 {
                                     errors.Add($"Dòng {row}: Danh mục không được để trống");
@@ -441,7 +433,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                                     continue;
                                 }
 
-                                // Find category
+                                // Tìm danh mục theo tên
                                 var category = categories.FirstOrDefault(c => c.Name.Equals(categoryName, StringComparison.OrdinalIgnoreCase));
                                 if (category == null)
                                 {
@@ -450,7 +442,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                                     continue;
                                 }
 
-                                // Parse price
+                                // Parse giá sản phẩm
                                 decimal price;
                                 if (priceValue == null || !decimal.TryParse(priceValue.ToString(), out price) || price < 0)
                                 {
@@ -509,7 +501,7 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                                 if (updateExisting && existingProducts.TryGetValue(name.ToLower(), out product))
                                 {
-                                    // Cập nhật sản phẩm đã tồn tại
+                                    // Nếu sản phẩm đã tồn tại, cập nhật lại thông tin
                                     product.CategoryId = category.Id;
                                     product.Price = price;
                                     product.Quantity = totalQuantity;
@@ -545,7 +537,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                                 }
                                 else
                                 {
-                                    // Tạo sản phẩm mới
+                                    // Nếu sản phẩm chưa tồn tại, tạo mới
                                     string finalDescription = description ?? "";
 
                                     // Thêm thông tin kích thước vào mô tả nếu có
@@ -571,10 +563,10 @@ namespace NgoHuuDuc_2280600725.Controllers
                             }
                             catch (Exception ex)
                             {
+                                // Bắt lỗi từng dòng, ghi lại lỗi và tiếp tục nếu skipErrors = true
                                 errors.Add($"Dòng {row}: {ex.Message}");
                                 errorCount++;
 
-                                // Nếu không bỏ qua lỗi, dừng quá trình nhập
                                 if (!skipErrors)
                                 {
                                     break;
@@ -603,6 +595,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Bắt lỗi tổng thể khi import Excel
                 _logger.LogError(ex, "Error importing products: {Message}", ex.Message);
                 return StatusCode(500, "Có lỗi xảy ra khi nhập Excel: " + ex.Message);
             }

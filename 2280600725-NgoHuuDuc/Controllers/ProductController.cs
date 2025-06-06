@@ -40,26 +40,24 @@ namespace NgoHuuDuc_2280600725.Controllers
 
             try
             {
-                // Luôn lấy danh sách danh mục trước
+                // Luôn lấy danh sách danh mục trước để truyền sang view
                 ViewBag.Categories = await _categoryRepository.GetAllCategoriesAsync();
                 ViewBag.CategoryId = categoryId;
                 ViewBag.CurrentPage = pageNumber;
                 ViewBag.PageSize = pageSize;
 
-                // Pass sorting parameters to view
+                // Truyền thông tin sắp xếp và lọc sang view
                 ViewBag.SortBy = sortBy;
                 ViewBag.Order = order;
                 ViewBag.CurrentSort = !string.IsNullOrEmpty(sortBy) ? $"{sortBy}-{order}" : "";
-
-                // Pass filter to view
                 ViewBag.CurrentFilter = filter;
 
-                // Convert filter to bool?
+                // Chuyển đổi filter thành biến bool? để lọc tồn kho
                 bool? inStock = null;
                 if (filter == "in-stock") inStock = true;
                 else if (filter == "out-of-stock") inStock = false;
 
-                // Nếu là admin, hiển thị tất cả sản phẩm, ngược lại chỉ hiển thị sản phẩm không bị ẩn
+                // Nếu là admin thì hiển thị tất cả sản phẩm, ngược lại chỉ hiển thị sản phẩm không bị ẩn
                 var products = User.IsInRole("Administrator")
                     ? await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, null, sortBy, order, inStock)
                     : await _productRepository.GetProductsByCategoryAsync(categoryId, pageNumber, pageSize, false, sortBy, order, inStock);
@@ -77,7 +75,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 }
                 else
                 {
-                    // Chỉ gán các thuộc tính phân trang khi products không null
+                    // Gán các thuộc tính phân trang cho view
                     ViewBag.TotalPages = products.TotalPages;
                     ViewBag.HasPreviousPage = products.HasPreviousPage;
                     ViewBag.HasNextPage = products.HasNextPage;
@@ -94,6 +92,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy danh sách sản phẩm
                 _logger.LogError(ex, "Lỗi khi lấy danh sách sản phẩm");
                 TempData["Error"] = "Có lỗi xảy ra khi tải danh sách sản phẩm.";
                 // Trả về một danh sách rỗng thay vì null
@@ -119,12 +118,12 @@ namespace NgoHuuDuc_2280600725.Controllers
                 ViewBag.CurrentPage = pageNumber;
                 ViewBag.PageSize = pageSize;
 
-                // Pass sorting parameters to view
+                // Truyền thông tin sắp xếp sang view
                 ViewBag.SortBy = sortBy;
                 ViewBag.Order = order;
                 ViewBag.CurrentSort = !string.IsNullOrEmpty(sortBy) ? $"{sortBy}-{order}" : "";
 
-                // Nếu là admin, hiển thị tất cả sản phẩm, ngược lại chỉ hiển thị sản phẩm không bị ẩn
+                // Nếu là admin thì hiển thị tất cả sản phẩm, ngược lại chỉ hiển thị sản phẩm không bị ẩn
                 var products = User.IsInRole("Administrator")
                     ? await _productRepository.SearchProductsAsync(keyword, pageNumber, pageSize, true, sortBy, order)
                     : await _productRepository.SearchProductsAsync(keyword, pageNumber, pageSize, false, sortBy, order);
@@ -141,7 +140,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 }
                 else
                 {
-                    // Chỉ gán các thuộc tính phân trang khi products không null
+                    // Gán các thuộc tính phân trang cho view
                     ViewBag.ResultCount = products.TotalItems;
                     ViewBag.TotalPages = products.TotalPages;
                     ViewBag.HasPreviousPage = products.HasPreviousPage;
@@ -152,6 +151,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi tìm kiếm sản phẩm
                 _logger.LogError(ex, "Lỗi khi tìm kiếm sản phẩm với từ khóa: {Keyword}", keyword);
                 TempData["Error"] = "Có lỗi xảy ra khi tìm kiếm. Vui lòng thử lại sau.";
                 // Trả về một danh sách rỗng thay vì chuyển hướng
@@ -574,7 +574,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
-            // Tạo danh sách kích cỡ từ mô tả sản phẩm
+            // Tạo danh sách kích cỡ từ mô tả sản phẩm (nếu có)
             var sizes = new List<ProductSizeViewModel>();
 
             if (!string.IsNullOrEmpty(product.Description))
@@ -644,7 +644,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
-            // Lưu thông tin kích cỡ vào một trường tạm thời
+            // Lưu thông tin kích cỡ vào một trường tạm thời trong mô tả sản phẩm
             // Format: "S:10,M:20,L:30,XL:40"
             var sizeQuantities = new Dictionary<string, int>();
 
@@ -672,7 +672,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             // Tạo chuỗi kích cỡ mới
             var newSizeSection = string.Join(",", sizeQuantities.Select(kv => $"{kv.Key}:{kv.Value}"));
 
-            // Cập nhật mô tả sản phẩm
+            // Cập nhật mô tả sản phẩm với thông tin kích cỡ mới
             var description = product.Description;
             var sizeTag = "[SIZES]";
             var endSizeTag = "[/SIZES]";
@@ -692,7 +692,7 @@ namespace NgoHuuDuc_2280600725.Controllers
 
             product.Description = description;
 
-            // Cập nhật tổng số lượng sản phẩm
+            // Cập nhật tổng số lượng sản phẩm dựa trên tổng các kích cỡ
             product.Quantity = sizeQuantities.Values.Sum();
 
             await _productRepository.UpdateProductAsync(product);
@@ -781,7 +781,7 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                 product.Description = description;
 
-                // Cập nhật tổng số lượng sản phẩm
+                // Cập nhật tổng số lượng sản phẩm dựa trên tổng các kích cỡ
                 product.Quantity = sizeQuantities.Values.Sum();
 
                 await _productRepository.UpdateProductAsync(product);

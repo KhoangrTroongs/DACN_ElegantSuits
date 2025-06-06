@@ -21,30 +21,31 @@ namespace NgoHuuDuc_2280600725.Controllers
         {
             if (string.IsNullOrEmpty(filePath))
             {
+                // Nếu không truyền đường dẫn file thì trả về 404
                 return NotFound();
             }
 
-            // Sanitize the file path to prevent directory traversal attacks
+            // Làm sạch đường dẫn để tránh tấn công directory traversal
             filePath = filePath.Replace("..", "").Replace("\\", "/").TrimStart('/');
 
-            // Only allow access to files in the models directory
+            // Chỉ cho phép truy cập file trong thư mục models/products
             if (!filePath.StartsWith("products/"))
             {
                 _logger.LogWarning("Attempted to access file outside of models/products directory: {FilePath}", filePath);
                 return NotFound();
             }
 
-            // Construct the full path to the file
+            // Ghép đường dẫn vật lý đầy đủ tới file trong wwwroot/models
             var fullPath = Path.Combine(_webHostEnvironment.WebRootPath, "models", filePath);
 
-            // Check if the file exists
+            // Kiểm tra file có tồn tại không
             if (!System.IO.File.Exists(fullPath))
             {
                 _logger.LogWarning("Model file not found: {FilePath}", fullPath);
                 return NotFound();
             }
 
-            // Determine the content type based on the file extension
+            // Xác định content-type trả về dựa vào phần mở rộng file
             var extension = Path.GetExtension(fullPath).ToLowerInvariant();
             var contentType = extension switch
             {
@@ -54,7 +55,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 _ => "application/octet-stream"
             };
 
-            // Return the file
+            // Trả về file vật lý với content-type phù hợp
             return PhysicalFile(fullPath, contentType);
         }
     }

@@ -26,6 +26,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         // GET: Order
         public async Task<IActionResult> Index()
         {
+            // Lấy danh sách tất cả đơn hàng, bao gồm thông tin người dùng, sắp xếp theo ngày đặt hàng mới nhất
             var orders = await _context.Orders
                 .Include(o => o.User)
                 .OrderByDescending(o => o.OrderDate)
@@ -37,6 +38,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         // GET: Order/Details/5
         public async Task<IActionResult> Details(int id)
         {
+            // Lấy chi tiết đơn hàng theo id, bao gồm thông tin user và các sản phẩm trong đơn hàng
             var order = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderDetails)
@@ -56,12 +58,14 @@ namespace NgoHuuDuc_2280600725.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, OrderStatus status)
         {
+            // Tìm đơn hàng theo id
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
                 return NotFound();
             }
 
+            // Cập nhật trạng thái đơn hàng và lưu lại
             order.Status = status;
             await _context.SaveChangesAsync();
 

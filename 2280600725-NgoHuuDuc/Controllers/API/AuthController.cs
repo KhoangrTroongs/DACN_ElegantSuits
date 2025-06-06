@@ -27,21 +27,26 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào có hợp lệ không
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<AuthResponseDTO>.Fail("Invalid login data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Gọi service để xử lý đăng nhập
                 var result = await _authService.LoginAsync(loginDto);
                 if (!result.IsSuccess)
                 {
+                    // Nếu đăng nhập thất bại, trả về lỗi 401
                     return Unauthorized(ResponseDTO<AuthResponseDTO>.Fail(result.Message ?? "Invalid login attempt."));
                 }
 
+                // Đăng nhập thành công, trả về token và thông tin user
                 return Ok(ResponseDTO<AuthResponseDTO>.Success(result));
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi đăng nhập và log lại
                 _logger.LogError(ex, "Error during login for user {Email}", loginDto.Email);
                 return StatusCode(500, ResponseDTO<AuthResponseDTO>.Fail("An error occurred during login."));
             }
@@ -54,21 +59,26 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào có hợp lệ không
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<AuthResponseDTO>.Fail("Invalid registration data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Gọi service để xử lý đăng ký
                 var result = await _authService.RegisterAsync(registerDto);
                 if (!result.IsSuccess)
                 {
+                    // Nếu đăng ký thất bại, trả về lỗi 400 kèm thông báo lỗi chi tiết
                     return BadRequest(ResponseDTO<AuthResponseDTO>.Fail(result.Message ?? "Registration failed.", result.Roles));
                 }
 
+                // Đăng ký thành công, trả về token và thông tin user
                 return Ok(ResponseDTO<AuthResponseDTO>.Success(result));
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi đăng ký và log lại
                 _logger.LogError(ex, "Error during registration for user {Email}", registerDto.Email);
                 return StatusCode(500, ResponseDTO<AuthResponseDTO>.Fail("An error occurred during registration."));
             }
@@ -81,11 +91,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Gọi service để xử lý đăng xuất
                 await _authService.LogoutAsync();
                 return Ok(ResponseDTO<bool>.Success(true, "Logged out successfully."));
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi đăng xuất và log lại
                 _logger.LogError(ex, "Error during logout");
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred during logout."));
             }

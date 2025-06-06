@@ -18,6 +18,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         // GET: Category
         public async Task<IActionResult> Index()
         {
+            // Lấy danh sách tất cả danh mục và trả về view
             return View(await _categoryRepository.GetAllCategoriesAsync());
         }
 
@@ -29,6 +30,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
+            // Lấy thông tin chi tiết danh mục theo id
             var category = await _categoryRepository.GetCategoryByIdAsync(id.Value);
             if (category == null)
             {
@@ -41,6 +43,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         // GET: Category/Create
         public IActionResult Create()
         {
+            // Trả về view tạo mới danh mục
             return View();
         }
 
@@ -57,6 +60,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     return View(category);
                 }
 
+                // Kiểm tra trùng tên danh mục
                 var existingCategory = await _categoryRepository.GetCategoryByNameAsync(category.Name);
                 if (existingCategory != null)
                 {
@@ -72,6 +76,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 }
                 catch (Exception ex)
                 {
+                    // Bắt lỗi khi thêm danh mục và hiển thị thông báo lỗi
                     ModelState.AddModelError("", $"Đã xảy ra lỗi: {ex.Message}");
                 }
             }
@@ -86,6 +91,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
+            // Lấy thông tin danh mục cần sửa
             var category = await _categoryRepository.GetCategoryByIdAsync(id.Value);
             if (category == null)
             {
@@ -101,6 +107,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         {
             if (id != category.Id)
             {
+                // Kiểm tra id truyền vào có khớp với id của danh mục không
                 return BadRequest("ID không khớp với danh mục được sửa.");
             }
 
@@ -117,6 +124,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     return View(category);
                 }
 
+                // Kiểm tra trùng tên danh mục (loại trừ chính nó)
                 var existingCategory = await _categoryRepository.GetCategoryByNameAsync(category.Name, category.Id);
                 if (existingCategory != null)
                 {
@@ -130,6 +138,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch
             {
+                // Bắt lỗi khi cập nhật danh mục
                 ModelState.AddModelError("", "Đã xảy ra lỗi khi cập nhật danh mục.");
             }
             return View(category);
@@ -143,6 +152,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
+            // Lấy thông tin danh mục cần xóa
             var category = await _categoryRepository.GetCategoryByIdAsync(id.Value);
             if (category == null)
             {
@@ -157,6 +167,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            // Xóa danh mục theo id
             await _categoryRepository.DeleteCategoryAsync(id);
             return RedirectToAction(nameof(Index));
         }

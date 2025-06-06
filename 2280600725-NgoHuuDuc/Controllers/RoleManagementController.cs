@@ -17,11 +17,13 @@ namespace NgoHuuDuc_2280600725.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Lấy danh sách tất cả user và vai trò hiện tại của từng user để hiển thị
             var users = await _userRepository.GetAllUsersAsync();
             var viewModels = new List<UserRolesViewModel>();
 
             foreach (var user in users)
             {
+                // Lấy danh sách vai trò của từng user
                 var roles = await _userRepository.GetUserRolesAsync(user.Id);
                 viewModels.Add(new UserRolesViewModel
                 {
@@ -37,6 +39,7 @@ namespace NgoHuuDuc_2280600725.Controllers
 
         public async Task<IActionResult> EditRoles(string userId)
         {
+            // Lấy thông tin user và các vai trò hiện tại, tất cả vai trò có thể gán
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)
                 return NotFound();
@@ -60,6 +63,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         [HttpPost]
         public async Task<IActionResult> EditRoles(string userId, List<string> roles)
         {
+            // Cập nhật vai trò cho user
             var result = await _userRepository.UpdateUserRolesAsync(userId, roles);
             if (result.Succeeded)
             {

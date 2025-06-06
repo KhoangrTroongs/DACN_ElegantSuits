@@ -33,16 +33,18 @@ namespace NgoHuuDuc_2280600725.Controllers
         {
             try
             {
-                // Kiểm tra xem bảng ProductSizes đã tồn tại chưa
+                // Kiểm tra xem bảng ProductSizes đã tồn tại chưa bằng cách thực thi câu lệnh SQL
                 var productSizesExists = false;
                 try
                 {
                     var result = await _context.Database.ExecuteSqlRawAsync(
                         "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'ProductSizes'");
+                    // Nếu result > 0 nghĩa là bảng đã tồn tại
                     productSizesExists = result > 0;
                 }
                 catch (Exception ex)
                 {
+                    // Nếu có lỗi khi kiểm tra, ghi log và coi như bảng chưa tồn tại
                     _logger.LogError(ex, "Error checking if ProductSizes table exists");
                     productSizesExists = false;
                 }
@@ -51,7 +53,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 {
                     try
                     {
-                        // Tạo bảng ProductSizes
+                        // Tạo bảng ProductSizes bằng câu lệnh SQL
                         await _context.Database.ExecuteSqlRawAsync(@"
                             CREATE TABLE ProductSizes (
                                 Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -66,6 +68,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     }
                     catch (Exception ex)
                     {
+                        // Ghi log nếu tạo bảng thất bại
                         _logger.LogError(ex, "Error creating ProductSizes table");
                         TempData["Error"] = "Error creating ProductSizes table: " + ex.Message;
                     }
@@ -94,7 +97,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 {
                     try
                     {
-                        // Tạo bảng ProductReviews
+                        // Tạo bảng ProductReviews bằng câu lệnh SQL
                         await _context.Database.ExecuteSqlRawAsync(@"
                             CREATE TABLE ProductReviews (
                                 Id INT IDENTITY(1,1) PRIMARY KEY,
@@ -112,6 +115,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     }
                     catch (Exception ex)
                     {
+                        // Ghi log nếu tạo bảng thất bại
                         _logger.LogError(ex, "Error creating ProductReviews table");
                         TempData["Error"] = (TempData["Error"] ?? "") + " Error creating ProductReviews table: " + ex.Message;
                     }
@@ -122,10 +126,12 @@ namespace NgoHuuDuc_2280600725.Controllers
                     TempData["Info"] = (TempData["Info"] ?? "") + " ProductReviews table already exists.";
                 }
 
+                // Sau khi xử lý xong, chuyển hướng về trang chủ
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
+                // Bắt lỗi tổng thể khi tạo bảng
                 _logger.LogError(ex, "Error creating tables");
                 TempData["Error"] = "Error creating tables: " + ex.Message;
                 return RedirectToAction("Index", "Home");

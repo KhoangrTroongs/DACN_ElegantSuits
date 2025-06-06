@@ -32,16 +32,18 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             {
                 if (model.Id <= 0)
                 {
+                    // Kiểm tra ID sản phẩm hợp lệ
                     return BadRequest(new { success = false, message = "ID sản phẩm không hợp lệ" });
                 }
 
                 var product = await _context.Products.FindAsync(model.Id);
                 if (product == null)
                 {
+                    // Không tìm thấy sản phẩm
                     return NotFound(new { success = false, message = "Không tìm thấy sản phẩm" });
                 }
 
-                // Đảo ngược trạng thái ẩn/hiện
+                // Đảo ngược trạng thái ẩn/hiện sản phẩm (IsHidden)
                 product.IsHidden = !product.IsHidden;
 
                 _context.Products.Update(product);
@@ -61,6 +63,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi cập nhật trạng thái ẩn/hiện sản phẩm
                 _logger.LogError(ex, "Lỗi khi thay đổi trạng thái ẩn/hiện sản phẩm ID {Id}", model.Id);
                 return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi cập nhật trạng thái sản phẩm" });
             }

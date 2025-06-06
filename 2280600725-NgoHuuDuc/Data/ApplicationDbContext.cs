@@ -31,6 +31,7 @@ namespace NgoHuuDuc_2280600725.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
+                // Đọc chuỗi kết nối từ file appsettings.json
                 IConfigurationRoot configuration = new ConfigurationBuilder()
                     .SetBasePath(Directory.GetCurrentDirectory())
                     .AddJsonFile("appsettings.json")
@@ -38,7 +39,7 @@ namespace NgoHuuDuc_2280600725.Data
                 var connectionString = configuration.GetConnectionString("DefaultConnection");
                 optionsBuilder.UseSqlServer(connectionString);
 
-                // Suppress the pending model changes warning
+                // Bỏ qua cảnh báo về các thay đổi mô hình chưa được cập nhật vào database
                 optionsBuilder.ConfigureWarnings(warnings =>
                     warnings.Ignore(RelationalEventId.PendingModelChangesWarning));
             }
@@ -48,7 +49,7 @@ namespace NgoHuuDuc_2280600725.Data
         {
             base.OnModelCreating(builder);
 
-            // Configure Identity tables
+            // Đổi tên các bảng mặc định của Identity để dễ quản lý
             builder.Entity<ApplicationUser>(entity =>
             {
                 entity.ToTable("Users");
@@ -60,51 +61,56 @@ namespace NgoHuuDuc_2280600725.Data
             builder.Entity<IdentityRoleClaim<string>>().ToTable("RoleClaims");
             builder.Entity<IdentityUserToken<string>>().ToTable("UserTokens");
 
-            // Products and Categories configuration
+            // Thiết lập quan hệ giữa Product và Category (1-nhiều)
             builder.Entity<Product>()
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId);
 
+            // Thiết lập quan hệ giữa CartItem và Cart (1-nhiều)
             builder.Entity<CartItem>()
                 .HasOne(ci => ci.Cart)
                 .WithMany(c => c.Items)
                 .HasForeignKey(ci => ci.CartId);
 
+            // Thiết lập quan hệ giữa Order và User (1-nhiều), khi xóa User thì UserId trong Order sẽ thành null
             builder.Entity<Order>()
                 .HasOne(o => o.User)
                 .WithMany()
                 .HasForeignKey(o => o.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // Thiết lập quan hệ giữa OrderDetail và Order (1-nhiều)
             builder.Entity<OrderDetail>()
                 .HasOne(od => od.Order)
                 .WithMany(o => o.OrderDetails)
                 .HasForeignKey(od => od.OrderId);
 
+            // Thiết lập quan hệ giữa OrderDetail và Product (1-nhiều)
             builder.Entity<OrderDetail>()
                 .HasOne(od => od.Product)
                 .WithMany()
                 .HasForeignKey(od => od.ProductId);
 
-            // ProductSize configuration
+            // Thiết lập quan hệ giữa ProductSize và Product (1-nhiều)
             builder.Entity<ProductSize>()
                 .HasOne(ps => ps.Product)
                 .WithMany(p => p.ProductSizes)
                 .HasForeignKey(ps => ps.ProductId);
 
-            // ProductReview configuration
+            // Thiết lập quan hệ giữa ProductReview và Product (1-nhiều)
             builder.Entity<ProductReview>()
                 .HasOne(pr => pr.Product)
                 .WithMany(p => p.ProductReviews)
                 .HasForeignKey(pr => pr.ProductId);
 
+            // Thiết lập quan hệ giữa ProductReview và User (1-nhiều)
             builder.Entity<ProductReview>()
                 .HasOne(pr => pr.User)
                 .WithMany()
                 .HasForeignKey(pr => pr.UserId);
 
-            // Seed Categories
+            // Seed dữ liệu mẫu cho bảng Category
             builder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Veston", Description = "Các loại veston xịn xịn" },
                 new Category { Id = 2, Name = "Quần tây", Description = "Các loại quần tây tây - chất chơi người dơi" },
@@ -114,6 +120,7 @@ namespace NgoHuuDuc_2280600725.Data
             );
         }
 
+        // Hàm seed role cho hệ thống, tạo các role nếu chưa có
         public async Task SeedRolesAsync(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();

@@ -89,6 +89,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     }
                     catch (Exception ex)
                     {
+                        // Ghi lại lỗi khi xóa từng sản phẩm
                         errors.Add($"Lỗi khi xóa sản phẩm ID {id}: {ex.Message}");
                         _logger.LogError(ex, "Lỗi khi xóa sản phẩm ID {Id}", id);
                     }
@@ -105,6 +106,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi tổng thể khi xóa hàng loạt
                 _logger.LogError(ex, "Lỗi khi xóa hàng loạt sản phẩm");
                 return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi xóa sản phẩm" });
             }
@@ -143,6 +145,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     }
                     catch (Exception ex)
                     {
+                        // Ghi lại lỗi khi cập nhật từng sản phẩm
                         errors.Add($"Lỗi khi cập nhật sản phẩm ID {id}: {ex.Message}");
                         _logger.LogError(ex, "Lỗi khi cập nhật tồn kho sản phẩm ID {Id}", id);
                     }
@@ -159,6 +162,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi tổng thể khi cập nhật tồn kho hàng loạt
                 _logger.LogError(ex, "Lỗi khi cập nhật tồn kho hàng loạt");
                 return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi cập nhật tồn kho" });
             }
@@ -172,7 +176,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             {
                 if (ids == null || ids.Length == 0)
                 {
-                    // Lấy tất cả sản phẩm nếu không có ID nào được chọn
+                    // Nếu không có ID nào được chọn thì lấy tất cả sản phẩm
                     ids = await _context.Products.Select(p => p.Id).ToArrayAsync();
 
                     if (ids.Length == 0)
@@ -192,7 +196,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return NotFound(new { success = false, message = "Không tìm thấy sản phẩm nào" });
                 }
 
-                // Tạo file Excel bằng cách đơn giản hóa
+                // Tạo file Excel đơn giản với EPPlus
                 var fileName = $"Products_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
                 var filePath = Path.Combine(Path.GetTempPath(), fileName);
 
@@ -200,7 +204,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                 {
                     var worksheet = package.Workbook.Worksheets.Add("Products");
 
-                    // Thiết lập header đơn giản
+                    // Thiết lập header cho file Excel
                     string[] headers = new string[] { "ID", "Tên sản phẩm", "Danh mục", "Giá", "Tồn kho", "Mô tả" };
                     for (int i = 0; i < headers.Length; i++)
                     {
@@ -208,7 +212,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                         worksheet.Cells[1, i + 1].Style.Font.Bold = true;
                     }
 
-                    // Điền dữ liệu
+                    // Điền dữ liệu từng sản phẩm vào file Excel
                     for (int i = 0; i < products.Count; i++)
                     {
                         var product = products[i];
@@ -222,13 +226,14 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                         worksheet.Cells[row, 6].Value = product.Description;
                     }
 
-                    // Lưu file
+                    // Lưu file Excel vào bộ nhớ và trả về cho client
                     var fileBytes = package.GetAsByteArray();
                     return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
                 }
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi xuất Excel
                 _logger.LogError(ex, "Lỗi khi xuất Excel: {Message}", ex.Message);
                 return StatusCode(500, new { success = false, message = $"Có lỗi xảy ra khi xuất Excel: {ex.Message}" });
             }
@@ -253,7 +258,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return NotFound(new { success = false, message = "Không tìm thấy sản phẩm" });
                 }
 
-                // Cập nhật thông tin sản phẩm
+                // Cập nhật thông tin sản phẩm nhanh (tên, giá, số lượng)
                 product.Name = model.Name;
                 product.Price = model.Price;
                 product.Quantity = model.Quantity;
@@ -276,6 +281,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi cập nhật nhanh sản phẩm
                 _logger.LogError(ex, "Lỗi khi sửa nhanh sản phẩm ID {Id}", model.Id);
                 return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi cập nhật sản phẩm" });
             }
@@ -301,7 +307,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
             try
             {
-                // Lấy danh sách danh mục
+                // Lấy danh sách danh mục để kiểm tra khi import
                 var categories = await _context.Categories.ToListAsync();
 
                 using (var stream = new MemoryStream())
@@ -327,12 +333,12 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
                         result.TotalRows = rowCount - 1; // Trừ đi hàng header
 
-                        // Đọc dữ liệu từ Excel
+                        // Đọc dữ liệu từng dòng trong file Excel
                         for (int row = 2; row <= rowCount; row++)
                         {
                             try
                             {
-                                // Đọc dữ liệu từ các ô
+                                // Đọc dữ liệu từng ô
                                 var name = worksheet.Cells[row, 1].Value?.ToString();
                                 var categoryName = worksheet.Cells[row, 2].Value?.ToString();
                                 var priceValue = worksheet.Cells[row, 3].Value;
@@ -396,6 +402,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                             }
                             catch (Exception ex)
                             {
+                                // Ghi lại lỗi từng dòng khi import
                                 result.Errors.Add($"Dòng {row}: {ex.Message}");
                                 result.ErrorCount++;
                             }
@@ -417,6 +424,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi import Excel
                 _logger.LogError(ex, "Lỗi khi nhập Excel: {Message}", ex.Message);
                 return StatusCode(500, new { success = false, message = $"Có lỗi xảy ra khi nhập Excel: {ex.Message}" });
             }
@@ -432,7 +440,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                 {
                     var worksheet = package.Workbook.Worksheets.Add("Template");
 
-                    // Thiết lập header đơn giản
+                    // Thiết lập header cho file Excel mẫu
                     string[] headers = new string[] { "Tên sản phẩm", "Danh mục", "Giá", "Số lượng", "Mô tả" };
                     for (int i = 0; i < headers.Length; i++)
                     {
@@ -440,7 +448,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                         worksheet.Cells[1, i + 1].Style.Font.Bold = true;
                     }
 
-                    // Thêm dữ liệu mẫu
+                    // Thêm dữ liệu mẫu vào file Excel mẫu
                     string[,] sampleData = new string[,]
                     {
                         { "Áo sơ mi nam", "Áo sơ mi", "350000", "10", "Áo sơ mi nam cao cấp" },
@@ -455,13 +463,14 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                         }
                     }
 
-                    // Lưu file
+                    // Lưu file Excel mẫu vào bộ nhớ và trả về cho client
                     var fileBytes = package.GetAsByteArray();
                     return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "ProductImportTemplate.xlsx");
                 }
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi tạo template Excel
                 _logger.LogError(ex, "Lỗi khi tạo template Excel: {Message}", ex.Message);
                 return StatusCode(500, new { success = false, message = $"Có lỗi xảy ra khi tạo template Excel: {ex.Message}" });
             }

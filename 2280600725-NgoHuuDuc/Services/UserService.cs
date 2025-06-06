@@ -28,18 +28,21 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
         {
+            // Lấy toàn bộ danh sách user từ repository và chuyển sang DTO
             var users = await _userRepository.GetAllUsersAsync();
             return users.Select(MapToUserDTO);
         }
 
         public async Task<UserDTO?> GetUserByIdAsync(string id)
         {
+            // Lấy user theo Id, nếu có thì chuyển sang DTO
             var user = await _userRepository.GetUserByIdAsync(id);
             return user != null ? MapToUserDTO(user) : null;
         }
 
         public async Task<UserDTO?> GetCurrentUserAsync()
         {
+            // Lấy user hiện tại dựa trên context đăng nhập
             var user = await _userRepository.GetCurrentUserAsync();
             return user != null ? MapToUserDTO(user) : null;
         }
@@ -52,7 +55,7 @@ namespace NgoHuuDuc_2280600725.Services
                 return null;
             }
 
-            // Check if the current user is authorized to update this user
+            // Kiểm tra quyền: chỉ cho phép chính chủ hoặc admin cập nhật thông tin user này
             var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole("Administrator") ?? false;
             
@@ -61,6 +64,7 @@ namespace NgoHuuDuc_2280600725.Services
                 throw new UnauthorizedAccessException("You are not authorized to update this user.");
             }
 
+            // Cập nhật các trường thông tin cá nhân
             user.FullName = userDto.FullName;
             user.DateOfBirth = userDto.DateOfBirth;
             user.PhoneNumber = userDto.PhoneNumber;
@@ -69,7 +73,7 @@ namespace NgoHuuDuc_2280600725.Services
 
             if (avatarFile != null && avatarFile.Length > 0)
             {
-                // Delete old avatar if it exists and is not the default
+                // Nếu có avatar mới, xóa avatar cũ (nếu không phải avatar mặc định)
                 if (!string.IsNullOrEmpty(user.AvatarUrl) && !user.AvatarUrl.Contains("default-avatar.png"))
                 {
                     var oldAvatarPath = Path.Combine(_webHostEnvironment.WebRootPath, user.AvatarUrl.TrimStart('/'));
@@ -79,13 +83,14 @@ namespace NgoHuuDuc_2280600725.Services
                     }
                 }
 
-                // Save new avatar
+                // Lưu avatar mới và cập nhật đường dẫn
                 user.AvatarUrl = await SaveAvatar(avatarFile);
             }
 
             var result = await _userRepository.UpdateUserAsync(user);
             if (!result.Succeeded)
             {
+                // Nếu cập nhật thất bại, trả về lỗi chi tiết
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to update user: {errors}");
             }
@@ -95,7 +100,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<bool> DeleteUserAsync(string id)
         {
-            // Check if the current user is authorized to delete this user
+            // Kiểm tra quyền: chỉ cho phép chính chủ hoặc admin xóa user này
             var currentUserId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             var isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole("Administrator") ?? false;
             
@@ -110,6 +115,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         private async Task<string> SaveAvatar(IFormFile avatar)
         {
+            // Lưu file avatar vào thư mục wwwroot/images/users và trả về đường dẫn tương đối
             var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images/users");
             Directory.CreateDirectory(uploadsFolder);
 
@@ -126,6 +132,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         private UserDTO MapToUserDTO(ApplicationUser user)
         {
+            // Chuyển đổi ApplicationUser sang UserDTO để trả về cho client
             return new UserDTO
             {
                 Id = user.Id,

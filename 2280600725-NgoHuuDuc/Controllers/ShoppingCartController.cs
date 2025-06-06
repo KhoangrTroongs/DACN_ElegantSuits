@@ -33,6 +33,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
+                // Lấy giỏ hàng của user, bao gồm các sản phẩm trong giỏ
                 var cart = await _context.Carts
                     .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
@@ -48,6 +49,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi load giỏ hàng
                 Console.WriteLine($"Error in ShoppingCart Index: {ex.Message}");
                 TempData["ErrorMessage"] = "An error occurred while loading your cart.";
                 return View(new List<CartItem>());
@@ -66,6 +68,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
+                // Lấy giỏ hàng của user
                 var cart = await _context.Carts
                     .Include(c => c.Items)
                     .ThenInclude(i => i.Product)
@@ -82,6 +85,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi vào trang checkout
                 Console.WriteLine($"Error in Checkout: {ex.Message}"); // Debug logging
                 TempData["ErrorMessage"] = "An error occurred. Please try again.";
                 return RedirectToAction("Index", "ShoppingCart");
@@ -95,6 +99,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             {
                 if (!ModelState.IsValid)
                 {
+                    // Log các lỗi validate để debug
                     foreach (var modelState in ModelState.Values)
                     {
                         foreach (var error in modelState.Errors)
@@ -123,7 +128,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
-                // Lấy thông tin người dùng
+                // Lấy thông tin user thực tế từ UserManager
                 var user = await _userManager.FindByNameAsync(userId);
                 if (user == null)
                 {
@@ -145,13 +150,13 @@ namespace NgoHuuDuc_2280600725.Controllers
                 _context.Orders.Add(newOrder);
                 await _context.SaveChangesAsync();
 
-                // Tạo chi tiết đơn hàng
+                // Tạo chi tiết đơn hàng cho từng sản phẩm trong giỏ
                 foreach (var item in cart.Items)
                 {
                     var product = await _context.Products.FindAsync(item.ProductId);
                     if (product != null)
                     {
-                        // Kiểm tra số lượng
+                        // Kiểm tra số lượng tồn kho
                         if (product.Quantity < item.Quantity)
                         {
                             TempData["ErrorMessage"] = $"Sản phẩm '{item.ProductName}' chỉ còn {product.Quantity} sản phẩm trong kho.";
@@ -172,23 +177,24 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                         _context.Add(orderDetail);
 
-                        // Cập nhật số lượng sản phẩm
+                        // Cập nhật số lượng sản phẩm tồn kho
                         product.Quantity -= item.Quantity;
                         _context.Update(product);
                     }
                 }
 
-                // Xóa giỏ hàng
+                // Xóa giỏ hàng sau khi đặt hàng thành công
                 _context.CartItems.RemoveRange(cart.Items);
                 _context.Carts.Remove(cart);
 
-                // Lưu thay đổi
+                // Lưu thay đổi vào database
                 await _context.SaveChangesAsync();
 
                 return RedirectToAction("OrderCompleted", new { id = newOrder.Id });
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi đặt hàng
                 Console.WriteLine($"Error in Checkout: {ex.Message}");
                 if (ex.InnerException != null)
                 {
@@ -202,12 +208,13 @@ namespace NgoHuuDuc_2280600725.Controllers
 
         public IActionResult OrderCompleted(int id)
         {
+            // Trả về view xác nhận đơn hàng đã hoàn thành
             return View(id);
         }
 
         public async Task<IActionResult> GetOrderSummary()
         {
-            // Kiểm tra nếu đây là một yêu cầu AJAX
+            // Kiểm tra nếu đây là một yêu cầu AJAX để trả về partial view
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
                 var userId = User.Identity?.Name;
@@ -229,7 +236,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             else
             {
-                // Nếu đây là một yêu cầu trực tiếp từ trình duyệt, chuyển hướng đến trang MyOrders
+                // Nếu không phải AJAX thì chuyển hướng về trang MyOrders
                 return RedirectToAction(nameof(MyOrders));
             }
         }
@@ -239,12 +246,14 @@ namespace NgoHuuDuc_2280600725.Controllers
         {
             try
             {
+                // Lấy user hiện tại
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
                     return RedirectToAction("Login", "Account");
                 }
 
+                // Lấy danh sách đơn hàng của user, bao gồm chi tiết đơn hàng và sản phẩm
                 var orders = await _context.Orders
                     .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
@@ -262,6 +271,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi lấy danh sách đơn hàng
                 Console.WriteLine($"Error in MyOrders: {ex.Message}");
                 TempData["ErrorMessage"] = "An error occurred while loading your orders.";
                 return View(new List<Order>());
@@ -273,12 +283,14 @@ namespace NgoHuuDuc_2280600725.Controllers
         {
             try
             {
+                // Lấy user hiện tại
                 var user = await _userManager.GetUserAsync(User);
                 if (user == null)
                 {
                     return RedirectToAction("Login", "Account");
                 }
 
+                // Lấy chi tiết đơn hàng của user
                 var order = await _context.Orders
                     .Include(o => o.OrderDetails)
                     .ThenInclude(od => od.Product)
@@ -294,6 +306,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi lấy chi tiết đơn hàng
                 Console.WriteLine($"Error in OrderDetails: {ex.Message}");
                 TempData["ErrorMessage"] = "An error occurred while loading your order details.";
                 return RedirectToAction(nameof(MyOrders));

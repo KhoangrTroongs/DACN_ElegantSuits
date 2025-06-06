@@ -26,11 +26,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy tất cả danh mục và trả về cho client
                 var categories = await _categoryService.GetAllCategoriesAsync();
                 return Ok(ResponseDTO<IEnumerable<CategoryDTO>>.Success(categories));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy danh mục
                 _logger.LogError(ex, "Error getting categories");
                 return StatusCode(500, ResponseDTO<IEnumerable<CategoryDTO>>.Fail("An error occurred while retrieving categories."));
             }
@@ -42,6 +44,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy danh mục theo id
                 var category = await _categoryService.GetCategoryByIdAsync(id);
                 if (category == null)
                 {
@@ -51,6 +54,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy danh mục theo id
                 _logger.LogError(ex, "Error getting category {Id}", id);
                 return StatusCode(500, ResponseDTO<CategoryDTO>.Fail("An error occurred while retrieving the category."));
             }
@@ -64,21 +68,25 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<CategoryDTO>.Fail("Invalid category data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Thêm danh mục mới
                 var category = await _categoryService.AddCategoryAsync(categoryDto);
                 return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, ResponseDTO<CategoryDTO>.Success(category));
             }
             catch (InvalidOperationException ex)
             {
+                // Bắt lỗi nghiệp vụ (ví dụ: trùng tên)
                 _logger.LogWarning(ex, "Validation error creating category");
                 return BadRequest(ResponseDTO<CategoryDTO>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi thêm danh mục
                 _logger.LogError(ex, "Error creating category");
                 return StatusCode(500, ResponseDTO<CategoryDTO>.Fail("An error occurred while creating the category."));
             }
@@ -91,11 +99,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<CategoryDTO>.Fail("Invalid category data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Cập nhật danh mục
                 var category = await _categoryService.UpdateCategoryAsync(id, categoryDto);
                 if (category == null)
                 {
@@ -106,11 +116,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (InvalidOperationException ex)
             {
+                // Bắt lỗi nghiệp vụ (ví dụ: trùng tên)
                 _logger.LogWarning(ex, "Validation error updating category {Id}", id);
                 return BadRequest(ResponseDTO<CategoryDTO>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi cập nhật danh mục
                 _logger.LogError(ex, "Error updating category {Id}", id);
                 return StatusCode(500, ResponseDTO<CategoryDTO>.Fail("An error occurred while updating the category."));
             }
@@ -123,6 +135,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Xóa danh mục theo id
                 var result = await _categoryService.DeleteCategoryAsync(id);
                 if (!result)
                 {
@@ -133,6 +146,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi xóa danh mục
                 _logger.LogError(ex, "Error deleting category {Id}", id);
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while deleting the category."));
             }

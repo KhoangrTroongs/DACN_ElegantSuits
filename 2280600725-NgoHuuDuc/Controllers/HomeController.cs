@@ -30,17 +30,18 @@ namespace NgoHuuDuc_2280600725.Controllers
         {
             if (User.IsInRole("Administrator"))
             {
+                // Nếu là admin thì chuyển sang trang Dashboard thay vì trang chủ
                 return RedirectToAction(nameof(Dashboard));
             }
 
-            // Lấy danh sách danh mục
+            // Lấy danh sách danh mục sản phẩm
             var categories = await _context.Categories.ToListAsync();
             ViewBag.Categories = categories;
 
-            // Dictionary để lưu trữ sản phẩm theo danh mục
+            // Dictionary để lưu trữ sản phẩm theo từng danh mục
             var productsByCategory = new Dictionary<string, List<Product>>();
 
-            // Lấy 10 sản phẩm mới nhất từ mỗi danh mục
+            // Lấy 10 sản phẩm mới nhất của mỗi danh mục
             foreach (var category in categories)
             {
                 var categoryProducts = await _context.Products
@@ -52,7 +53,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 productsByCategory.Add(category.Name, categoryProducts);
             }
 
-            // Không cần lấy sản phẩm có mô hình 3D nữa vì chúng ta sẽ hiển thị mô hình cố định
+            // Gán dữ liệu sản phẩm theo danh mục cho ViewBag để truyền sang view
             ViewBag.ProductsByCategory = productsByCategory;
 
             return View();
@@ -82,7 +83,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     .Take(5)
                     .ToListAsync();
 
-                // Lấy 5 người dùng mới nhất
+                // Lấy 5 người dùng mới nhất và lấy vai trò của từng người dùng
                 var recentUsers = await _userManager.Users
                     .OrderByDescending(u => u.Id)
                     .Take(5)
@@ -106,6 +107,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi nếu có exception khi load dashboard
                 _logger.LogError(ex, "Error in Dashboard action");
                 return View();
             }
@@ -156,6 +158,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         [Authorize]
         public async Task<IActionResult> Cart()
         {
+            // Lấy giỏ hàng của user hiện tại (theo User.Identity.Name)
             var userId = User.Identity.Name;
             var cart = await _context.Carts
                 .Include(c => c.Items)
@@ -168,6 +171,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, string size = null)
         {
+            // Thêm sản phẩm vào giỏ hàng, có thể kèm theo size
             var userId = User.Identity.Name;
             var product = await _context.Products.FindAsync(productId);
             if (product == null) return NotFound();
@@ -191,8 +195,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 _context.Carts.Add(cart);
             }
 
-            // Nếu có size, tìm cartItem với cùng productId và size
-            // Nếu không có size, tìm cartItem chỉ với productId
+            // Nếu có size thì tìm cartItem theo productId và size, nếu không thì chỉ theo productId
             var cartItem = size != null
                 ? cart.Items.FirstOrDefault(i => i.ProductId == productId && i.Size == size)
                 : cart.Items.FirstOrDefault(i => i.ProductId == productId && i.Size == null);
@@ -231,6 +234,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         [HttpPost]
         public async Task<IActionResult> RemoveFromCart(int productId)
         {
+            // Xóa sản phẩm khỏi giỏ hàng
             var userId = User.Identity.Name;
             var cart = await _context.Carts
                 .Include(c => c.Items)
@@ -290,6 +294,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy số lượng sản phẩm trong giỏ hàng
                 Console.WriteLine($"GetCartCount Error: {ex.Message}");
                 return Json(new { count = 0 });
             }
@@ -311,7 +316,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 var item = cart.Items.FirstOrDefault(i => i.ProductId == productId);
                 if (item != null)
                 {
-                    // Lấy sản phẩm để kiểm tra số lượng
+                    // Lấy sản phẩm để kiểm tra số lượng tồn kho
                     var product = await _context.Products.FindAsync(productId);
                     if (product == null) return Json(new { success = false, message = "Sản phẩm không tồn tại" });
 
@@ -389,6 +394,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi test lấy số lượng sản phẩm trong giỏ hàng
                 Console.WriteLine($"TestCartCount Error: {ex.Message}");
                 Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return Json(new {

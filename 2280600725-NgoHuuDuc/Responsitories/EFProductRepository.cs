@@ -24,10 +24,9 @@ namespace NgoHuuDuc_2280600725.Responsitories
             return await query.ToListAsync();
         }
 
-
-
         public async Task<Product> GetProductByIdAsync(int id)
         {
+            // Lấy sản phẩm theo Id, bao gồm cả thông tin Category liên quan
             return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -58,7 +57,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
                 existingProduct.ImageUrl = product.ImageUrl;
                 existingProduct.Model3DUrl = product.Model3DUrl;
 
-                // Lưu thay đổi
+                // Lưu thay đổi vào database
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
@@ -81,11 +80,13 @@ namespace NgoHuuDuc_2280600725.Responsitories
 
         public async Task<bool> ProductExistsAsync(int id) // Fix: Implement ProductExistsAsync
         {
+            // Kiểm tra xem sản phẩm có tồn tại trong database không
             return await _context.Products.AnyAsync(p => p.Id == id);
         }
 
         public async Task<Product> GetProductWithCategoryByIdAsync(int id) // Fix: Implement GetProductWithCategoryByIdAsync
         {
+            // Lấy sản phẩm theo Id, bao gồm cả thông tin Category liên quan
             return await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
         }
 
@@ -95,6 +96,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
                 return await GetProductsByCategoryAsync(null);
 
             keyword = keyword.ToLower();
+            // Tìm kiếm sản phẩm theo tên, mô tả hoặc tên danh mục (không phân biệt hoa thường)
             return await _context.Products
                 .Include(p => p.Category)
                 .Where(p => p.Name.ToLower().Contains(keyword) ||
@@ -103,8 +105,6 @@ namespace NgoHuuDuc_2280600725.Responsitories
                 .ToListAsync();
         }
 
-
-
         public async Task<PaginatedList<Product>> GetProductsByCategoryAsync(int? categoryId, int pageIndex, int pageSize)
         {
             var query = _context.Products.Include(p => p.Category).AsQueryable();
@@ -112,6 +112,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
             {
                 query = query.Where(p => p.CategoryId == categoryId.Value);
             }
+            // Trả về danh sách phân trang sản phẩm theo danh mục
             return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
         }
 
@@ -126,13 +127,12 @@ namespace NgoHuuDuc_2280600725.Responsitories
 
             if (!includeHidden)
             {
+                // Lọc ra các sản phẩm không bị ẩn
                 query = query.Where(p => !p.IsHidden);
             }
 
             return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
         }
-
-
 
         public async Task<PaginatedList<Product>> SearchProductsAsync(string keyword, int pageIndex, int pageSize)
         {
@@ -163,6 +163,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
 
             if (!includeHidden)
             {
+                // Lọc ra các sản phẩm không bị ẩn
                 query = query.Where(p => !p.IsHidden);
             }
 
@@ -173,19 +174,19 @@ namespace NgoHuuDuc_2280600725.Responsitories
         {
             var query = _context.Products.Include(p => p.Category).AsQueryable();
 
-            // Apply category filter
+            // Lọc theo danh mục nếu có
             if (categoryId.HasValue)
             {
                 query = query.Where(p => p.CategoryId == categoryId.Value);
             }
 
-            // Apply hidden filter
+            // Lọc sản phẩm bị ẩn nếu cần
             if (includeHidden.HasValue && !includeHidden.Value)
             {
                 query = query.Where(p => !p.IsHidden);
             }
 
-            // Apply sorting
+            // Sắp xếp theo trường được chọn (price, name, stock)
             if (!string.IsNullOrEmpty(sortBy))
             {
                 switch (sortBy.ToLower())
@@ -206,14 +207,14 @@ namespace NgoHuuDuc_2280600725.Responsitories
                             : query.OrderBy(p => p.Quantity);
                         break;
                     default:
-                        // Default sorting by name ascending
+                        // Mặc định sắp xếp theo tên tăng dần
                         query = query.OrderBy(p => p.Name);
                         break;
                 }
             }
             else
             {
-                // Default sorting by name ascending
+                // Mặc định sắp xếp theo tên tăng dần
                 query = query.OrderBy(p => p.Name);
             }
 
@@ -234,10 +235,11 @@ namespace NgoHuuDuc_2280600725.Responsitories
 
             if (!includeHidden)
             {
+                // Lọc ra các sản phẩm không bị ẩn
                 query = query.Where(p => !p.IsHidden);
             }
 
-            // Apply sorting
+            // Sắp xếp theo trường được chọn (price, name, stock)
             if (!string.IsNullOrEmpty(sortBy))
             {
                 switch (sortBy.ToLower())
@@ -258,14 +260,14 @@ namespace NgoHuuDuc_2280600725.Responsitories
                             : query.OrderBy(p => p.Quantity);
                         break;
                     default:
-                        // Default sorting by name ascending
+                        // Mặc định sắp xếp theo tên tăng dần
                         query = query.OrderBy(p => p.Name);
                         break;
                 }
             }
             else
             {
-                // Default sorting by name ascending
+                // Mặc định sắp xếp theo tên tăng dần
                 query = query.OrderBy(p => p.Name);
             }
 
@@ -276,19 +278,19 @@ namespace NgoHuuDuc_2280600725.Responsitories
         {
             var query = _context.Products.Include(p => p.Category).AsQueryable();
 
-            // Apply category filter
+            // Lọc theo danh mục nếu có
             if (categoryId.HasValue)
             {
                 query = query.Where(p => p.CategoryId == categoryId.Value);
             }
 
-            // Apply hidden filter
+            // Lọc sản phẩm bị ẩn nếu cần
             if (includeHidden.HasValue && !includeHidden.Value)
             {
                 query = query.Where(p => !p.IsHidden);
             }
 
-            // Apply stock filter
+            // Lọc sản phẩm còn hàng hoặc hết hàng nếu có yêu cầu
             if (inStock.HasValue)
             {
                 query = inStock.Value
@@ -296,7 +298,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
                     : query.Where(p => p.Quantity == 0);
             }
 
-            // Apply sorting
+            // Sắp xếp theo trường được chọn (price, name, stock)
             if (!string.IsNullOrEmpty(sortBy))
             {
                 switch (sortBy.ToLower())

@@ -28,16 +28,18 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy userId từ claim (đã đăng nhập)
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized(ResponseDTO<CartDTO>.Fail("User not authenticated."));
                 }
 
+                // Lấy giỏ hàng của user
                 var cart = await _cartService.GetCartAsync(userId);
                 if (cart == null)
                 {
-                    // Return empty cart instead of 404
+                    // Nếu chưa có giỏ hàng thì trả về giỏ hàng rỗng thay vì 404
                     return Ok(ResponseDTO<CartDTO>.Success(new CartDTO
                     {
                         UserId = userId,
@@ -51,6 +53,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy giỏ hàng
                 _logger.LogError(ex, "Error getting cart");
                 return StatusCode(500, ResponseDTO<CartDTO>.Fail("An error occurred while retrieving the cart."));
             }
@@ -68,21 +71,25 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return Unauthorized(ResponseDTO<CartDTO>.Fail("User not authenticated."));
                 }
 
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<CartDTO>.Fail("Invalid cart data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Thêm sản phẩm vào giỏ hàng
                 var cart = await _cartService.AddToCartAsync(userId, addToCartDto);
                 return Ok(ResponseDTO<CartDTO>.Success(cart));
             }
             catch (InvalidOperationException ex)
             {
+                // Bắt lỗi nghiệp vụ (ví dụ: sản phẩm không đủ số lượng)
                 _logger.LogWarning(ex, "Validation error adding to cart");
                 return BadRequest(ResponseDTO<CartDTO>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi thêm vào giỏ hàng
                 _logger.LogError(ex, "Error adding to cart");
                 return StatusCode(500, ResponseDTO<CartDTO>.Fail("An error occurred while adding to the cart."));
             }
@@ -100,11 +107,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return Unauthorized(ResponseDTO<CartDTO>.Fail("User not authenticated."));
                 }
 
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<CartDTO>.Fail("Invalid cart data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Cập nhật số lượng sản phẩm trong giỏ hàng
                 var cart = await _cartService.UpdateCartItemAsync(userId, updateCartItemDto);
                 if (cart == null)
                 {
@@ -115,11 +124,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (InvalidOperationException ex)
             {
+                // Bắt lỗi nghiệp vụ (ví dụ: số lượng không hợp lệ)
                 _logger.LogWarning(ex, "Validation error updating cart item");
                 return BadRequest(ResponseDTO<CartDTO>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi cập nhật giỏ hàng
                 _logger.LogError(ex, "Error updating cart item");
                 return StatusCode(500, ResponseDTO<CartDTO>.Fail("An error occurred while updating the cart item."));
             }
@@ -137,6 +148,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return Unauthorized(ResponseDTO<bool>.Fail("User not authenticated."));
                 }
 
+                // Xóa sản phẩm khỏi giỏ hàng
                 var result = await _cartService.RemoveCartItemAsync(userId, cartItemId);
                 if (!result)
                 {
@@ -147,6 +159,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi xóa sản phẩm khỏi giỏ hàng
                 _logger.LogError(ex, "Error removing cart item {CartItemId}", cartItemId);
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while removing the cart item."));
             }
@@ -164,6 +177,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return Unauthorized(ResponseDTO<bool>.Fail("User not authenticated."));
                 }
 
+                // Xóa toàn bộ giỏ hàng của user
                 var result = await _cartService.ClearCartAsync(userId);
                 if (!result)
                 {
@@ -174,6 +188,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi xóa toàn bộ giỏ hàng
                 _logger.LogError(ex, "Error clearing cart");
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while clearing the cart."));
             }

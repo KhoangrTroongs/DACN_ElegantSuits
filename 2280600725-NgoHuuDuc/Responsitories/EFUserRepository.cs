@@ -57,6 +57,7 @@ namespace NgoHuuDuc_2280600725.Responsitories
             var user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
+                // Đăng nhập người dùng bằng email, có thể lưu trạng thái đăng nhập nếu isPersistent = true
                 await _signInManager.SignInAsync(user, isPersistent);
             }
         }
@@ -66,13 +67,13 @@ namespace NgoHuuDuc_2280600725.Responsitories
             var user = await _userManager.FindByEmailAsync(email);
             if (user != null)
             {
-                // Kiểm tra xem tài khoản có bị khóa không
+                // Kiểm tra xem tài khoản có bị khóa không (nếu LockoutEnd lớn hơn thời điểm hiện tại thì tài khoản đang bị khóa)
                 if (user.LockoutEnd != null && user.LockoutEnd > DateTimeOffset.Now)
                 {
                     return SignInResult.LockedOut;
                 }
 
-                // Kiểm tra xem tài khoản có bị vô hiệu hóa không
+                // Kiểm tra xem tài khoản có bị vô hiệu hóa không (IsActive = false thì không cho đăng nhập)
                 if (!user.IsActive)
                 {
                     return SignInResult.NotAllowed;
@@ -81,10 +82,10 @@ namespace NgoHuuDuc_2280600725.Responsitories
                 // Đảm bảo đăng xuất trước khi đăng nhập để tránh xung đột cookie
                 await _signInManager.SignOutAsync();
 
-                // Bật tính năng khóa tài khoản sau nhiều lần đăng nhập sai
+                // Bật tính năng khóa tài khoản sau nhiều lần đăng nhập sai (lockoutOnFailure: true)
                 var result = await _signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: true);
 
-                // Nếu đăng nhập thành công, ghi log
+                // Nếu đăng nhập thành công, có thể cập nhật thời gian đăng nhập cuối (nếu cần)
                 if (result.Succeeded)
                 {
                     // Tạm thời bỏ cập nhật LastLoginTime vì chưa có migration

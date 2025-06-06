@@ -35,6 +35,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy danh sách sản phẩm
                 _logger.LogError(ex, "Error getting products");
                 return StatusCode(500, ResponseDTO<IEnumerable<ProductDTO>>.Fail("An error occurred while retrieving products."));
             }
@@ -80,12 +81,11 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     return NotFound(ResponseDTO<ProductDTO>.Fail("Product not found."));
                 }
 
-
-
                 return Ok(ResponseDTO<ProductDTO>.Success(product));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy sản phẩm theo id
                 _logger.LogError(ex, "Error getting product {Id}", id);
                 return StatusCode(500, ResponseDTO<ProductDTO>.Fail("An error occurred while retrieving the product."));
             }
@@ -120,16 +120,19 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<ProductDTO>.Fail("Invalid product data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Thêm sản phẩm mới
                 var product = await _productService.AddProductAsync(productDto, image);
                 return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, ResponseDTO<ProductDTO>.Success(product));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi thêm sản phẩm
                 _logger.LogError(ex, "Error creating product");
                 return StatusCode(500, ResponseDTO<ProductDTO>.Fail("An error occurred while creating the product."));
             }
@@ -142,11 +145,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<ProductDTO>.Fail("Invalid product data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Cập nhật sản phẩm
                 var product = await _productService.UpdateProductAsync(id, productDto, image);
                 if (product == null)
                 {
@@ -157,6 +162,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi cập nhật sản phẩm
                 _logger.LogError(ex, "Error updating product {Id}", id);
                 return StatusCode(500, ResponseDTO<ProductDTO>.Fail("An error occurred while updating the product."));
             }
@@ -169,6 +175,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Xóa sản phẩm theo id
                 var result = await _productService.DeleteProductAsync(id);
                 if (!result)
                 {
@@ -179,6 +186,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi xóa sản phẩm
                 _logger.LogError(ex, "Error deleting product {Id}", id);
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while deleting the product."));
             }

@@ -77,7 +77,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 // Thêm debug log
                 _logger.LogInformation("Redirecting to: {0}", returnUrl ?? "/");
 
-                // Đảm bảo returnUrl là local
+                // Đảm bảo returnUrl là local (tránh redirect tới trang ngoài, bảo mật)
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
@@ -180,6 +180,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 }
                 catch (Exception ex)
                 {
+                    // Bắt lỗi khi đăng ký và log lại để debug
                     _logger.LogError(ex, "Lỗi trong quá trình đăng ký: {Message}", ex.Message);
                     ModelState.AddModelError(string.Empty, "Đã xảy ra lỗi trong quá trình đăng ký. Vui lòng thử lại sau.");
                 }
@@ -303,6 +304,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             }
             catch (Exception ex)
             {
+                // Bắt lỗi khi cập nhật vai trò và trả về thông báo lỗi
                 Console.WriteLine($"Exception in UpdateRoles: {ex.Message}");
                 return Json(new { success = false, message = ex.Message });
             }

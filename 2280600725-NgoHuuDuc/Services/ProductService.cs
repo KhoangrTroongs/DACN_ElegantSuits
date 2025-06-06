@@ -89,6 +89,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<ProductDTO> AddProductAsync(CreateProductDTO productDto, IFormFile? image)
         {
+            // Tạo mới đối tượng Product từ DTO truyền vào
             var product = new Product
             {
                 Name = productDto.Name,
@@ -99,6 +100,7 @@ namespace NgoHuuDuc_2280600725.Services
                 CategoryId = productDto.CategoryId
             };
 
+            // Nếu có upload ảnh thì lưu ảnh và lấy đường dẫn
             if (image != null && image.Length > 0)
             {
                 product.ImageUrl = await SaveImage(image);
@@ -106,7 +108,7 @@ namespace NgoHuuDuc_2280600725.Services
 
             await _productRepository.AddProductAsync(product);
 
-            // Fetch the product with category to return complete DTO
+            // Lấy lại sản phẩm vừa tạo (bao gồm cả thông tin category) để trả về đầy đủ thông tin cho client
             var createdProduct = await _productRepository.GetProductByIdAsync(product.Id);
             return MapToProductDTO(createdProduct);
         }
@@ -220,6 +222,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         private async Task<string> SaveImage(IFormFile image)
         {
+            // Lưu file ảnh vào thư mục wwwroot/images/products và trả về đường dẫn tương đối
             var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images/products");
             Directory.CreateDirectory(uploadsFolder);
 
@@ -236,6 +239,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         private void DeleteImage(string imageUrl)
         {
+            // Xóa file ảnh khỏi thư mục wwwroot nếu tồn tại
             if (string.IsNullOrEmpty(imageUrl))
                 return;
 
@@ -248,6 +252,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         private ProductDTO MapToProductDTO(Product product)
         {
+            // Xử lý mô tả sản phẩm để loại bỏ các phần kỹ thuật (tag [SIZES], [REVIEWS]...) trước khi trả về cho client
             var description = product.Description;
             var sizeTag = "[SIZES]";
             var endSizeTag = "[/SIZES]";
@@ -283,6 +288,7 @@ namespace NgoHuuDuc_2280600725.Services
                 description = description.Trim();
             }
 
+            // Chuyển đổi đối tượng Product sang ProductDTO để trả về cho client
             return new ProductDTO
             {
                 Id = product.Id,

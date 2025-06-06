@@ -11,6 +11,7 @@ namespace NgoHuuDuc_2280600725.Helpers
 
         public PaginatedList(List<T> items, int count, int pageIndex, int pageSize)
         {
+            // Khởi tạo danh sách phân trang với các thông tin tổng số trang, trang hiện tại, tổng số item, kích thước trang
             PageIndex = pageIndex;
             PageSize = pageSize;
             TotalItems = count;
@@ -26,12 +27,13 @@ namespace NgoHuuDuc_2280600725.Helpers
         {
             var count = await source.CountAsync();
             
-            // Ensure pageIndex is valid
+            // Đảm bảo pageIndex hợp lệ (không nhỏ hơn 1, không lớn hơn tổng số trang)
             if (pageIndex < 1)
                 pageIndex = 1;
             else if (count > 0 && pageSize > 0 && pageIndex > Math.Ceiling(count / (double)pageSize))
                 pageIndex = (int)Math.Ceiling(count / (double)pageSize);
             
+            // Lấy danh sách item cho trang hiện tại
             var items = await source.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToListAsync();
             return new PaginatedList<T>(items, count, pageIndex, pageSize);
         }
@@ -41,12 +43,13 @@ namespace NgoHuuDuc_2280600725.Helpers
             var items = source.ToList();
             var count = items.Count;
             
-            // Ensure pageIndex is valid
+            // Đảm bảo pageIndex hợp lệ (không nhỏ hơn 1, không lớn hơn tổng số trang)
             if (pageIndex < 1)
                 pageIndex = 1;
             else if (count > 0 && pageSize > 0 && pageIndex > Math.Ceiling(count / (double)pageSize))
                 pageIndex = (int)Math.Ceiling(count / (double)pageSize);
             
+            // Lấy danh sách item cho trang hiện tại
             var paginatedItems = items.Skip((pageIndex - 1) * pageSize).Take(pageSize).ToList();
             return new PaginatedList<T>(paginatedItems, count, pageIndex, pageSize);
         }

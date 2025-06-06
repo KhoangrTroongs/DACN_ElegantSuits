@@ -29,6 +29,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<IEnumerable<OrderDTO>> GetAllOrdersAsync()
         {
+            // Lấy tất cả đơn hàng, bao gồm thông tin người dùng và chi tiết đơn hàng (kèm sản phẩm)
             var orders = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderDetails)
@@ -41,6 +42,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<IEnumerable<OrderDTO>> GetUserOrdersAsync(string userId)
         {
+            // Lấy tất cả đơn hàng của một user cụ thể
             var orders = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderDetails)
@@ -54,6 +56,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<OrderDTO?> GetOrderByIdAsync(int id)
         {
+            // Lấy đơn hàng theo Id, bao gồm thông tin user và chi tiết đơn hàng
             var order = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderDetails)
@@ -65,7 +68,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<OrderDTO> CreateOrderAsync(string userId, CreateOrderDTO orderDto)
         {
-            // Get user's cart
+            // Lấy giỏ hàng của user, bao gồm các sản phẩm trong giỏ
             var cart = await _context.Carts
                 .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
@@ -76,7 +79,7 @@ namespace NgoHuuDuc_2280600725.Services
                 throw new InvalidOperationException("Giỏ hàng trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt hàng.");
             }
 
-            // Check product availability
+            // Kiểm tra số lượng tồn kho của từng sản phẩm trong giỏ hàng
             foreach (var item in cart.Items)
             {
                 var product = await _context.Products.FindAsync(item.ProductId);
@@ -86,7 +89,7 @@ namespace NgoHuuDuc_2280600725.Services
                 }
             }
 
-            // Create order
+            // Tạo mới đơn hàng
             var order = new Order
             {
                 UserId = userId,
@@ -98,7 +101,7 @@ namespace NgoHuuDuc_2280600725.Services
                 OrderDetails = new List<OrderDetail>()
             };
 
-            // Create order details
+            // Tạo chi tiết đơn hàng cho từng sản phẩm trong giỏ
             foreach (var item in cart.Items)
             {
                 var orderDetail = new OrderDetail
@@ -106,11 +109,11 @@ namespace NgoHuuDuc_2280600725.Services
                     ProductId = item.ProductId,
                     Price = item.Price,
                     Quantity = item.Quantity,
-                    Size = item.Size // Thêm thông tin size
+                    Size = item.Size // Thêm thông tin size nếu có
                 };
                 order.OrderDetails.Add(orderDetail);
 
-                // Update product quantity
+                // Trừ số lượng tồn kho của sản phẩm
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product != null)
                 {
@@ -122,10 +125,10 @@ namespace NgoHuuDuc_2280600725.Services
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            // Clear cart after successful order
+            // Xóa giỏ hàng sau khi đặt hàng thành công
             await _cartService.ClearCartAsync(userId);
 
-            // Fetch the complete order with user and details
+            // Lấy lại đơn hàng vừa tạo, bao gồm thông tin user và chi tiết đơn hàng
             var createdOrder = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderDetails)
@@ -137,6 +140,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<OrderDTO?> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDto)
         {
+            // Lấy đơn hàng theo Id
             var order = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderDetails)
@@ -148,7 +152,7 @@ namespace NgoHuuDuc_2280600725.Services
                 return null;
             }
 
-            // If cancelling an order, restore product quantities
+            // Nếu hủy đơn hàng, hoàn lại số lượng sản phẩm về kho
             if (updateOrderStatusDto.Status == OrderStatus.Cancelled && order.Status != OrderStatus.Cancelled)
             {
                 foreach (var detail in order.OrderDetails)
@@ -170,6 +174,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<bool> DeleteOrderAsync(int id)
         {
+            // Lấy đơn hàng theo Id, bao gồm chi tiết đơn hàng
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
                 .FirstOrDefaultAsync(o => o.Id == id);
@@ -179,7 +184,7 @@ namespace NgoHuuDuc_2280600725.Services
                 return false;
             }
 
-            // If deleting a non-cancelled order, restore product quantities
+            // Nếu xóa đơn hàng chưa bị hủy, hoàn lại số lượng sản phẩm về kho
             if (order.Status != OrderStatus.Cancelled)
             {
                 foreach (var detail in order.OrderDetails)
@@ -193,6 +198,7 @@ namespace NgoHuuDuc_2280600725.Services
                 }
             }
 
+            // Xóa chi tiết đơn hàng và đơn hàng
             _context.OrderDetails.RemoveRange(order.OrderDetails);
             _context.Orders.Remove(order);
             await _context.SaveChangesAsync();
@@ -202,6 +208,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         private OrderDTO MapToOrderDTO(Order order)
         {
+            // Chuyển đổi đối tượng Order sang OrderDTO để trả về cho client
             return new OrderDTO
             {
                 Id = order.Id,
@@ -220,7 +227,7 @@ namespace NgoHuuDuc_2280600725.Services
                     ProductName = od.Product?.Name ?? "Unknown Product",
                     Price = od.Price,
                     Quantity = od.Quantity,
-                    Size = od.Size, // Thêm thông tin size
+                    Size = od.Size, // Thêm thông tin size nếu có
                     ProductImageUrl = od.Product?.ImageUrl
                 }).ToList() ?? new List<OrderDetailDTO>()
             };

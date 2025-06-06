@@ -27,7 +27,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         // GET: Statistics
         public async Task<IActionResult> Index(DateTime? startDate, DateTime? endDate)
         {
-            // Mặc định là thống kê tháng hiện tại
+            // Mặc định là thống kê tháng hiện tại nếu không truyền ngày
             if (!startDate.HasValue)
             {
                 startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
@@ -38,13 +38,13 @@ namespace NgoHuuDuc_2280600725.Controllers
                 endDate = DateTime.Now;
             }
 
-            // Đảm bảo endDate là cuối ngày
+            // Đảm bảo endDate là cuối ngày (23:59:59)
             endDate = endDate.Value.Date.AddDays(1).AddTicks(-1);
 
             ViewBag.StartDate = startDate.Value.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate.Value.ToString("yyyy-MM-dd");
 
-            // Lấy tất cả đơn hàng trong khoảng thời gian
+            // Lấy tất cả đơn hàng trong khoảng thời gian đã chọn
             var orders = await _context.Orders
                 .Include(o => o.OrderDetails)
                 .ThenInclude(od => od.Product)
@@ -59,7 +59,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 TotalProducts = await _context.Products.CountAsync(),
                 TotalUsers = await _userManager.Users.CountAsync(),
                 
-                // Thống kê theo trạng thái đơn hàng
+                // Thống kê số lượng đơn hàng theo từng trạng thái
                 PendingOrders = orders.Count(o => o.Status == OrderStatus.Pending),
                 ConfirmedOrders = orders.Count(o => o.Status == OrderStatus.Confirmed),
                 ShippingOrders = orders.Count(o => o.Status == OrderStatus.Shipping),
@@ -67,7 +67,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 CancelledOrders = orders.Count(o => o.Status == OrderStatus.Cancelled),
                 ReturnedOrders = orders.Count(o => o.Status == OrderStatus.Returned),
                 
-                // Doanh thu theo trạng thái
+                // Thống kê doanh thu theo từng trạng thái đơn hàng
                 PendingRevenue = orders.Where(o => o.Status == OrderStatus.Pending).Sum(o => o.TotalPrice),
                 ConfirmedRevenue = orders.Where(o => o.Status == OrderStatus.Confirmed).Sum(o => o.TotalPrice),
                 ShippingRevenue = orders.Where(o => o.Status == OrderStatus.Shipping).Sum(o => o.TotalPrice),
@@ -75,7 +75,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 CancelledRevenue = orders.Where(o => o.Status == OrderStatus.Cancelled).Sum(o => o.TotalPrice),
                 ReturnedRevenue = orders.Where(o => o.Status == OrderStatus.Returned).Sum(o => o.TotalPrice),
                 
-                // Thống kê sản phẩm bán chạy (chỉ tính từ đơn hàng đã giao)
+                // Thống kê top 10 sản phẩm bán chạy nhất (chỉ tính đơn hàng đã giao)
                 TopProducts = orders
                     .Where(o => o.Status == OrderStatus.Delivered)
                     .SelectMany(o => o.OrderDetails)
@@ -92,7 +92,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     .Take(10)
                     .ToList(),
                 
-                // Thống kê theo ngày
+                // Thống kê doanh thu và số đơn hàng theo từng ngày
                 DailyStatistics = orders
                     .GroupBy(o => o.OrderDate.Date)
                     .Select(g => new DailyStatisticsViewModel

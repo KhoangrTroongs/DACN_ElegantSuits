@@ -29,11 +29,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy tất cả đơn hàng (chỉ cho admin)
                 var orders = await _orderService.GetAllOrdersAsync();
                 return Ok(ResponseDTO<IEnumerable<OrderDTO>>.Success(orders));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy danh sách đơn hàng
                 _logger.LogError(ex, "Error getting all orders");
                 return StatusCode(500, ResponseDTO<IEnumerable<OrderDTO>>.Fail("An error occurred while retrieving orders."));
             }
@@ -45,17 +47,20 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy userId từ claim
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized(ResponseDTO<IEnumerable<OrderDTO>>.Fail("User not authenticated."));
                 }
 
+                // Lấy danh sách đơn hàng của user hiện tại
                 var orders = await _orderService.GetUserOrdersAsync(userId);
                 return Ok(ResponseDTO<IEnumerable<OrderDTO>>.Success(orders));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy đơn hàng của user
                 _logger.LogError(ex, "Error getting user orders");
                 return StatusCode(500, ResponseDTO<IEnumerable<OrderDTO>>.Fail("An error occurred while retrieving orders."));
             }
@@ -67,13 +72,14 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy đơn hàng theo id
                 var order = await _orderService.GetOrderByIdAsync(id);
                 if (order == null)
                 {
                     return NotFound(ResponseDTO<OrderDTO>.Fail("Order not found."));
                 }
 
-                // Check if user is authorized to view this order
+                // Kiểm tra quyền: chỉ admin hoặc chủ đơn hàng mới được xem
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var isAdmin = User.IsInRole("Administrator");
                 
@@ -86,6 +92,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi lấy đơn hàng theo id
                 _logger.LogError(ex, "Error getting order {Id}", id);
                 return StatusCode(500, ResponseDTO<OrderDTO>.Fail("An error occurred while retrieving the order."));
             }
@@ -97,27 +104,32 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Lấy userId từ claim
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized(ResponseDTO<OrderDTO>.Fail("User not authenticated."));
                 }
 
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<OrderDTO>.Fail("Invalid order data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Tạo đơn hàng mới
                 var order = await _orderService.CreateOrderAsync(userId, orderDto);
                 return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, ResponseDTO<OrderDTO>.Success(order));
             }
             catch (InvalidOperationException ex)
             {
+                // Bắt lỗi nghiệp vụ (ví dụ: giỏ hàng trống, sản phẩm không đủ số lượng)
                 _logger.LogWarning(ex, "Validation error creating order");
                 return BadRequest(ResponseDTO<OrderDTO>.Fail(ex.Message));
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi tạo đơn hàng
                 _logger.LogError(ex, "Error creating order");
                 return StatusCode(500, ResponseDTO<OrderDTO>.Fail("An error occurred while creating the order."));
             }
@@ -130,11 +142,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Kiểm tra dữ liệu đầu vào hợp lệ
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(ResponseDTO<OrderDTO>.Fail("Invalid order status data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
                 }
 
+                // Cập nhật trạng thái đơn hàng
                 var order = await _orderService.UpdateOrderStatusAsync(id, updateOrderStatusDto);
                 if (order == null)
                 {
@@ -145,6 +159,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi cập nhật trạng thái đơn hàng
                 _logger.LogError(ex, "Error updating order status {Id}", id);
                 return StatusCode(500, ResponseDTO<OrderDTO>.Fail("An error occurred while updating the order status."));
             }
@@ -157,6 +172,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         {
             try
             {
+                // Xóa đơn hàng theo id
                 var result = await _orderService.DeleteOrderAsync(id);
                 if (!result)
                 {
@@ -167,6 +183,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
             catch (Exception ex)
             {
+                // Ghi log lỗi khi xóa đơn hàng
                 _logger.LogError(ex, "Error deleting order {Id}", id);
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while deleting the order."));
             }

@@ -14,6 +14,7 @@ namespace NgoHuuDuc_2280600725.Services
             ICategoryRepository categoryRepository,
             ILogger<CategoryService> logger)
         {
+            // Hàm khởi tạo nhận repository và logger thông qua dependency injection
             _categoryRepository = categoryRepository;
             _logger = logger;
         }
@@ -32,7 +33,7 @@ namespace NgoHuuDuc_2280600725.Services
 
         public async Task<CategoryDTO> AddCategoryAsync(CreateCategoryDTO categoryDto)
         {
-            // Check if category with same name already exists
+            // Kiểm tra xem đã có danh mục nào trùng tên chưa
             var existingCategory = await _categoryRepository.GetCategoryByNameAsync(categoryDto.Name);
             if (existingCategory != null)
             {
@@ -47,7 +48,7 @@ namespace NgoHuuDuc_2280600725.Services
 
             await _categoryRepository.AddCategoryAsync(category);
             
-            // Fetch the newly created category to return complete DTO
+            // Lấy lại danh mục vừa tạo từ database để trả về đầy đủ thông tin (bao gồm cả Id)
             var createdCategory = await _categoryRepository.GetCategoryByIdAsync(category.Id);
             return MapToCategoryDTO(createdCategory);
         }
@@ -60,7 +61,7 @@ namespace NgoHuuDuc_2280600725.Services
                 return null;
             }
 
-            // Check if another category with the same name exists
+            // Kiểm tra xem có danh mục khác trùng tên không (loại trừ chính nó)
             var existingCategory = await _categoryRepository.GetCategoryByNameAsync(categoryDto.Name, id);
             if (existingCategory != null)
             {
@@ -72,7 +73,7 @@ namespace NgoHuuDuc_2280600725.Services
 
             await _categoryRepository.UpdateCategoryAsync(category);
             
-            // Fetch updated category
+            // Lấy lại danh mục sau khi cập nhật để trả về thông tin mới nhất
             var updatedCategory = await _categoryRepository.GetCategoryByIdAsync(id);
             return MapToCategoryDTO(updatedCategory);
         }
@@ -85,17 +86,20 @@ namespace NgoHuuDuc_2280600725.Services
                 return false;
             }
 
+            // Xóa danh mục theo Id
             await _categoryRepository.DeleteCategoryAsync(id);
             return true;
         }
 
         public async Task<bool> CategoryExistsAsync(int id)
         {
+            // Kiểm tra xem danh mục có tồn tại không
             return await _categoryRepository.CategoryExistsAsync(id);
         }
 
         private CategoryDTO MapToCategoryDTO(Category category)
         {
+            // Chuyển đổi đối tượng Category sang CategoryDTO để trả về cho client
             return new CategoryDTO
             {
                 Id = category.Id,

@@ -3,11 +3,11 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/OrbitControls.js"></script>
 
 <script>
-    // Simple function to show 3D model
+    // Hàm hiển thị mô hình 3D
     function show3DModel(containerId, modelUrl) {
         console.log(`Showing 3D model in container: ${containerId}, model: ${modelUrl}`);
 
-        // Get container element
+        // Lấy phần tử container
         const container = document.getElementById(containerId);
         if (!container) {
             console.error(`Container not found: ${containerId}`);
@@ -15,38 +15,38 @@
         }
 
         try {
-            // Check if model URL is valid
+            // Kiểm tra đường dẫn model hợp lệ
             if (!modelUrl || modelUrl.trim() === '') {
                 console.error('Model URL is empty');
                 showModelError(container, 'Không tìm thấy đường dẫn đến mô hình 3D');
                 return false;
             }
 
-            // Convert model URL to use the new controller
+            // Chuyển đổi đường dẫn model sang API controller nếu là đường dẫn cũ
             let modelApiUrl = modelUrl;
             if (modelUrl.startsWith('/models/products/')) {
-                // Extract the filename from the URL
+                // Lấy tên file từ đường dẫn
                 const filename = modelUrl.split('/').pop();
                 modelApiUrl = `/model/products/${filename}`;
             }
 
-            // Show loading indicator
+            // Hiển thị loading indicator
             container.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Đang tải mô hình 3D...</p></div>';
 
-            // Initialize Three.js scene and store in global variables
+            // Khởi tạo scene Three.js và lưu vào biến toàn cục
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0xf8f8f8);
 
-            // Create camera and store in global variable
+            // Tạo camera và lưu vào biến toàn cục
             camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
             camera.position.z = 5;
 
-            // Create renderer and store in global variable
+            // Tạo renderer và lưu vào biến toàn cục
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
 
-            // Add lights
+            // Thêm ánh sáng vào scene
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
 
@@ -54,48 +54,48 @@
             directionalLight.position.set(1, 1, 1);
             scene.add(directionalLight);
 
-            // Add controls
+            // Thêm controls để xoay, zoom mô hình
             const controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.autoRotate = true;
             controls.autoRotateSpeed = 1.0;
 
-            // Load model
+            // Tải mô hình GLTF
             const loader = new THREE.GLTFLoader();
             loader.load(
                 modelApiUrl,
                 (gltf) => {
-                    // Clear loading indicator
+                    // Xóa loading indicator
                     container.innerHTML = '';
 
-                    // Create a container for the renderer and color controls
+                    // Tạo container chứa renderer và controls đổi màu
                     const viewerContainer = document.createElement('div');
                     viewerContainer.style.position = 'relative';
                     viewerContainer.style.width = '100%';
                     viewerContainer.style.height = '100%';
 
-                    // Add renderer to the container
+                    // Thêm renderer vào container
                     viewerContainer.appendChild(renderer.domElement);
 
-                    // Create color picker controls - more compact and less intrusive
+                    // Tạo controls chọn màu - gọn hơn và ít che khuất hơn
                     const colorControls = document.createElement('div');
                     colorControls.className = 'color-controls';
                     colorControls.style.position = 'absolute';
                     colorControls.style.bottom = '10px';
-                    colorControls.style.right = '10px'; // Move to right side
+                    colorControls.style.right = '10px'; // Di chuyển sang bên phải
                     colorControls.style.zIndex = '100';
                     colorControls.style.background = 'rgba(255, 255, 255, 0.7)';
                     colorControls.style.padding = '8px';
                     colorControls.style.borderRadius = '8px';
                     colorControls.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
-                    colorControls.style.maxWidth = '220px'; // Make it narrower
+                    colorControls.style.maxWidth = '220px'; // Làm cho nó hẹp hơn
                     colorControls.style.maxHeight = '250px';
                     colorControls.style.overflowY = 'auto';
                     colorControls.style.transition = 'opacity 0.3s ease';
-                    colorControls.style.opacity = '0.8'; // Start slightly transparent
+                    colorControls.style.opacity = '0.8'; // Bắt đầu hơi trong suốt
 
-                    // Add hover effect to make it fully opaque when hovered
+                    // Thêm hiệu ứng hover để làm controls chọn màu đậm hơn khi rê chuột vào
                     colorControls.onmouseover = function() {
                         this.style.opacity = '1';
                     };
@@ -104,7 +104,7 @@
                         this.style.opacity = '0.8';
                     };
 
-                    // Add color options with more vibrant colors for better visibility
+                    // Thêm các lựa chọn màu với màu sắc nổi bật hơn để dễ nhìn hơn
                     const colors = [
                         { name: 'Đen', hex: '#000000' },
                         { name: 'Trắng', hex: '#FFFFFF' },
@@ -126,7 +126,7 @@
                         { name: 'Nâu đỏ', hex: '#A52A2A' }
                     ];
 
-                    // Create a toggle button to show/hide color controls
+                    // Tạo nút chuyển đổi để ẩn/hiện controls chọn màu
                     const toggleBtn = document.createElement('button');
                     toggleBtn.innerHTML = '<i class="fas fa-palette"></i>';
                     toggleBtn.style.position = 'absolute';
@@ -147,11 +147,11 @@
                     toggleBtn.style.fontSize = '18px';
                     toggleBtn.title = 'Thay đổi màu sắc';
 
-                    // Initially hide color controls
+                    // Ẩn controls chọn màu ban đầu
                     colorControls.style.display = 'none';
-                    colorControls.style.right = '60px'; // Position next to toggle button
+                    colorControls.style.right = '60px'; // Đặt cạnh nút chuyển đổi
 
-                    // Toggle color controls visibility
+                    // Chuyển đổi hiển thị controls chọn màu
                     let colorControlsVisible = false;
                     toggleBtn.onclick = function() {
                         colorControlsVisible = !colorControlsVisible;
@@ -162,13 +162,13 @@
 
                     viewerContainer.appendChild(toggleBtn);
 
-                    // Create tabs for different color options
+                    // Tạo các tab cho các lựa chọn màu khác nhau
                     const tabsContainer = document.createElement('div');
                     tabsContainer.style.display = 'flex';
                     tabsContainer.style.marginBottom = '8px';
                     tabsContainer.style.borderBottom = '1px solid #ddd';
 
-                    // Solid color tab
+                    // Tab màu đơn
                     const solidColorTab = document.createElement('div');
                     solidColorTab.innerText = 'Màu đơn';
                     solidColorTab.style.padding = '4px 8px';
@@ -178,7 +178,7 @@
                     solidColorTab.style.borderBottom = '2px solid #007bff';
                     solidColorTab.style.color = '#007bff';
 
-                    // Checkered pattern tab
+                    // Tab màu caro
                     const checkeredTab = document.createElement('div');
                     checkeredTab.innerText = 'Màu caro';
                     checkeredTab.style.padding = '4px 8px';
@@ -188,19 +188,19 @@
                     checkeredTab.style.borderBottom = '2px solid transparent';
                     checkeredTab.style.color = '#666';
 
-                    // Add tabs to container
+                    // Thêm các tab vào container
                     tabsContainer.appendChild(solidColorTab);
                     tabsContainer.appendChild(checkeredTab);
                     colorControls.appendChild(tabsContainer);
 
-                    // Create content containers for each tab
+                    // Tạo các vùng nội dung cho từng tab
                     const solidColorContent = document.createElement('div');
                     solidColorContent.style.display = 'block';
 
                     const checkeredContent = document.createElement('div');
                     checkeredContent.style.display = 'none';
 
-                    // Tab switching functionality
+                    // Chức năng chuyển tab
                     solidColorTab.onclick = function() {
                         solidColorContent.style.display = 'block';
                         checkeredContent.style.display = 'none';
@@ -219,20 +219,20 @@
                         solidColorTab.style.color = '#666';
                     };
 
-                    // Add content containers to color controls
+                    // Thêm các vùng nội dung vào controls chọn màu
                     colorControls.appendChild(solidColorContent);
                     colorControls.appendChild(checkeredContent);
 
-                    // Create color grid container for solid colors - more compact
+                    // Tạo grid các nút chọn màu đơn - gọn hơn
                     const colorGrid = document.createElement('div');
                     colorGrid.style.display = 'grid';
-                    colorGrid.style.gridTemplateColumns = 'repeat(5, 1fr)'; // 5 columns instead of 6
-                    colorGrid.style.gap = '6px'; // Smaller gap
+                    colorGrid.style.gridTemplateColumns = 'repeat(5, 1fr)'; // 5 cột thay vì 6
+                    colorGrid.style.gap = '6px'; // Khoảng cách nhỏ hơn
                     colorGrid.style.marginBottom = '8px';
 
                     colors.forEach(color => {
                         const colorBtn = document.createElement('button');
-                        colorBtn.style.width = '25px'; // Smaller buttons
+                        colorBtn.style.width = '25px'; // Nút nhỏ hơn
                         colorBtn.style.height = '25px';
                         colorBtn.style.backgroundColor = color.hex;
                         colorBtn.style.border = '2px solid #ddd';
@@ -241,7 +241,7 @@
                         colorBtn.style.transition = 'transform 0.2s, border-color 0.2s';
                         colorBtn.title = color.name;
 
-                        // Add hover effect
+                        // Thêm hiệu ứng hover
                         colorBtn.onmouseover = function() {
                             this.style.transform = 'scale(1.1)';
                         };
@@ -252,7 +252,7 @@
 
                         colorBtn.onclick = function() {
                             changeModelColor(gltf.scene, color.hex);
-                            // Highlight selected color
+                            // Đánh dấu màu đã chọn
                             document.querySelectorAll('.color-controls button.color-btn').forEach(btn => {
                                 btn.style.border = '2px solid #ddd';
                                 btn.style.boxShadow = 'none';
@@ -267,14 +267,14 @@
 
                     solidColorContent.appendChild(colorGrid);
 
-                    // Add compact controls row for solid colors
+                    // Thêm hàng controls gọn cho màu đơn
                     const controlsRow = document.createElement('div');
                     controlsRow.style.display = 'flex';
                     controlsRow.style.justifyContent = 'space-between';
                     controlsRow.style.alignItems = 'center';
                     controlsRow.style.gap = '5px';
 
-                    // Add reset button with improved styling
+                    // Thêm nút khôi phục màu gốc với style đẹp hơn
                     const resetBtn = document.createElement('button');
                     resetBtn.innerHTML = '<i class="fas fa-undo-alt"></i>';
                     resetBtn.title = 'Khôi phục màu gốc';
@@ -284,14 +284,14 @@
                     resetBtn.style.flex = '0 0 auto';
                     resetBtn.onclick = function() {
                         resetModelColor(gltf.scene);
-                        // Reset button highlights
+                        // Đặt lại màu cho các nút
                         document.querySelectorAll('.color-controls button.color-btn').forEach(btn => {
                             btn.style.border = '2px solid #ddd';
                             btn.style.boxShadow = 'none';
                         });
                     };
 
-                    // Add a custom color picker - more compact
+                    // Thêm input chọn màu tùy chỉnh - gọn hơn
                     const customColorInput = document.createElement('input');
                     customColorInput.type = 'color';
                     customColorInput.style.width = '30px';
@@ -314,7 +314,7 @@
                     applyCustomBtn.onclick = function() {
                         const customColor = customColorInput.value;
                         changeModelColor(gltf.scene, customColor);
-                        // Reset other button highlights
+                        // Đặt lại màu cho các nút
                         document.querySelectorAll('.color-controls button.color-btn').forEach(btn => {
                             btn.style.border = '2px solid #ddd';
                             btn.style.boxShadow = 'none';
@@ -327,41 +327,41 @@
 
                     solidColorContent.appendChild(controlsRow);
 
-                    // Create checkered pattern controls
+                    // Tạo controls caro
                     const checkeredHeader = document.createElement('div');
                     checkeredHeader.innerHTML = '<div style="margin-bottom: 8px; font-size: 12px; color: #333;">Chọn màu cho họa tiết caro:</div>';
                     checkeredContent.appendChild(checkeredHeader);
 
-                    // Create primary color selector
+                    // Tạo selector màu chính
                     const primaryColorLabel = document.createElement('div');
                     primaryColorLabel.innerText = 'Màu chính:';
                     primaryColorLabel.style.fontSize = '12px';
                     primaryColorLabel.style.marginBottom = '4px';
                     checkeredContent.appendChild(primaryColorLabel);
 
-                    // Create primary color grid
+                    // Tạo grid chọn màu chính
                     const primaryColorGrid = document.createElement('div');
                     primaryColorGrid.style.display = 'grid';
                     primaryColorGrid.style.gridTemplateColumns = 'repeat(5, 1fr)';
                     primaryColorGrid.style.gap = '6px';
                     primaryColorGrid.style.marginBottom = '12px';
 
-                    // Create secondary color selector
+                    // Tạo selector màu phụ
                     const secondaryColorLabel = document.createElement('div');
                     secondaryColorLabel.innerText = 'Màu phụ:';
                     secondaryColorLabel.style.fontSize = '12px';
                     secondaryColorLabel.style.marginBottom = '4px';
 
-                    // Create secondary color grid
+                    // Tạo grid chọn màu phụ
                     const secondaryColorGrid = document.createElement('div');
                     secondaryColorGrid.style.display = 'grid';
                     secondaryColorGrid.style.gridTemplateColumns = 'repeat(5, 1fr)';
                     secondaryColorGrid.style.gap = '6px';
                     secondaryColorGrid.style.marginBottom = '12px';
 
-                    // Add color buttons to primary and secondary grids
+                    // Thêm nút màu vào grid màu chính và phụ
                     colors.forEach(color => {
-                        // Primary color button
+                        // Nút màu chính
                         const primaryColorBtn = document.createElement('button');
                         primaryColorBtn.style.width = '25px';
                         primaryColorBtn.style.height = '25px';
@@ -374,7 +374,7 @@
                         primaryColorBtn.dataset.color = color.hex;
                         primaryColorBtn.className = 'primary-color-btn';
 
-                        // Add hover effect
+                        // Thêm hiệu ứng hover
                         primaryColorBtn.onmouseover = function() {
                             this.style.transform = 'scale(1.1)';
                         };
@@ -384,7 +384,7 @@
                         };
 
                         primaryColorBtn.onclick = function() {
-                            // Update primary color
+                            // Cập nhật màu chính
                             const primaryColor = this.dataset.color;
                             const secondaryColor = currentCheckeredColors.secondary;
                             const patternSize = parseInt(patternSizeSlider.value);
@@ -394,7 +394,7 @@
 
                             applyCheckeredPattern(gltf.scene, primaryColor, secondaryColor, patternSize, lineWidth, patternType, lineSpacing);
 
-                            // Highlight selected color
+                            // Đánh dấu màu đã chọn
                             document.querySelectorAll('.primary-color-btn').forEach(btn => {
                                 btn.style.border = '2px solid #ddd';
                                 btn.style.boxShadow = 'none';
@@ -405,7 +405,7 @@
 
                         primaryColorGrid.appendChild(primaryColorBtn);
 
-                        // Secondary color button
+                        // Nút màu phụ
                         const secondaryColorBtn = document.createElement('button');
                         secondaryColorBtn.style.width = '25px';
                         secondaryColorBtn.style.height = '25px';
@@ -418,7 +418,7 @@
                         secondaryColorBtn.dataset.color = color.hex;
                         secondaryColorBtn.className = 'secondary-color-btn';
 
-                        // Add hover effect
+                        // Thêm hiệu ứng hover
                         secondaryColorBtn.onmouseover = function() {
                             this.style.transform = 'scale(1.1)';
                         };
@@ -428,7 +428,7 @@
                         };
 
                         secondaryColorBtn.onclick = function() {
-                            // Update secondary color
+                            // Cập nhật màu phụ
                             const primaryColor = currentCheckeredColors.primary;
                             const secondaryColor = this.dataset.color;
                             const patternSize = parseInt(patternSizeSlider.value);
@@ -438,7 +438,7 @@
 
                             applyCheckeredPattern(gltf.scene, primaryColor, secondaryColor, patternSize, lineWidth, patternType, lineSpacing);
 
-                            // Highlight selected color
+                            // Đánh dấu màu đã chọn
                             document.querySelectorAll('.secondary-color-btn').forEach(btn => {
                                 btn.style.border = '2px solid #ddd';
                                 btn.style.boxShadow = 'none';
@@ -454,13 +454,13 @@
                     checkeredContent.appendChild(secondaryColorLabel);
                     checkeredContent.appendChild(secondaryColorGrid);
 
-                    // Add custom color controls for checkered pattern
+                    // Thêm controls chọn màu tùy chỉnh cho caro
                     const checkeredCustomControls = document.createElement('div');
                     checkeredCustomControls.style.display = 'flex';
                     checkeredCustomControls.style.flexDirection = 'column';
                     checkeredCustomControls.style.gap = '8px';
 
-                    // Primary custom color
+                    // Hàng màu tùy chỉnh chính
                     const primaryCustomRow = document.createElement('div');
                     primaryCustomRow.style.display = 'flex';
                     primaryCustomRow.style.alignItems = 'center';
@@ -484,7 +484,7 @@
                     primaryCustomRow.appendChild(primaryCustomLabel);
                     primaryCustomRow.appendChild(primaryCustomInput);
 
-                    // Secondary custom color
+                    // Hàng màu tùy chỉnh phụ
                     const secondaryCustomRow = document.createElement('div');
                     secondaryCustomRow.style.display = 'flex';
                     secondaryCustomRow.style.alignItems = 'center';
@@ -508,7 +508,7 @@
                     secondaryCustomRow.appendChild(secondaryCustomLabel);
                     secondaryCustomRow.appendChild(secondaryCustomInput);
 
-                    // Add pattern type selector
+                    // Thêm selector kiểu caro
                     const patternTypeRow = document.createElement('div');
                     patternTypeRow.style.display = 'flex';
                     patternTypeRow.style.alignItems = 'center';
@@ -526,7 +526,7 @@
                     patternTypeSelect.style.borderRadius = '4px';
                     patternTypeSelect.style.border = '1px solid #ccc';
 
-                    // Add options
+                    // Thêm các tùy chọn
                     const checkeredOption = document.createElement('option');
                     checkeredOption.value = 'checkered';
                     checkeredOption.text = 'Caro đan xen';
@@ -549,7 +549,7 @@
                     patternTypeSelect.onchange = function() {
                         currentPatternType = this.value;
 
-                        // Show/hide controls based on pattern type
+                        // Hiển thị/ẩn controls dựa trên kiểu caro
                         const isWindowpane = currentPatternType === 'windowpane' || currentPatternType === 'double-windowpane';
                         const isDoubleWindowpane = currentPatternType === 'double-windowpane';
 
@@ -560,7 +560,7 @@
                     patternTypeRow.appendChild(patternTypeLabel);
                     patternTypeRow.appendChild(patternTypeSelect);
 
-                    // Add pattern size control
+                    // Thêm controls chỉnh kích thước caro
                     const patternSizeRow = document.createElement('div');
                     patternSizeRow.style.display = 'flex';
                     patternSizeRow.style.alignItems = 'center';
@@ -595,7 +595,7 @@
                     patternSizeRow.appendChild(patternSizeSlider);
                     patternSizeRow.appendChild(patternSizeValue);
 
-                    // Add line width control for windowpane pattern
+                    // Thêm controls chỉnh độ dày đường kẻ caro
                     const lineWidthRow = document.createElement('div');
                     lineWidthRow.style.display = currentPatternType === 'windowpane' ? 'flex' : 'none';
                     lineWidthRow.style.alignItems = 'center';
@@ -630,7 +630,7 @@
                     lineWidthRow.appendChild(lineWidthSlider);
                     lineWidthRow.appendChild(lineWidthValue);
 
-                    // Add line spacing control for double windowpane pattern
+                    // Thêm controls chỉnh khoảng cách đường kẻ đôi
                     const lineSpacingRow = document.createElement('div');
                     lineSpacingRow.style.display = currentPatternType === 'double-windowpane' ? 'flex' : 'none';
                     lineSpacingRow.style.alignItems = 'center';
@@ -665,7 +665,7 @@
                     lineSpacingRow.appendChild(lineSpacingSlider);
                     lineSpacingRow.appendChild(lineSpacingValue);
 
-                    // Apply button for custom checkered colors
+                    // Nút áp dụng màu caro tùy chỉnh
                     const applyCheckeredBtn = document.createElement('button');
                     applyCheckeredBtn.innerHTML = 'Áp dụng màu caro';
                     applyCheckeredBtn.className = 'btn btn-sm btn-primary';
@@ -680,7 +680,7 @@
                         const lineSpacing = parseInt(lineSpacingSlider.value);
                         const patternType = patternTypeSelect.value;
 
-                        // Update global variables
+                        // Cập nhật các biến toàn cục
                         currentCheckeredColors.primary = primaryColor;
                         currentCheckeredColors.secondary = secondaryColor;
                         currentCheckeredSize = patternSize;
@@ -688,20 +688,20 @@
                         currentLineSpacing = lineSpacing;
                         currentPatternType = patternType;
 
-                        // Apply pattern with all parameters
+                        // Áp dụng họa tiết với tất cả các tham số
                         const texture = createPatternTexture(primaryColor, secondaryColor, 512, patternSize, lineWidth, lineSpacing);
 
-                        // Apply texture to model
+                        // Áp dụng texture lên mô hình
                         applyTextureToModel(gltf.scene, texture);
 
-                        // Reset button highlights
+                        // Đặt lại màu cho các nút
                         document.querySelectorAll('.primary-color-btn, .secondary-color-btn').forEach(btn => {
                             btn.style.border = '2px solid #ddd';
                             btn.style.boxShadow = 'none';
                         });
                     };
 
-                    // Add reset button for checkered pattern
+                    // Thêm nút khôi phục màu gốc cho caro
                     const resetCheckeredBtn = document.createElement('button');
                     resetCheckeredBtn.innerHTML = '<i class="fas fa-undo-alt"></i> Khôi phục màu gốc';
                     resetCheckeredBtn.className = 'btn btn-sm btn-outline-secondary';
@@ -711,14 +711,14 @@
 
                     resetCheckeredBtn.onclick = function() {
                         resetModelColor(gltf.scene);
-                        // Reset button highlights
+                        // Đặt lại màu cho các nút
                         document.querySelectorAll('.primary-color-btn, .secondary-color-btn').forEach(btn => {
                             btn.style.border = '2px solid #ddd';
                             btn.style.boxShadow = 'none';
                         });
                     };
 
-                    // Create a row for buttons
+                    // Tạo một hàng cho các nút
                     const checkeredButtonsRow = document.createElement('div');
                     checkeredButtonsRow.style.display = 'flex';
                     checkeredButtonsRow.style.justifyContent = 'space-between';
@@ -737,32 +737,33 @@
                     checkeredContent.appendChild(checkeredCustomControls);
                     viewerContainer.appendChild(colorControls);
 
-                    // Add the container to the DOM
+                    // Thêm viewer vào DOM
                     container.appendChild(viewerContainer);
 
-                    // Center model
+                    // Canh giữa mô hình trong scene
+                    // Tính toán bounding box để lấy tâm và kích thước mô hình
                     const box = new THREE.Box3().setFromObject(gltf.scene);
                     const center = new THREE.Vector3();
                     box.getCenter(center);
                     const size = new THREE.Vector3();
                     box.getSize(size);
 
-                    // Reset model position to center
+                    // Đặt lại vị trí mô hình về tâm
                     gltf.scene.position.x = -center.x;
                     gltf.scene.position.y = -center.y;
                     gltf.scene.position.z = -center.z;
 
-                    // Adjust camera position based on model size
+                    // Điều chỉnh vị trí camera dựa vào kích thước mô hình
                     const maxDim = Math.max(size.x, size.y, size.z);
                     const fov = camera.fov * (Math.PI / 180);
                     let cameraDistance = maxDim / (2 * Math.tan(fov / 2));
                     cameraDistance *= 1.5;
                     camera.position.z = cameraDistance;
 
-                    // Add model to scene
+                    // Thêm mô hình vào scene
                     scene.add(gltf.scene);
 
-                    // Debug: Log all materials in the model
+                    // Debug: In ra bảng các material của mô hình
                     console.log('Model loaded, analyzing materials:');
                     const materialNames = [];
                     gltf.scene.traverse((child) => {
@@ -792,24 +793,24 @@
                     });
                     console.table(materialNames);
 
-                    // Start animation loop
+                    // Bắt đầu vòng lặp render
                     animate();
                 },
                 (xhr) => {
-                    // Show loading progress
+                    // Hiển thị tiến trình tải mô hình
                     if (xhr.lengthComputable) {
                         const percent = Math.floor((xhr.loaded / xhr.total) * 100);
                         container.innerHTML = `<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Đang tải mô hình 3D: ${percent}%</p></div>`;
                     }
                 },
                 (error) => {
-                    // Show error
+                    // Hiển thị lỗi khi tải mô hình
                     showModelError(container, `Lỗi khi tải mô hình: ${error.message || 'Không xác định'}`);
                     console.error('Error loading model:', error);
                 }
             );
 
-            // Handle window resize
+            // Xử lý khi thay đổi kích thước cửa sổ
             function handleResize() {
                 camera.aspect = container.clientWidth / container.clientHeight;
                 camera.updateProjectionMatrix();
@@ -818,7 +819,7 @@
 
             window.addEventListener('resize', handleResize);
 
-            // Animation loop
+            // Vòng lặp render
             function animate() {
                 requestAnimationFrame(animate);
                 controls.update();
@@ -833,40 +834,40 @@
         }
     }
 
-    // Global variables for 3D scene
+    // Biến toàn cục lưu trạng thái mô hình, material gốc, các tham số caro
     let originalMaterials = null;
     let currentModel = null;
     let scene = null;
     let camera = null;
     let renderer = null;
     let currentCheckeredColors = { primary: '#FFFFFF', secondary: '#000000' };
-    let currentCheckeredSize = 12; // Default number of segments in the checkered pattern
-    let currentPatternType = 'windowpane'; // 'checkered', 'windowpane', or 'double-windowpane'
-    let currentLineWidth = 1; // Line width for windowpane pattern
-    let currentLineSpacing = 3; // Spacing between double lines for double-windowpane pattern
+    let currentCheckeredSize = 12; // Số ô caro mặc định
+    let currentPatternType = 'windowpane'; // Kiểu caro mặc định
+    let currentLineWidth = 1; // Độ dày đường kẻ caro
+    let currentLineSpacing = 3; // Khoảng cách đường kẻ đôi
 
-    // Function to change model color - enhanced to handle black materials and only change the largest material
+    // Hàm đổi màu mô hình - chỉ đổi màu mesh chính (lớn nhất)
     function changeModelColor(model, colorHex) {
-        // Store the current model for reference
+        // Lưu lại mô hình hiện tại để tham chiếu
         currentModel = model;
 
-        // Convert hex to THREE.js color
+        // Chuyển đổi mã màu hex sang đối tượng THREE.Color
         const color = new THREE.Color(colorHex);
 
-        // Log the color being applied
+        // Ghi log màu đang áp dụng
         console.log('Applying color:', colorHex, 'RGB:', color.r.toFixed(2), color.g.toFixed(2), color.b.toFixed(2));
 
-        // Store original materials if not already stored
+        // Lưu lại material gốc nếu chưa lưu
         if (!originalMaterials) {
-            // Create a deep clone of all materials
+            // Tạo bản sao sâu của tất cả material
             originalMaterials = [];
 
             model.traverse((child) => {
                 if (child.isMesh && child.material) {
-                    // Log for debugging
+                    // Ghi log để debug
                     console.log('Found mesh:', child.name);
 
-                    // Store original material with reference to the mesh
+                    // Lưu lại material gốc kèm tham chiếu mesh
                     if (Array.isArray(child.material)) {
                         child.material.forEach((mat, index) => {
                             originalMaterials.push({
@@ -874,7 +875,7 @@
                                 index: index,
                                 material: mat.clone()
                             });
-                            // Log material properties
+                            // Ghi log thuộc tính material
                             console.log(`Material ${index}:`, mat.name, mat.color);
                         });
                     } else {
@@ -882,7 +883,7 @@
                             mesh: child,
                             material: child.material.clone()
                         });
-                        // Log material properties
+                        // Ghi log thuộc tính material
                         console.log('Material:', child.material.name, child.material.color);
                     }
                 }
@@ -891,10 +892,10 @@
 
         console.log('Changing color to:', colorHex);
 
-        // Find the main mesh in the model using multiple strategies
+        // Tìm mesh chính trong mô hình bằng nhiều chiến lược
         let mainMesh = null;
 
-        // Log all meshes in the model for debugging
+        // Ghi log tất cả mesh trong mô hình để debug
         console.log('All meshes in the model:');
         model.traverse((child) => {
             if (child.isMesh) {
@@ -902,14 +903,14 @@
             }
         });
 
-        // Strategy 1: Look for meshes with specific names that are likely to be the main part
+        // Chiến lược 1: Tìm mesh có tên đặc trưng (body, main, base, ...)
         const mainPartNames = ['body', 'main', 'base', 'hull', 'chassis', 'frame', 'primary', 'car', 'vehicle', 'model'];
         let foundMainPart = false;
 
         model.traverse((child) => {
             if (child.isMesh && child.name && !foundMainPart) {
                 const lowerName = child.name.toLowerCase();
-                // Check if this mesh has a name suggesting it's the main part
+                // Kiểm tra tên mesh có nằm trong danh sách ưu tiên không
                 for (const partName of mainPartNames) {
                     if (lowerName.includes(partName)) {
                         console.log('Found main part by name:', child.name);
@@ -921,8 +922,7 @@
             }
         });
 
-        // Strategy 2: If no main part found by name, look for the mesh with the most vertices
-        // This is often a better indicator of the main mesh than volume
+        // Chiến lược 2: Nếu chưa tìm được, chọn mesh có nhiều đỉnh nhất
         if (!foundMainPart) {
             let maxVertices = 0;
 
@@ -944,20 +944,20 @@
             }
         }
 
-        // Strategy 3: If still no main part found, look for the mesh with the largest volume
+        // Chiến lược 3: Nếu vẫn chưa tìm được, chọn mesh có thể tích lớn nhất
         if (!foundMainPart) {
             let largestSize = 0;
 
             model.traverse((child) => {
                 if (child.isMesh) {
-                    // Calculate the size of the mesh using its bounding box
+                    // Tính thể tích mesh bằng bounding box
                     const boundingBox = new THREE.Box3().setFromObject(child);
                     const size = boundingBox.getSize(new THREE.Vector3());
                     const volume = size.x * size.y * size.z;
 
                     console.log('Mesh:', child.name, 'Volume:', volume);
 
-                    // Update largest mesh if this one is bigger
+                    // Cập nhật mesh lớn nhất nếu có thể tích lớn hơn
                     if (volume > largestSize) {
                         largestSize = volume;
                         mainMesh = child;
@@ -971,13 +971,12 @@
             }
         }
 
-        // Strategy 4: If still no main part found, look for a mesh that has a material with a texture
-        // Often the main visible part has a texture
+        // Chiến lược 4: Nếu vẫn chưa tìm được, chọn mesh có material có texture
         if (!foundMainPart) {
             model.traverse((child) => {
                 if (child.isMesh && child.material) {
                     if (Array.isArray(child.material)) {
-                        // Check if any of the materials have a texture
+                        // Kiểm tra nếu có material nào có texture
                         for (const mat of child.material) {
                             if (mat.map) {
                                 console.log('Found mesh with texture:', child.name);
@@ -997,19 +996,19 @@
             });
         }
 
-        // If we found the main mesh, change its color
+        // Nếu tìm được mesh chính, đổi màu material của nó
         if (mainMesh) {
             console.log('Main mesh found:', mainMesh.name);
 
             if (Array.isArray(mainMesh.material)) {
-                // If the mesh has multiple materials, change all of them
+                // Nếu mesh có nhiều material, đổi tất cả
                 for (let i = 0; i < mainMesh.material.length; i++) {
                     const oldMat = mainMesh.material[i];
 
-                    // Create a completely new material based on the type
+                    // Tạo một material hoàn toàn mới dựa trên loại material cũ
                     let newMat;
 
-                    // Determine the material type and create appropriate replacement
+                    // Xác định loại material và tạo bản sao phù hợp
                     if (oldMat.type === 'MeshStandardMaterial') {
                         newMat = new THREE.MeshStandardMaterial({
                             color: color,
@@ -1043,12 +1042,12 @@
                             side: oldMat.side
                         });
                     } else {
-                        // For any other material type, clone and set color
+                        // Đối với các loại material khác, chỉ cần sao chép và thiết lập màu
                         newMat = oldMat.clone();
                         newMat.color.set(color);
                     }
 
-                    // Preserve maps from original material if they exist
+                    // Giữ lại các texture map từ material gốc nếu có
                     if (oldMat.map) newMat.map = oldMat.map;
                     if (oldMat.normalMap) newMat.normalMap = oldMat.normalMap;
                     if (oldMat.bumpMap) newMat.bumpMap = oldMat.bumpMap;
@@ -1057,49 +1056,24 @@
                     if (oldMat.aoMap) newMat.aoMap = oldMat.aoMap;
                     if (oldMat.emissiveMap) newMat.emissiveMap = oldMat.emissiveMap;
 
-                    // Handle texture maps and special cases for black materials
+                    // Xử lý các trường hợp đặc biệt cho các material màu đen
                     if (oldMat.map && oldMat.map.image) {
-                        // We'll keep the texture but apply a color overlay effect
-                        // This is done by setting the material's color and adjusting blending
+                        // Giữ lại texture nhưng áp dụng hiệu ứng màu
                         newMat.map = oldMat.map;
                         newMat.color.set(color);
                         newMat.transparent = true;
 
-                        // Use a different blending mode for better color application
+                        // Sử dụng chế độ hòa trộn khác cho hiệu ứng màu tốt hơn
                         newMat.blending = THREE.CustomBlending;
                         newMat.blendSrc = THREE.SrcAlphaFactor;
                         newMat.blendDst = THREE.OneMinusSrcAlphaFactor;
                         newMat.blendEquation = THREE.AddEquation;
                     }
 
-                    // Force color application for dark/black materials
-                    const oldColor = new THREE.Color();
-                    if (oldMat.color) oldColor.copy(oldMat.color);
-
-                    // Check if the material is very dark (close to black)
-                    const brightness = oldColor.r + oldColor.g + oldColor.b;
-                    if (brightness < 0.15) { // If it's a very dark color
-                        // Use more aggressive color application
-                        newMat.color.set(color);
-
-                        // Adjust material properties to make color more visible
-                        if (newMat.type === 'MeshStandardMaterial' || newMat.type === 'MeshPhysicalMaterial') {
-                            newMat.metalness = 0.1; // Reduce metalness to show color better
-                            newMat.roughness = 0.7; // Increase roughness
-                        }
-
-                        // Add emissive color to help the color stand out
-                        if (newMat.emissive) {
-                            const emissiveColor = new THREE.Color(color);
-                            emissiveColor.multiplyScalar(0.2); // Subtle emissive effect
-                            newMat.emissive = emissiveColor;
-                        }
-                    }
-
-                    // Make sure the material knows it needs to update
+                    // Đảm bảo material biết cần cập nhật
                     newMat.needsUpdate = true;
 
-                    // Replace the old material with the new one
+                    // Thay thế material cũ bằng material mới
                     mainMesh.material[i] = newMat;
 
                     console.log(`Updated material ${i} on main mesh:`, oldMat.type, 'Old color:', oldMat.color, 'New color:', newMat.color);
@@ -1107,10 +1081,10 @@
             } else {
                 const oldMat = mainMesh.material;
 
-                // Create a completely new material based on the type
+                // Tạo một material hoàn toàn mới dựa trên loại material cũ
                 let newMat;
 
-                // Determine the material type and create appropriate replacement
+                // Xác định loại material và tạo bản sao phù hợp
                 if (oldMat.type === 'MeshStandardMaterial') {
                     newMat = new THREE.MeshStandardMaterial({
                         color: color,
@@ -1144,12 +1118,12 @@
                         side: oldMat.side
                     });
                 } else {
-                    // For any other material type, clone and set color
+                    // Đối với các loại material khác, chỉ cần sao chép và thiết lập màu
                     newMat = oldMat.clone();
                     newMat.color.set(color);
                 }
 
-                // Preserve maps from original material if they exist
+                // Giữ lại các texture map từ material gốc nếu có
                 if (oldMat.map) newMat.map = oldMat.map;
                 if (oldMat.normalMap) newMat.normalMap = oldMat.normalMap;
                 if (oldMat.bumpMap) newMat.bumpMap = oldMat.bumpMap;
@@ -1158,49 +1132,24 @@
                 if (oldMat.aoMap) newMat.aoMap = oldMat.aoMap;
                 if (oldMat.emissiveMap) newMat.emissiveMap = oldMat.emissiveMap;
 
-                // Handle texture maps and special cases for black materials
+                // Xử lý các trường hợp đặc biệt cho các material màu đen
                 if (oldMat.map && oldMat.map.image) {
-                    // We'll keep the texture but apply a color overlay effect
-                    // This is done by setting the material's color and adjusting blending
+                    // Giữ lại texture nhưng áp dụng hiệu ứng màu
                     newMat.map = oldMat.map;
                     newMat.color.set(color);
                     newMat.transparent = true;
 
-                    // Use a different blending mode for better color application
+                    // Sử dụng chế độ hòa trộn khác cho hiệu ứng màu tốt hơn
                     newMat.blending = THREE.CustomBlending;
                     newMat.blendSrc = THREE.SrcAlphaFactor;
                     newMat.blendDst = THREE.OneMinusSrcAlphaFactor;
                     newMat.blendEquation = THREE.AddEquation;
                 }
 
-                // Force color application for dark/black materials
-                const oldColor = new THREE.Color();
-                if (oldMat.color) oldColor.copy(oldMat.color);
-
-                // Check if the material is very dark (close to black)
-                const brightness = oldColor.r + oldColor.g + oldColor.b;
-                if (brightness < 0.15) { // If it's a very dark color
-                    // Use more aggressive color application
-                    newMat.color.set(color);
-
-                    // Adjust material properties to make color more visible
-                    if (newMat.type === 'MeshStandardMaterial' || newMat.type === 'MeshPhysicalMaterial') {
-                        newMat.metalness = 0.1; // Reduce metalness to show color better
-                        newMat.roughness = 0.7; // Increase roughness
-                    }
-
-                    // Add emissive color to help the color stand out
-                    if (newMat.emissive) {
-                        const emissiveColor = new THREE.Color(color);
-                        emissiveColor.multiplyScalar(0.2); // Subtle emissive effect
-                        newMat.emissive = emissiveColor;
-                    }
-                }
-
-                // Make sure the material knows it needs to update
+                // Đảm bảo material biết cần cập nhật
                 newMat.needsUpdate = true;
 
-                // Replace the old material with the new one
+                // Thay thế material cũ bằng material mới
                 mainMesh.material = newMat;
 
                 console.log('Updated material on main mesh:', oldMat.type, 'Old color:', oldMat.color, 'New color:', newMat.color);
@@ -1209,11 +1158,11 @@
             console.warn('No main mesh found in the model');
         }
 
-        // Force scene update
+        // Render lại scene
         renderer.render(scene, camera);
     }
 
-    // Function to reset model to original colors - modified to only reset the largest material
+    // Hàm khôi phục màu gốc cho mesh chính
     function resetModelColor(model) {
         if (!originalMaterials || !currentModel) {
             console.log('No original materials to restore');
@@ -1222,25 +1171,17 @@
 
         console.log('Restoring original materials for main mesh');
 
-        // Find the main mesh in the model using multiple strategies
+        // Tìm mesh chính trong mô hình bằng các chiến lược như trên
         let mainMesh = null;
-
-        // Log all meshes in the model for debugging
-        console.log('All meshes in the model:');
-        model.traverse((child) => {
-            if (child.isMesh) {
-                console.log(`Mesh: ${child.name}, Type: ${child.type}`);
-            }
-        });
-
-        // Strategy 1: Look for meshes with specific names that are likely to be the main part
-        const mainPartNames = ['body', 'main', 'base', 'hull', 'chassis', 'frame', 'primary', 'car', 'vehicle', 'model'];
         let foundMainPart = false;
+
+        // Chiến lược 1: Tìm mesh có tên đặc trưng (body, main, base, ...)
+        const mainPartNames = ['body', 'main', 'base', 'hull', 'chassis', 'frame', 'primary', 'car', 'vehicle', 'model'];
 
         model.traverse((child) => {
             if (child.isMesh && child.name && !foundMainPart) {
                 const lowerName = child.name.toLowerCase();
-                // Check if this mesh has a name suggesting it's the main part
+                // Kiểm tra tên mesh có nằm trong danh sách ưu tiên không
                 for (const partName of mainPartNames) {
                     if (lowerName.includes(partName)) {
                         console.log('Found main part by name:', child.name);
@@ -1252,8 +1193,7 @@
             }
         });
 
-        // Strategy 2: If no main part found by name, look for the mesh with the most vertices
-        // This is often a better indicator of the main mesh than volume
+        // Chiến lược 2: Nếu chưa tìm được, chọn mesh có nhiều đỉnh nhất
         if (!foundMainPart) {
             let maxVertices = 0;
 
@@ -1275,20 +1215,20 @@
             }
         }
 
-        // Strategy 3: If still no main part found, look for the mesh with the largest volume
+        // Chiến lược 3: Nếu vẫn chưa tìm được, chọn mesh có thể tích lớn nhất
         if (!foundMainPart) {
             let largestSize = 0;
 
             model.traverse((child) => {
                 if (child.isMesh) {
-                    // Calculate the size of the mesh using its bounding box
+                    // Tính thể tích mesh bằng bounding box
                     const boundingBox = new THREE.Box3().setFromObject(child);
                     const size = boundingBox.getSize(new THREE.Vector3());
                     const volume = size.x * size.y * size.z;
 
                     console.log('Mesh:', child.name, 'Volume:', volume);
 
-                    // Update largest mesh if this one is bigger
+                    // Cập nhật mesh lớn nhất nếu có thể tích lớn hơn
                     if (volume > largestSize) {
                         largestSize = volume;
                         mainMesh = child;
@@ -1302,13 +1242,12 @@
             }
         }
 
-        // Strategy 4: If still no main part found, look for a mesh that has a material with a texture
-        // Often the main visible part has a texture
+        // Chiến lược 4: Nếu vẫn chưa tìm được, chọn mesh có material có texture
         if (!foundMainPart) {
             model.traverse((child) => {
                 if (child.isMesh && child.material) {
                     if (Array.isArray(child.material)) {
-                        // Check if any of the materials have a texture
+                        // Kiểm tra nếu có material nào có texture
                         for (const mat of child.material) {
                             if (mat.map) {
                                 console.log('Found mesh with texture:', child.name);
@@ -1328,22 +1267,22 @@
             });
         }
 
-        // If we found the main mesh, restore its original materials
+        // Nếu tìm được mesh chính, khôi phục material gốc đã lưu
         if (mainMesh) {
             console.log('Restoring materials for main mesh:', mainMesh.name);
 
-            // Find the original materials for this mesh
+            // Tìm các material gốc cho mesh này
             const meshMaterials = originalMaterials.filter(item => item.mesh === mainMesh);
 
             if (meshMaterials.length > 0) {
                 if (Array.isArray(mainMesh.material)) {
-                    // For array materials
+                    // Đối với mesh có nhiều material
                     meshMaterials.forEach(item => {
                         if (typeof item.index !== 'undefined' && item.index < mainMesh.material.length) {
-                            // Create a deep clone of the original material
+                            // Tạo một bản sao sâu của material gốc
                             const newMat = item.material.clone();
 
-                            // Ensure all properties are properly transferred
+                            // Đảm bảo tất cả thuộc tính được chuyển giao đúng cách
                             if (item.material.map) newMat.map = item.material.map;
                             if (item.material.normalMap) newMat.normalMap = item.material.normalMap;
                             if (item.material.bumpMap) newMat.bumpMap = item.material.bumpMap;
@@ -1352,27 +1291,27 @@
                             if (item.material.aoMap) newMat.aoMap = item.material.aoMap;
                             if (item.material.emissiveMap) newMat.emissiveMap = item.material.emissiveMap;
 
-                            // Reset blending mode to default if it was changed
+                            // Đặt lại chế độ hòa trộn về mặc định nếu đã thay đổi
                             newMat.blending = THREE.NormalBlending;
 
-                            // Make sure the material knows it needs to update
+                            // Đảm bảo material biết cần cập nhật
                             newMat.needsUpdate = true;
 
-                            // Replace the current material with the original
+                            // Thay thế material hiện tại bằng material gốc
                             mainMesh.material[item.index] = newMat;
 
                             console.log(`Restored array material ${item.index} for main mesh:`, mainMesh.name);
                         }
                     });
                 } else {
-                    // For single material
+                    // Đối với mesh chỉ có một material
                     const item = meshMaterials.find(item => typeof item.index === 'undefined');
 
                     if (item) {
-                        // Create a deep clone of the original material
+                        // Tạo một bản sao sâu của material gốc
                         const newMat = item.material.clone();
 
-                        // Ensure all properties are properly transferred
+                        // Đảm bảo tất cả thuộc tính được chuyển giao đúng cách
                         if (item.material.map) newMat.map = item.material.map;
                         if (item.material.normalMap) newMat.normalMap = item.material.normalMap;
                         if (item.material.bumpMap) newMat.bumpMap = item.material.bumpMap;
@@ -1381,13 +1320,13 @@
                         if (item.material.aoMap) newMat.aoMap = item.material.aoMap;
                         if (item.material.emissiveMap) newMat.emissiveMap = item.material.emissiveMap;
 
-                        // Reset blending mode to default if it was changed
+                        // Đặt lại chế độ hòa trộn về mặc định nếu đã thay đổi
                         newMat.blending = THREE.NormalBlending;
 
-                        // Make sure the material knows it needs to update
+                        // Đảm bảo material biết cần cập nhật
                         newMat.needsUpdate = true;
 
-                        // Replace the current material with the original
+                        // Thay thế material hiện tại bằng material gốc
                         mainMesh.material = newMat;
 
                         console.log('Restored material for main mesh:', mainMesh.name);
@@ -1400,13 +1339,13 @@
             console.warn('No main mesh found in the model');
         }
 
-        // Force scene update
+        // Render lại scene
         renderer.render(scene, camera);
 
         console.log('Material restoration complete');
     }
 
-    // Show error message
+    // Hiển thị thông báo lỗi khi không tải được mô hình
     function showModelError(container, message) {
         container.innerHTML = `
             <div class="alert alert-danger">
@@ -1422,9 +1361,9 @@
         `;
     }
 
-    // Function to create a pattern texture based on the current pattern type
+    // Tạo texture caro dựa vào kiểu caro hiện tại (windowpane, double-windowpane, checkered)
     function createPatternTexture(primaryColor, secondaryColor, size = 512, segments = null, lineWidth = null, lineSpacing = null) {
-        // Use the global values if not provided
+        // Sử dụng các giá trị toàn cục nếu không được cung cấp
         if (segments === null) {
             segments = currentCheckeredSize;
         }
@@ -1437,7 +1376,7 @@
             lineSpacing = currentLineSpacing;
         }
 
-        // Create appropriate texture based on pattern type
+        // Tạo texture phù hợp dựa trên kiểu caro
         if (currentPatternType === 'windowpane') {
             return createWindowpaneTexture(primaryColor, secondaryColor, size, segments, lineWidth);
         } else if (currentPatternType === 'double-windowpane') {
@@ -1447,55 +1386,55 @@
         }
     }
 
-    // Function to create a double windowpane pattern texture (with double lines)
+    // Tạo texture caro kiểu double windowpane (có 2 đường kẻ song song)
     function createDoubleWindowpaneTexture(primaryColor, secondaryColor, size = 512, segments = 12, lineWidth = 1, lineSpacing = 3) {
-        // Create a canvas element
+        // Tạo phần tử canvas
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
 
-        // Fill the background with the primary color
+        // Đổ màu nền bằng màu chính
         ctx.fillStyle = primaryColor;
         ctx.fillRect(0, 0, size, size);
 
-        // Set line properties
+        // Thiết lập thuộc tính đường kẻ
         ctx.strokeStyle = secondaryColor;
         ctx.lineWidth = lineWidth;
 
-        // Calculate the size of each cell
+        // Tính kích thước của mỗi ô
         const cellSize = size / segments;
 
-        // Draw the grid lines
+        // Vẽ các đường lưới
         ctx.beginPath();
 
-        // Draw vertical double lines
+        // Vẽ đường kẻ đôi dọc
         for (let x = 1; x < segments; x++) {
-            if (x % 3 === 0) { // Draw double lines every 3 cells for a more elegant look
+            if (x % 3 === 0) { // Vẽ đường kẻ đôi mỗi 3 ô để có vẻ ngoài tinh tế hơn
                 const xPos1 = x * cellSize - lineSpacing/2;
                 const xPos2 = x * cellSize + lineSpacing/2;
 
-                // First line
+                // Đường kẻ đầu tiên
                 ctx.moveTo(xPos1, 0);
                 ctx.lineTo(xPos1, size);
 
-                // Second line
+                // Đường kẻ thứ hai
                 ctx.moveTo(xPos2, 0);
                 ctx.lineTo(xPos2, size);
             }
         }
 
-        // Draw horizontal double lines
+        // Vẽ đường kẻ đôi ngang
         for (let y = 1; y < segments; y++) {
-            if (y % 3 === 0) { // Draw double lines every 3 cells
+            if (y % 3 === 0) { // Vẽ đường kẻ đôi mỗi 3 ô
                 const yPos1 = y * cellSize - lineSpacing/2;
                 const yPos2 = y * cellSize + lineSpacing/2;
 
-                // First line
+                // Đường kẻ đầu tiên
                 ctx.moveTo(0, yPos1);
                 ctx.lineTo(size, yPos1);
 
-                // Second line
+                // Đường kẻ thứ hai
                 ctx.moveTo(0, yPos2);
                 ctx.lineTo(size, yPos2);
             }
@@ -1503,77 +1442,77 @@
 
         ctx.stroke();
 
-        // Create a texture from the canvas
+        // Tạo texture từ canvas
         const texture = new THREE.CanvasTexture(canvas);
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(2, 2); // Repeat the pattern
+        texture.repeat.set(2, 2); // Lặp lại họa tiết
 
         return texture;
     }
 
-    // Function to create a checkered pattern texture
+    // Tạo texture caro kiểu checkered (ô vuông xen kẽ)
     function createCheckeredTexture(primaryColor, secondaryColor, size = 512, segments = 8) {
-        // Create a canvas element
+        // Tạo phần tử canvas
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
 
-        // Calculate the size of each square
+        // Tính kích thước của mỗi ô vuông
         const squareSize = size / segments;
 
-        // Draw the checkered pattern
+        // Vẽ họa tiết caro
         for (let x = 0; x < segments; x++) {
             for (let y = 0; y < segments; y++) {
-                // Determine if this square should be primary or secondary color
+                // Xác định ô này sẽ có màu chính hay màu phụ
                 const isEven = (x + y) % 2 === 0;
                 ctx.fillStyle = isEven ? primaryColor : secondaryColor;
 
-                // Draw the square
+                // Vẽ ô vuông
                 ctx.fillRect(x * squareSize, y * squareSize, squareSize, squareSize);
             }
         }
 
-        // Create a texture from the canvas
+        // Tạo texture từ canvas
         const texture = new THREE.CanvasTexture(canvas);
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(2, 2); // Repeat the pattern
+        texture.repeat.set(2, 2); // Lặp lại họa tiết
 
         return texture;
     }
 
-    // Function to create a windowpane pattern texture
+    // Tạo texture caro kiểu windowpane (kẻ ô vuông)
     function createWindowpaneTexture(primaryColor, secondaryColor, size = 512, segments = 12, lineWidth = 1) {
-        // Create a canvas element
+        // Tạo phần tử canvas
         const canvas = document.createElement('canvas');
         canvas.width = size;
         canvas.height = size;
         const ctx = canvas.getContext('2d');
 
-        // Fill the background with the primary color
+        // Đổ màu nền bằng màu chính
         ctx.fillStyle = primaryColor;
         ctx.fillRect(0, 0, size, size);
 
-        // Set line properties
+        // Thiết lập thuộc tính đường kẻ
         ctx.strokeStyle = secondaryColor;
         ctx.lineWidth = lineWidth;
 
-        // Calculate the size of each cell
+        // Tính kích thước của mỗi ô
         const cellSize = size / segments;
 
-        // Draw the grid lines
+        // Vẽ các đường lưới
         ctx.beginPath();
 
-        // Draw vertical lines
+        // Vẽ đường kẻ dọc
         for (let x = 1; x < segments; x++) {
             const xPos = x * cellSize;
             ctx.moveTo(xPos, 0);
             ctx.lineTo(xPos, size);
         }
 
-        // Draw horizontal lines
+        // Vẽ đường kẻ ngang
         for (let y = 1; y < segments; y++) {
             const yPos = y * cellSize;
             ctx.moveTo(0, yPos);
@@ -1582,33 +1521,33 @@
 
         ctx.stroke();
 
-        // Create a texture from the canvas
+        // Tạo texture từ canvas
         const texture = new THREE.CanvasTexture(canvas);
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(4, 4); // Repeat the pattern more times to make it smaller
+        texture.repeat.set(4, 4); // Lặp lại họa tiết nhiều lần để làm cho nó nhỏ hơn
 
         return texture;
     }
 
-    // Function to apply texture directly to model
+    // Áp dụng texture trực tiếp lên mesh chính của mô hình
     function applyTextureToModel(model, texture) {
-        // Store the current model for reference
+        // Lưu lại mô hình hiện tại để tham chiếu
         currentModel = model;
 
         console.log('Applying texture to model');
 
-        // Store original materials if not already stored
+        // Lưu lại material gốc nếu chưa lưu
         if (!originalMaterials) {
-            // Create a deep clone of all materials
+            // Tạo bản sao sâu của tất cả material
             originalMaterials = [];
 
             model.traverse((child) => {
                 if (child.isMesh && child.material) {
-                    // Log for debugging
+                    // Ghi log để debug
                     console.log('Found mesh:', child.name);
 
-                    // Store original material with reference to the mesh
+                    // Lưu lại material gốc kèm tham chiếu mesh
                     if (Array.isArray(child.material)) {
                         child.material.forEach((mat, index) => {
                             originalMaterials.push({
@@ -1616,7 +1555,7 @@
                                 index: index,
                                 material: mat.clone()
                             });
-                            // Log material properties
+                            // Ghi log thuộc tính material
                             console.log(`Material ${index}:`, mat.name, mat.color);
                         });
                     } else {
@@ -1624,26 +1563,26 @@
                             mesh: child,
                             material: child.material.clone()
                         });
-                        // Log material properties
+                        // Ghi log thuộc tính material
                         console.log('Material:', child.material.name, child.material.color);
                     }
                 }
             });
         }
 
-        // Find the main mesh in the model
+        // Tìm mesh chính trong mô hình
         let mainMesh = findMainMesh(model);
 
-        // If we found the main mesh, apply the texture
+        // Nếu tìm được mesh chính, thay material của nó bằng material mới có texture
         if (mainMesh) {
             console.log('Applying texture to main mesh:', mainMesh.name);
 
             if (Array.isArray(mainMesh.material)) {
-                // If the mesh has multiple materials, change all of them
+                // Nếu mesh có nhiều material, đổi tất cả
                 for (let i = 0; i < mainMesh.material.length; i++) {
                     const oldMat = mainMesh.material[i];
 
-                    // Create a new material based on the type
+                    // Tạo một material mới dựa trên loại material cũ
                     let newMat;
 
                     if (oldMat.type === 'MeshStandardMaterial') {
@@ -1669,26 +1608,26 @@
                             side: oldMat.side
                         });
                     } else {
-                        // For any other material type, clone and set map
+                        // Đối với các loại material khác, chỉ cần sao chép và thiết lập map
                         newMat = oldMat.clone();
                         newMat.map = texture;
                     }
 
-                    // Preserve other maps from original material
+                    // Giữ lại các map khác từ material gốc
                     if (oldMat.normalMap) newMat.normalMap = oldMat.normalMap;
                     if (oldMat.bumpMap) newMat.bumpMap = oldMat.bumpMap;
 
-                    // Make sure the material knows it needs to update
+                    // Đảm bảo material biết cần cập nhật
                     newMat.needsUpdate = true;
 
-                    // Replace the old material with the new one
+                    // Thay thế material cũ bằng material mới
                     mainMesh.material[i] = newMat;
                 }
             } else {
-                // For single material
+                // Đối với mesh chỉ có một material
                 const oldMat = mainMesh.material;
 
-                // Create a new material based on the type
+                // Tạo một material mới dựa trên loại material cũ
                 let newMat;
 
                 if (oldMat.type === 'MeshStandardMaterial') {
@@ -1714,35 +1653,35 @@
                         side: oldMat.side
                     });
                 } else {
-                    // For any other material type, clone and set map
+                    // Đối với các loại material khác, chỉ cần sao chép và thiết lập map
                     newMat = oldMat.clone();
                     newMat.map = texture;
                 }
 
-                // Preserve other maps from original material
+                // Giữ lại các map khác từ material gốc
                 if (oldMat.normalMap) newMat.normalMap = oldMat.normalMap;
                 if (oldMat.bumpMap) newMat.bumpMap = oldMat.bumpMap;
 
-                // Make sure the material knows it needs to update
+                // Đảm bảo material biết cần cập nhật
                 newMat.needsUpdate = true;
 
-                // Replace the old material with the new one
+                // Thay thế material cũ bằng material mới
                 mainMesh.material = newMat;
             }
         } else {
             console.warn('No main mesh found in the model');
         }
 
-        // Force scene update
+        // Render lại scene
         renderer.render(scene, camera);
     }
 
-    // Helper function to find the main mesh in a model
+    // Hàm tìm mesh chính trong mô hình (ưu tiên tên, số đỉnh)
     function findMainMesh(model) {
         let mainMesh = null;
         let foundMainPart = false;
 
-        // Strategy 1: Look for meshes with specific names
+        // Chiến lược 1: Tìm mesh có tên đặc trưng
         const mainPartNames = ['body', 'main', 'base', 'hull', 'chassis', 'frame', 'primary', 'car', 'vehicle', 'model'];
 
         model.traverse((child) => {
@@ -1759,7 +1698,7 @@
             }
         });
 
-        // Strategy 2: If no main part found by name, look for the mesh with the most vertices
+        // Chiến lược 2: Nếu chưa tìm được, chọn mesh có nhiều đỉnh nhất
         if (!foundMainPart) {
             let maxVertices = 0;
 
@@ -1782,58 +1721,58 @@
         return mainMesh;
     }
 
-    // Function to apply pattern to model
+    // Hàm áp dụng caro lên mô hình (tạo texture và gọi applyTextureToModel)
     function applyCheckeredPattern(model, primaryColor, secondaryColor, segments = null, lineWidth = null, patternType = null, lineSpacing = null) {
-        // Store the current model for reference
+        // Lưu lại mô hình hiện tại để tham chiếu
         currentModel = model;
 
-        // Update current checkered colors
+        // Cập nhật màu caro chính
         currentCheckeredColors.primary = primaryColor;
         currentCheckeredColors.secondary = secondaryColor;
 
-        // Update pattern size if provided
+        // Cập nhật kích thước ô nếu được cung cấp
         if (segments !== null) {
             currentCheckeredSize = segments;
         }
 
-        // Update line width if provided
+        // Cập nhật độ dày đường kẻ nếu được cung cấp
         if (lineWidth !== null) {
             currentLineWidth = lineWidth;
         }
 
-        // Update pattern type if provided
+        // Cập nhật kiểu caro nếu được cung cấp
         if (patternType !== null) {
             currentPatternType = patternType;
         }
 
-        // Update line spacing if provided
+        // Cập nhật khoảng cách đường kẻ nếu được cung cấp
         if (lineSpacing !== null) {
             currentLineSpacing = lineSpacing;
         }
 
         console.log('Applying pattern:', primaryColor, secondaryColor, 'Type:', patternType);
 
-        // Create texture with current settings
+        // Tạo texture với các thiết lập hiện tại
         const texture = createPatternTexture(primaryColor, secondaryColor, 512, currentCheckeredSize, currentLineWidth, currentLineSpacing);
 
-        // Apply texture to model
+        // Áp dụng texture lên mô hình
         applyTextureToModel(model, texture);
 
-        // Return early since we're using the new method
+        // Trả về ngay vì chúng ta đang sử dụng phương pháp mới
         return;
 
-        // The code below is kept for reference but not used anymore
-        // Store original materials if not already stored
+        // Mã dưới đây được giữ lại để tham khảo nhưng không còn được sử dụng nữa
+        // Lưu lại material gốc nếu chưa lưu
         if (!originalMaterials) {
-            // Create a deep clone of all materials
+            // Tạo bản sao sâu của tất cả material
             originalMaterials = [];
 
             model.traverse((child) => {
                 if (child.isMesh && child.material) {
-                    // Log for debugging
+                    // Ghi log để debug
                     console.log('Found mesh:', child.name);
 
-                    // Store original material with reference to the mesh
+                    // Lưu lại material gốc kèm tham chiếu mesh
                     if (Array.isArray(child.material)) {
                         child.material.forEach((mat, index) => {
                             originalMaterials.push({
@@ -1841,7 +1780,7 @@
                                 index: index,
                                 material: mat.clone()
                             });
-                            // Log material properties
+                            // Ghi log thuộc tính material
                             console.log(`Material ${index}:`, mat.name, mat.color);
                         });
                     } else {
@@ -1849,18 +1788,18 @@
                             mesh: child,
                             material: child.material.clone()
                         });
-                        // Log material properties
+                        // Ghi log thuộc tính material
                         console.log('Material:', child.material.name, child.material.color);
                     }
                 }
             });
         }
 
-        // Find the main mesh in the model (reusing the same strategies as in changeModelColor)
+        // Tìm mesh chính trong mô hình (sử dụng lại các chiến lược như trong hàm changeModelColor)
         let mainMesh = null;
         let foundMainPart = false;
 
-        // Strategy 1: Look for meshes with specific names
+        // Chiến lược 1: Tìm mesh có tên đặc trưng (body, main, base, ...)
         const mainPartNames = ['body', 'main', 'base', 'hull', 'chassis', 'frame', 'primary', 'car', 'vehicle', 'model'];
 
         model.traverse((child) => {
@@ -1877,7 +1816,7 @@
             }
         });
 
-        // Strategy 2: If no main part found by name, look for the mesh with the most vertices
+        // Chiến lược 2: Nếu chưa tìm được, chọn mesh có nhiều đỉnh nhất
         if (!foundMainPart) {
             let maxVertices = 0;
 
@@ -1897,19 +1836,20 @@
             }
         }
 
-        // If we found the main mesh, apply the checkered pattern
+        // Nếu tìm được mesh chính, áp dụng họa tiết caro
         if (mainMesh) {
             console.log('Applying checkered pattern to main mesh:', mainMesh.name);
 
-            // Create the pattern texture
+            // Tạo texture họa tiết
             const texture = createPatternTexture(primaryColor, secondaryColor, 512, currentCheckeredSize, currentLineWidth);
 
+
             if (Array.isArray(mainMesh.material)) {
-                // If the mesh has multiple materials, change all of them
+                // Nếu mesh có nhiều material, đổi tất cả
                 for (let i = 0; i < mainMesh.material.length; i++) {
                     const oldMat = mainMesh.material[i];
 
-                    // Create a new material based on the type
+                    // Tạo một material mới dựa trên loại material cũ
                     let newMat;
 
                     if (oldMat.type === 'MeshStandardMaterial') {
@@ -1935,26 +1875,26 @@
                             side: oldMat.side
                         });
                     } else {
-                        // For any other material type, clone and set map
+                        // Đối với các loại material khác, chỉ cần sao chép và thiết lập map
                         newMat = oldMat.clone();
                         newMat.map = texture;
                     }
 
-                    // Preserve other maps from original material
+                    // Giữ lại các map khác từ material gốc
                     if (oldMat.normalMap) newMat.normalMap = oldMat.normalMap;
                     if (oldMat.bumpMap) newMat.bumpMap = oldMat.bumpMap;
 
-                    // Make sure the material knows it needs to update
+                    // Đảm bảo material biết cần cập nhật
                     newMat.needsUpdate = true;
 
-                    // Replace the old material with the new one
+                    // Thay thế material cũ bằng material mới
                     mainMesh.material[i] = newMat;
                 }
             } else {
-                // For single material
+                // Đối với mesh chỉ có một material
                 const oldMat = mainMesh.material;
 
-                // Create a new material based on the type
+                // Tạo một material mới dựa trên loại material cũ
                 let newMat;
 
                 if (oldMat.type === 'MeshStandardMaterial') {
@@ -1980,53 +1920,53 @@
                         side: oldMat.side
                     });
                 } else {
-                    // For any other material type, clone and set map
+                    // Đối với các loại material khác, chỉ cần sao chép và thiết lập map
                     newMat = oldMat.clone();
                     newMat.map = texture;
                 }
 
-                // Preserve other maps from original material
+                // Giữ lại các map khác từ material gốc
                 if (oldMat.normalMap) newMat.normalMap = oldMat.normalMap;
                 if (oldMat.bumpMap) newMat.bumpMap = oldMat.bumpMap;
 
-                // Make sure the material knows it needs to update
+                // Đảm bảo material biết cần cập nhật
                 newMat.needsUpdate = true;
 
-                // Replace the old material with the new one
+                // Thay thế material cũ bằng material mới
                 mainMesh.material = newMat;
             }
         } else {
             console.warn('No main mesh found in the model');
         }
 
-        // Force scene update
+        // Render lại scene
         renderer.render(scene, camera);
     }
 
     // Function to change the 3D model
     function changeModel(modelUrl) {
-        // Get the model container
+        // Lấy container mô hình
         const container = document.getElementById('model-container');
         if (!container) {
             console.error('Model container not found');
             return;
         }
 
-        // Clear the container
+        // Xóa nội dung container
         container.innerHTML = '';
 
-        // Show loading indicator
+        // Hiển thị loading indicator
         container.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Đang tải mô hình 3D...</p></div>';
 
-        // Reset global variables
+        // Đặt lại các biến toàn cục
         originalMaterials = null;
         currentModel = null;
 
-        // Load the new model
+        // Tải mô hình mới
         show3DModel('model-container', modelUrl);
     }
 
-    // For backward compatibility
+    // Đối tượng hỗ trợ gọi hàm show3DModel từ ngoài
     const ThreeModelViewer = {
         init: function(containerId, modelUrl) {
             return show3DModel(containerId, modelUrl);
