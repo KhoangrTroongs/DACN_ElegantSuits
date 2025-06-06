@@ -55,7 +55,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             var statistics = new StatisticsViewModel
             {
                 TotalOrders = orders.Count,
-                TotalRevenue = orders.Sum(o => o.TotalPrice),
+                TotalRevenue = orders.Where(o => o.Status == OrderStatus.Delivered).Sum(o => o.TotalPrice), // Chỉ tính doanh thu từ đơn hàng đã giao
                 TotalProducts = await _context.Products.CountAsync(),
                 TotalUsers = await _userManager.Users.CountAsync(),
                 
@@ -75,8 +75,9 @@ namespace NgoHuuDuc_2280600725.Controllers
                 CancelledRevenue = orders.Where(o => o.Status == OrderStatus.Cancelled).Sum(o => o.TotalPrice),
                 ReturnedRevenue = orders.Where(o => o.Status == OrderStatus.Returned).Sum(o => o.TotalPrice),
                 
-                // Thống kê sản phẩm bán chạy
+                // Thống kê sản phẩm bán chạy (chỉ tính từ đơn hàng đã giao)
                 TopProducts = orders
+                    .Where(o => o.Status == OrderStatus.Delivered)
                     .SelectMany(o => o.OrderDetails)
                     .GroupBy(od => new { od.ProductId, Name = od.Product.Name, ImageUrl = od.Product.ImageUrl })
                     .Select(g => new TopProductViewModel
@@ -98,7 +99,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                     {
                         Date = g.Key,
                         OrderCount = g.Count(),
-                        Revenue = g.Sum(o => o.TotalPrice)
+                        Revenue = g.Where(o => o.Status == OrderStatus.Delivered).Sum(o => o.TotalPrice) // Chỉ tính doanh thu từ đơn hàng đã giao
                     })
                     .OrderBy(d => d.Date)
                     .ToList()

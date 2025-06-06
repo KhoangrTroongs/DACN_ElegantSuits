@@ -62,9 +62,10 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Doanh thu
+                                Doanh thu (Đã giao hàng)
                             </div>
                             <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalRevenue.ToString("C0")</div>
+                            <div class="text-xs text-muted">Chỉ tính từ đơn hàng đã giao</div>
                         </div>
                         <div class="col-auto">
                             <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -168,6 +169,12 @@
                         <span class="mr-2">
                             <i class="fas fa-circle text-success"></i> Đã giao hàng (@Model.DeliveredRevenue.ToString("C0"))
                         </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-danger"></i> Đã hủy (@Model.CancelledRevenue.ToString("C0"))
+                        </span>
+                        <span class="mr-2">
+                            <i class="fas fa-circle text-secondary"></i> Hoàn trả (@Model.ReturnedRevenue.ToString("C0"))
+                        </span>
                     </div>
                 </div>
             </div>
@@ -177,7 +184,7 @@
     <!-- Thống kê theo ngày -->
     <div class="card card-elegant mb-4">
         <div class="card-header">
-            <h6 class="m-0 font-weight-bold">Thống kê doanh thu theo ngày</h6>
+            <h6 class="m-0 font-weight-bold">Thống kê doanh thu theo ngày (Chỉ đơn hàng đã giao)</h6>
         </div>
         <div class="card-body">
             <div class="chart-area">
@@ -189,7 +196,7 @@
     <!-- Top sản phẩm bán chạy -->
     <div class="card card-elegant mb-4">
         <div class="card-header">
-            <h6 class="m-0 font-weight-bold">Top sản phẩm bán chạy</h6>
+            <h6 class="m-0 font-weight-bold">Top sản phẩm bán chạy (Chỉ đơn hàng đã giao)</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
