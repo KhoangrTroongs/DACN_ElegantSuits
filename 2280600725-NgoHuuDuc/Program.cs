@@ -51,6 +51,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddScoped<ICategoryRepository, EFCategoryRepository>();
 builder.Services.AddScoped<IProductRepository, EFProductRepository>();
 builder.Services.AddScoped<IUserRepository, EFUserRepository>();
+builder.Services.AddScoped<IFabricRepository, EFFabricRepository>();
 
 // Register services
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -59,6 +60,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IFabricService, FabricService>();
 
 // Configure Authentication with both Cookie and JWT
 builder.Services.AddAuthentication(options =>
@@ -248,6 +250,7 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
 
     // Tạo vai trò Administrator nếu chưa tồn tại
     if (!await roleManager.RoleExistsAsync("Administrator"))
@@ -295,6 +298,9 @@ using (var scope = app.Services.CreateScope())
             }
         }
     }
+
+    // Seed dữ liệu vải (Fabric)
+    await dbContext.SeedFabricDataAsync();
 }
 
 // Temporarily disable SPA configuration

@@ -1,0 +1,91 @@
+@model IEnumerable<NgoHuuDuc_2280600725.DTOs.FabricGroupDTO>
+@{
+    ViewData["Title"] = "Quản lý nhóm vải";
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="dashboard-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-layer-group me-2"></i>Danh sách nhóm vải</span>
+        <a asp-action="CreateFabricGroup" class="btn btn-elegant-primary btn-sm">
+            <i class="fas fa-plus-circle me-2"></i>Tạo nhóm vải mới
+        </a>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Tên nhóm</th>
+                            <th>Mô tả</th>
+                            <th>Thứ tự hiển thị</th>
+                            <th>Số lượng vải</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@item.Name</strong>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.Description))
+                                    {
+                                        <span>@item.Description.Substring(0, Math.Min(50, item.Description.Length))@(item.Description.Length > 50 ? "..." : "")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@item.DisplayOrder</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@(item.Fabrics?.Count() ?? 0)</span>
+                                </td>
+                                <td>
+                                    <a asp-action="EditFabricGroup" asp-route-id="@item.Id" class="btn btn-sm btn-elegant-primary">
+                                        <i class="fas fa-edit me-1"></i>Sửa
+                                    </a>
+                                    <form asp-action="DeleteFabricGroup" asp-route-id="@item.Id" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhóm vải này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt me-1"></i>Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Chưa có nhóm vải nào. <a asp-action="CreateFabricGroup">Tạo nhóm vải mới</a>
+            </div>
+        }
+    </div>
+</div>
+

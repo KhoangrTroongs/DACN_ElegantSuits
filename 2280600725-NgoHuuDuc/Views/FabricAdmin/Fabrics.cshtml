@@ -1,0 +1,117 @@
+@model IEnumerable<NgoHuuDuc_2280600725.DTOs.FabricDTO>
+@{
+    ViewData["Title"] = "Quản lý vải";
+    var fabricGroups = ViewBag.FabricGroups as IEnumerable<NgoHuuDuc_2280600725.DTOs.FabricGroupDTO>;
+    var selectedGroupId = ViewBag.SelectedGroupId as int?;
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="dashboard-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-palette me-2"></i>Danh sách vải</span>
+        <a asp-action="CreateFabric" class="btn btn-elegant-primary btn-sm">
+            <i class="fas fa-plus-circle me-2"></i>Thêm vải mới
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- Filter by group -->
+        <div class="mb-3">
+            <label class="form-label">Lọc theo nhóm vải:</label>
+            <div class="btn-group" role="group">
+                <a asp-action="Fabrics" class="btn btn-sm @(selectedGroupId == null ? "btn-elegant-primary" : "btn-outline-secondary")">
+                    Tất cả
+                </a>
+                @foreach (var group in fabricGroups.OrderBy(g => g.DisplayOrder))
+                {
+                    <a asp-action="Fabrics" asp-route-groupId="@group.Id" class="btn btn-sm @(selectedGroupId == group.Id ? "btn-elegant-primary" : "btn-outline-secondary")">
+                        @group.Name
+                    </a>
+                }
+            </div>
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="dashboard-table">
+                    <thead>
+                        <tr>
+                            <th>Hình ảnh</th>
+                            <th>Tên vải</th>
+                            <th>Nhóm</th>
+                            <th>Giá</th>
+                            <th>Thành phần</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@item.ImageUrl" alt="@item.Name" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;" />
+                                </td>
+                                <td>
+                                    <strong>@item.Name</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@item.FabricGroupName</span>
+                                </td>
+                                <td>
+                                    <span class="text-success fw-bold">@item.Price.ToString("N0") ₫</span>
+                                </td>
+                                <td>
+                                    <small>@item.Composition</small>
+                                </td>
+                                <td>
+                                    @if (item.IsAvailable)
+                                    {
+                                        <span class="badge bg-success">Có sẵn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Không có sẵn</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="EditFabric" asp-route-id="@item.Id" class="btn btn-sm btn-elegant-primary">
+                                        <i class="fas fa-edit me-1"></i>Sửa
+                                    </a>
+                                    <form asp-action="DeleteFabric" asp-route-id="@item.Id" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vải này?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt me-1"></i>Xóa
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>Chưa có vải nào. <a asp-action="CreateFabric">Thêm vải mới</a>
+            </div>
+        }
+    </div>
+</div>
+

@@ -9,6 +9,7 @@ namespace NgoHuuDuc_2280600725.Models
         {
             ProductSizes = new List<ProductSize>();
             ProductReviews = new List<ProductReview>();
+            FabricProducts = new List<FabricProduct>();
         }
 
         public int Id { get; set; }
@@ -52,6 +53,7 @@ namespace NgoHuuDuc_2280600725.Models
         // New navigation properties
         public virtual ICollection<ProductSize> ProductSizes { get; set; }
         public virtual ICollection<ProductReview> ProductReviews { get; set; }
+        public virtual ICollection<FabricProduct> FabricProducts { get; set; }
 
         // Computed properties
         [NotMapped]

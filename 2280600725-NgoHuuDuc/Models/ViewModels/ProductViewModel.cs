@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
+using NgoHuuDuc_2280600725.DTOs;
 
 namespace NgoHuuDuc_2280600725.Models.ViewModels
 {
@@ -45,6 +46,10 @@ namespace NgoHuuDuc_2280600725.Models.ViewModels
         [Display(Name = "Danh mục")]
         public int CategoryId { get; set; }
 
+        [Display(Name = "Vải")]
+        public List<int> SelectedFabricIds { get; set; } = new List<int>(); // Selected fabric IDs
+
         public IEnumerable<Category> Categories { get; set; } = new List<Category>(); // Ensure initialization
+        public IEnumerable<FabricDTO> Fabrics { get; set; } = new List<FabricDTO>(); // All available fabrics
     }
 }

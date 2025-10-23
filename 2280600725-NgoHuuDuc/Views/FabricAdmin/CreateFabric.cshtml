@@ -1,0 +1,96 @@
+@model NgoHuuDuc_2280600725.DTOs.CreateFabricDTO
+@{
+    ViewData["Title"] = "Thêm vải mới";
+    var fabricGroups = ViewBag.FabricGroups as IEnumerable<NgoHuuDuc_2280600725.DTOs.FabricGroupDTO>;
+}
+
+<div class="dashboard-card">
+    <div class="card-header">
+        <span><i class="fas fa-palette me-2"></i>Thêm vải mới</span>
+    </div>
+    <div class="card-body">
+        <form asp-action="CreateFabric" method="post" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="Name" class="form-label">Tên vải <span class="text-danger">*</span></label>
+                        <input asp-for="Name" class="form-control" placeholder="Ví dụ: Len Merino Xanh Đen" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="FabricGroupId" class="form-label">Nhóm vải <span class="text-danger">*</span></label>
+                        <select asp-for="FabricGroupId" class="form-select">
+                            <option value="">-- Chọn nhóm vải --</option>
+                            @foreach (var group in fabricGroups.OrderBy(g => g.DisplayOrder))
+                            {
+                                <option value="@group.Id">@group.Name</option>
+                            }
+                        </select>
+                        <span asp-validation-for="FabricGroupId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Price" class="form-label">Giá (VNĐ) <span class="text-danger">*</span></label>
+                        <input asp-for="Price" type="number" class="form-control" placeholder="0" step="1000" />
+                        <span asp-validation-for="Price" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Composition" class="form-label">Thành phần <span class="text-danger">*</span></label>
+                        <input asp-for="Composition" class="form-control" placeholder="Ví dụ: 100% Len Merino" />
+                        <span asp-validation-for="Composition" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Hình ảnh vải</label>
+                        <div class="input-group">
+                            <input type="file" name="imageFile" class="form-control" accept="image/*" id="imageInput" />
+                        </div>
+                        <small class="form-text text-muted">Định dạng: JPG, PNG. Kích thước tối đa: 5MB</small>
+                        <div id="imagePreview" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Description" class="form-label">Mô tả chi tiết <span class="text-danger">*</span></label>
+                <textarea asp-for="Description" class="form-control" rows="5" placeholder="Mô tả chi tiết về vải này..."></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-elegant-primary">
+                    <i class="fas fa-save me-2"></i>Thêm vải
+                </button>
+                <a asp-action="Fabrics" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        document.getElementById('imageInput').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (event) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.innerHTML = '<img src="' + event.target.result + '" style="max-width: 200px; max-height: 200px; border-radius: 4px;" />';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+}
+

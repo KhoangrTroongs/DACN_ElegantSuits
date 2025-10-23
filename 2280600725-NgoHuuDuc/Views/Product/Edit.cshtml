@@ -87,6 +87,35 @@
             </div>
 
             <div class="form-group mb-3">
+                <label class="control-label">Vải (không bắt buộc)</label>
+                <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                    @if (Model.Fabrics != null && Model.Fabrics.Any())
+                    {
+                        @foreach (var fabric in Model.Fabrics.OrderBy(f => f.FabricGroupName).ThenBy(f => f.Name))
+                        {
+                            var isSelected = Model.SelectedFabricIds != null && Model.SelectedFabricIds.Contains(fabric.Id);
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="fabric_@fabric.Id"
+                                       name="SelectedFabricIds" value="@fabric.Id" @(isSelected ? "checked" : "") />
+                                <label class="form-check-label" for="fabric_@fabric.Id">
+                                    @fabric.Name
+                                    @if (!string.IsNullOrEmpty(fabric.FabricGroupName))
+                                    {
+                                        <span class="text-muted">(@fabric.FabricGroupName)</span>
+                                    }
+                                </label>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Không có vải nào. Vui lòng tạo vải trước.</p>
+                    }
+                </div>
+                <small class="form-text text-muted">Chọn các vải có sẵn cho sản phẩm này. Khách hàng sẽ có thể chọn từ các vải này khi thiết kế.</small>
+            </div>
+
+            <div class="form-group mb-3">
                 <div class="form-check">
                     <input asp-for="IsHidden" class="form-check-input" />
                     <label asp-for="IsHidden" class="form-check-label">Ẩn sản phẩm</label>

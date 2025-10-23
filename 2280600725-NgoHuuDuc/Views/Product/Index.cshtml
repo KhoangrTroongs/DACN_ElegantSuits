@@ -445,6 +445,29 @@
                                     }
                                     <p class="card-text">@displayDescription</p>
                                     <p class="card-text price">@item.Price.ToString("N0") VNĐ</p>
+
+                                    <!-- Fabric Display -->
+                                    @if (item.FabricProducts != null && item.FabricProducts.Any())
+                                    {
+                                        <p class="card-text mb-2">
+                                            <small class="text-muted d-block mb-1"><strong>Vải:</strong></small>
+                                            <div class="fabric-tags">
+                                                @foreach (var fabricProduct in item.FabricProducts.Take(3))
+                                                {
+                                                    <span class="badge bg-info me-1 mb-1">
+                                                        @fabricProduct.Fabric?.Name
+                                                    </span>
+                                                }
+                                                @if (item.FabricProducts.Count > 3)
+                                                {
+                                                    <span class="badge bg-secondary me-1 mb-1">
+                                                        +@(item.FabricProducts.Count - 3) khác
+                                                    </span>
+                                                }
+                                            </div>
+                                        </p>
+                                    }
+
                                     <p class="card-text">
                                         Tình trạng:
                                         <span class="badge bg-@(item.Quantity > 0 ? "success" : "danger")">

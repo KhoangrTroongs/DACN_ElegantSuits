@@ -12,6 +12,7 @@ using NgoHuuDuc_2280600725.Helpers;
 using NgoHuuDuc_2280600725.Models;
 using NgoHuuDuc_2280600725.Models.ViewModels;
 using NgoHuuDuc_2280600725.Responsitories;
+using NgoHuuDuc_2280600725.Services.Interfaces;
 
 namespace NgoHuuDuc_2280600725.Controllers
 {
@@ -19,17 +20,20 @@ namespace NgoHuuDuc_2280600725.Controllers
     {
         private readonly IProductRepository _productRepository;
         private readonly ICategoryRepository _categoryRepository;
+        private readonly IFabricService _fabricService;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<ProductController> _logger;
 
         public ProductController(
             IProductRepository productRepository,
             ICategoryRepository categoryRepository,
+            IFabricService fabricService,
             IWebHostEnvironment webHostEnvironment,
             ILogger<ProductController> logger)
         {
             _productRepository = productRepository;
             _categoryRepository = categoryRepository;
+            _fabricService = fabricService;
             _webHostEnvironment = webHostEnvironment;
             _logger = logger;
         }
@@ -75,6 +79,28 @@ namespace NgoHuuDuc_2280600725.Controllers
                 }
                 else
                 {
+                    // Load fabrics for each product
+                    foreach (var product in products)
+                    {
+                        var fabrics = await _fabricService.GetFabricsByProductIdAsync(product.Id);
+                        product.FabricProducts = new List<FabricProduct>();
+                        foreach (var fabric in fabrics)
+                        {
+                            product.FabricProducts.Add(new FabricProduct
+                            {
+                                FabricId = fabric.Id,
+                                ProductId = product.Id,
+                                Fabric = new Fabric
+                                {
+                                    Id = fabric.Id,
+                                    Name = fabric.Name,
+                                    ImageUrl = fabric.ImageUrl,
+                                    FabricGroupId = fabric.FabricGroupId
+                                }
+                            });
+                        }
+                    }
+
                     // Gán các thuộc tính phân trang cho view
                     ViewBag.TotalPages = products.TotalPages;
                     ViewBag.HasPreviousPage = products.HasPreviousPage;
@@ -177,7 +203,14 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(new ProductViewModel { Categories = categories });
+            var fabrics = await _fabricService.GetAllFabricsAsync();
+
+            return View(new ProductViewModel
+            {
+                Categories = categories,
+                Fabrics = fabrics,
+                SelectedFabricIds = new List<int>()
+            });
         }
 
         [HttpPost]
@@ -186,6 +219,7 @@ namespace NgoHuuDuc_2280600725.Controllers
         public async Task<IActionResult> Create(ProductViewModel model)
         {
             model.Categories = await _categoryRepository.GetAllCategoriesAsync();
+            model.Fabrics = await _fabricService.GetAllFabricsAsync();
 
             if (model.CategoryId == 0 || !await _categoryRepository.CategoryExistsAsync(model.CategoryId))
             {
@@ -251,6 +285,27 @@ namespace NgoHuuDuc_2280600725.Controllers
             try
             {
                 await _productRepository.AddProductAsync(product);
+
+                // Add fabric associations if any fabrics are selected
+                if (model.SelectedFabricIds != null && model.SelectedFabricIds.Any())
+                {
+                    foreach (var fabricId in model.SelectedFabricIds)
+                    {
+                        try
+                        {
+                            await _fabricService.AddFabricToProductAsync(product.Id, fabricId);
+                        }
+                        catch (KeyNotFoundException ex)
+                        {
+                            _logger.LogWarning(ex, "Fabric with ID {FabricId} not found", fabricId);
+                            ModelState.AddModelError("", $"Vải với ID {fabricId} không tồn tại trong hệ thống.");
+                            model.Categories = await _categoryRepository.GetAllCategoriesAsync();
+                            model.Fabrics = await _fabricService.GetAllFabricsAsync();
+                            return View(model);
+                        }
+                    }
+                }
+
                 TempData["Success"] = "Sản phẩm đã được thêm thành công.";
                 return RedirectToAction(nameof(Index));
             }
@@ -258,6 +313,8 @@ namespace NgoHuuDuc_2280600725.Controllers
             {
                 _logger.LogError(ex, "An error occurred while saving the product. Details: {Message}", ex.Message);
                 ModelState.AddModelError("", "Đã xảy ra lỗi khi lưu sản phẩm. Vui lòng thử lại.");
+                model.Categories = await _categoryRepository.GetAllCategoriesAsync();
+                model.Fabrics = await _fabricService.GetAllFabricsAsync();
                 return View(model);
             }
         }
@@ -277,6 +334,11 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
+            // Get all fabrics and currently assigned fabrics
+            var allFabrics = await _fabricService.GetAllFabricsAsync();
+            var assignedFabrics = await _fabricService.GetFabricsByProductIdAsync(id.Value);
+            var selectedFabricIds = assignedFabrics.Select(f => f.Id).ToList();
+
             var model = new ProductViewModel
             {
                 Id = product.Id,
@@ -289,7 +351,9 @@ namespace NgoHuuDuc_2280600725.Controllers
                 CategoryId = product.CategoryId,
                 ExistingImageUrl = product.ImageUrl,
                 ExistingModel3DUrl = product.Model3DUrl,
-                Categories = await _categoryRepository.GetAllCategoriesAsync()
+                Categories = await _categoryRepository.GetAllCategoriesAsync(),
+                Fabrics = allFabrics,
+                SelectedFabricIds = selectedFabricIds
             };
 
             return View(model);
@@ -392,6 +456,31 @@ namespace NgoHuuDuc_2280600725.Controllers
             try
             {
                 await _productRepository.UpdateProductAsync(product);
+
+                // Update fabric associations
+                // First, remove all existing fabric associations
+                await _fabricService.RemoveAllFabricsFromProductAsync(product.Id);
+
+                // Then, add the newly selected fabrics
+                if (model.SelectedFabricIds != null && model.SelectedFabricIds.Any())
+                {
+                    foreach (var fabricId in model.SelectedFabricIds)
+                    {
+                        try
+                        {
+                            await _fabricService.AddFabricToProductAsync(product.Id, fabricId);
+                        }
+                        catch (KeyNotFoundException ex)
+                        {
+                            _logger.LogWarning(ex, "Fabric with ID {FabricId} not found", fabricId);
+                            ModelState.AddModelError("", $"Vải với ID {fabricId} không tồn tại trong hệ thống.");
+                            model.Categories = await _categoryRepository.GetAllCategoriesAsync();
+                            model.Fabrics = await _fabricService.GetAllFabricsAsync();
+                            return View(model);
+                        }
+                    }
+                }
+
                 TempData["Success"] = "Sản phẩm đã được cập nhật thành công.";
                 return RedirectToAction(nameof(Index));
             }
@@ -406,8 +495,14 @@ namespace NgoHuuDuc_2280600725.Controllers
                     ModelState.AddModelError("", "Đã xảy ra lỗi khi cập nhật sản phẩm.");
                 }
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while updating the product. Details: {Message}", ex.Message);
+                ModelState.AddModelError("", "Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng thử lại.");
+            }
 
             model.Categories = await _categoryRepository.GetAllCategoriesAsync();
+            model.Fabrics = await _fabricService.GetAllFabricsAsync();
             return View(model);
         }
 
@@ -500,6 +595,28 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
+            // Load fabrics for the product
+            var fabrics = await _fabricService.GetFabricsByProductIdAsync(product.Id);
+            product.FabricProducts = new List<FabricProduct>();
+            foreach (var fabric in fabrics)
+            {
+                product.FabricProducts.Add(new FabricProduct
+                {
+                    FabricId = fabric.Id,
+                    ProductId = product.Id,
+                    Fabric = new Fabric
+                    {
+                        Id = fabric.Id,
+                        Name = fabric.Name,
+                        Description = fabric.Description,
+                        Composition = fabric.Composition,
+                        ImageUrl = fabric.ImageUrl,
+                        Price = fabric.Price,
+                        FabricGroupId = fabric.FabricGroupId,
+                        FabricGroup = new FabricGroup { Id = fabric.FabricGroupId, Name = fabric.FabricGroupName ?? "" }
+                    }
+                });
+            }
 
             return View(product);
         }

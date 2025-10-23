@@ -185,6 +185,28 @@
                 }
                 <p class="card-text"><strong class="fs-4">Giá: @Model.Price.ToString("N0") VNĐ</strong></p>
 
+                <!-- Fabric Information Section -->
+                @if (Model.FabricProducts != null && Model.FabricProducts.Any())
+                {
+                    <div class="fabric-section mt-4 mb-4">
+                        <p class="card-text mb-2">
+                            <small class="text-muted d-block mb-2"><strong>Vải:</strong></small>
+                            <div class="fabric-tags">
+                                @foreach (var fabricProduct in Model.FabricProducts)
+                                {
+                                    var fabric = fabricProduct.Fabric;
+                                    if (fabric != null)
+                                    {
+                                        <span class="badge bg-info me-1 mb-1" title="@(fabric.FabricGroup?.Name ?? "")">
+                                            @fabric.Name
+                                        </span>
+                                    }
+                                }
+                            </div>
+                        </p>
+                    </div>
+                }
+
                 <!-- Hiển thị đánh giá sản phẩm -->
                 @{
                     var reviews = new List<ReviewViewModel>();

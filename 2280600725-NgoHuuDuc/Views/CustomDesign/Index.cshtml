@@ -1,0 +1,81 @@
+@model IEnumerable<NgoHuuDuc_2280600725.DTOs.FabricGroupDTO>
+
+@{
+    ViewData["Title"] = "Thiết Kế Vest Tùy Chỉnh";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="display-4">
+                <i class="fas fa-palette me-2"></i>Thiết Kế Vest Tùy Chỉnh
+            </h1>
+            <p class="lead text-muted">Chọn vải yêu thích của bạn để thiết kế vest hoàn hảo</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="@Url.Action("SelectProduct")" class="btn btn-primary btn-lg">
+                <i class="fas fa-arrow-right me-2"></i>Bắt Đầu Thiết Kế
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var group in Model.OrderBy(g => g.DisplayOrder))
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm hover-shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-layer-group me-2"></i>@group.Name
+                            </h5>
+                            <p class="card-text text-muted">@group.Description</p>
+                            <p class="text-secondary small">
+                                <strong>Số loại vải:</strong> @(group.Fabrics?.Count() ?? 0)
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <a href="@Url.Action("FabricGroup", new { groupId = group.Id })" 
+                               class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-eye me-1"></i>Xem Chi Tiết
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-md-12">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>Chưa có nhóm vải nào. Vui lòng quay lại sau.
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.3s ease-in-out;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+</style>
+

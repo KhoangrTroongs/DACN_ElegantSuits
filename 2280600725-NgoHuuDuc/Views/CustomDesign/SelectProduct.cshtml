@@ -1,0 +1,85 @@
+@model IEnumerable<NgoHuuDuc_2280600725.DTOs.ProductDTO>
+
+@{
+    ViewData["Title"] = "Chọn Sản Phẩm Để Thiết Kế";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm mb-3">
+                <i class="fas fa-arrow-left me-1"></i>Quay Lại
+            </a>
+            <h1 class="display-5">
+                <i class="fas fa-shirt me-2"></i>Chọn Sản Phẩm
+            </h1>
+            <p class="lead text-muted">Chọn loại sản phẩm bạn muốn thiết kế</p>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row">
+            @foreach (var product in Model.Where(p => !p.IsHidden).OrderBy(p => p.Name))
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm hover-shadow">
+                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" style="height: 250px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+                                <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@product.Name</h5>
+                            <p class="card-text text-muted small">@(product.Description?.Length > 100 ? product.Description.Substring(0, 100) + "..." : product.Description)</p>
+                            <p class="text-primary mb-2">
+                                <strong>Giá:</strong> @product.Price.ToString("N0") đ
+                            </p>
+                            <p class="text-secondary small">
+                                <strong>Số Lượng:</strong> @product.Quantity
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white border-top">
+                            <a href="@Url.Action("DesignProduct", new { productId = product.Id })" 
+                               class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-palette me-1"></i>Thiết Kế
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle me-2"></i>Chưa có sản phẩm nào. Vui lòng quay lại sau.
+        </div>
+    }
+</div>
+
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.3s ease-in-out;
+    }
+
+    .hover-shadow:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+</style>
+

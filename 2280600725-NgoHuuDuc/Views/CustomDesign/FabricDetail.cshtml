@@ -1,0 +1,102 @@
+@model NgoHuuDuc_2280600725.DTOs.FabricDTO
+
+@{
+    ViewData["Title"] = $"Chi Tiết Vải: {Model?.Name}";
+}
+
+<div class="container mt-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="@Url.Action("Index")" class="btn btn-outline-secondary btn-sm mb-3">
+                <i class="fas fa-arrow-left me-1"></i>Quay Lại
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            @if (!string.IsNullOrEmpty(Model?.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" class="img-fluid rounded shadow" alt="@Model?.Name">
+            }
+            else
+            {
+                <div class="bg-light rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <i class="fas fa-image text-muted" style="font-size: 5rem;"></i>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-6">
+            <h1 class="display-5 mb-3">@Model?.Name</h1>
+            
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Thông Tin Vải</h5>
+                    <table class="table table-borderless">
+                        <tr>
+                            <td><strong>Nhóm Vải:</strong></td>
+                            <td>@Model?.FabricGroupName</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Thành Phần:</strong></td>
+                            <td>@Model?.Composition</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Giá:</strong></td>
+                            <td class="text-primary"><strong>@Model?.Price.ToString("N0") đ</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Trạng Thái:</strong></td>
+                            <td>
+                                @if (Model?.IsAvailable == true)
+                                {
+                                    <span class="badge bg-success">Còn Hàng</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Hết Hàng</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Mô Tả</h5>
+                    <p class="card-text">@Model?.Description</p>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="@Url.Action("SelectProduct")" class="btn btn-primary btn-lg">
+                    <i class="fas fa-arrow-right me-2"></i>Tiếp Tục Thiết Kế
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: none;
+        border-radius: 0.5rem;
+    }
+
+    .card-title {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    table td {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    table tr:last-child td {
+        border-bottom: none;
+    }
+</style>
+
