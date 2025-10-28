@@ -52,6 +52,7 @@ builder.Services.AddScoped<ICategoryRepository, EFCategoryRepository>();
 builder.Services.AddScoped<IProductRepository, EFProductRepository>();
 builder.Services.AddScoped<IUserRepository, EFUserRepository>();
 builder.Services.AddScoped<IFabricRepository, EFFabricRepository>();
+builder.Services.AddScoped<ICouponRepository, EFCouponRepository>();
 
 // Register services
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -61,6 +62,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IFabricService, FabricService>();
+builder.Services.AddScoped<ICouponService, CouponService>();
 
 // Configure Authentication with both Cookie and JWT
 builder.Services.AddAuthentication(options =>

@@ -1,0 +1,65 @@
+@model CouponDTO
+@using NgoHuuDuc_2280600725.DTOs
+
+@{
+    ViewData["Title"] = "Xóa Mã Giảm Giá";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2 class="mb-4">Xóa Mã Giảm Giá</h2>
+
+            <div class="alert alert-warning" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> Bạn có chắc chắn muốn xóa mã giảm giá này không? Hành động này không thể hoàn tác.
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Mã Giảm Giá</label>
+                        <input type="text" class="form-control" value="@Model.Code" disabled />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Phần Trăm Giảm</label>
+                                <input type="text" class="form-control" value="@Model.DiscountPercentage%" disabled />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Số Lượng</label>
+                                <input type="text" class="form-control" value="@(Model.Quantity == -1 ? "Không giới hạn" : Model.Quantity.ToString())" disabled />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ngày Hết Hạn</label>
+                        <input type="text" class="form-control" value="@Model.ExpiryDate.ToString("dd/MM/yyyy HH:mm")" disabled />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Trạng Thái</label>
+                        <input type="text" class="form-control" value="@Model.Status" disabled />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <form asp-action="Delete" method="post" style="display:inline;">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xóa Mã Giảm Giá
+                    </button>
+                </form>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

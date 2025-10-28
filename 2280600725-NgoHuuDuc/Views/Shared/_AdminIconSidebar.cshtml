@@ -28,6 +28,11 @@
                 <i class="fas fa-shopping-cart"></i>
             </a>
         </li>
+        <li class="@(controller == "Coupon" ? "active" : "")">
+            <a asp-controller="Coupon" asp-action="Index" data-bs-toggle="tooltip" data-bs-placement="right" title="Quản lý mã giảm giá">
+                <i class="fas fa-ticket-alt"></i>
+            </a>
+        </li>
 
         <li class="@(controller == "Statistics" ? "active" : "")">
             <a asp-controller="Statistics" asp-action="Index" data-bs-toggle="tooltip" data-bs-placement="right" title="Thống kê">

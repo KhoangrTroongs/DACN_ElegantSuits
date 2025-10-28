@@ -29,6 +29,7 @@ namespace NgoHuuDuc_2280600725.Data
         public DbSet<FabricGroup> FabricGroups { get; set; }
         public DbSet<Fabric> Fabrics { get; set; }
         public DbSet<FabricProduct> FabricProducts { get; set; }
+        public DbSet<Coupon> Coupons { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

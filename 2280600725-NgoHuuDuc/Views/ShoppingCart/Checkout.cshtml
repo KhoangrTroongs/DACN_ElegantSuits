@@ -22,7 +22,7 @@
                     <h5 class="mb-0">Thông Tin Giao Hàng</h5>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Checkout" method="post">
+                    <form asp-action="Checkout" method="post" id="checkoutForm">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
                         <div class="mb-3">
@@ -34,6 +34,28 @@
                         <div class="mb-3">
                             <label for="Notes" class="form-label">Ghi Chú Đơn Hàng (Không bắt buộc)</label>
                             <textarea id="Notes" name="Notes" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="CouponCode" class="form-label">Mã Giảm Giá (Không bắt buộc)</label>
+                            <div class="input-group">
+                                <input type="text" id="CouponCode" name="CouponCode" class="form-control" placeholder="Nhập mã giảm giá" />
+                                <button type="button" class="btn btn-outline-secondary" id="applyCouponBtn">Áp Dụng</button>
+                            </div>
+                            <div id="couponMessage" class="mt-2"></div>
+                        </div>
+
+                        <!-- Mã Giảm Giá Khả Dụng -->
+                        <div class="mb-3" id="availableCouponsContainer" style="display: none;">
+                            <label class="form-label">
+                                <i class="fas fa-tag"></i> Mã Giảm Giá Khả Dụng
+                            </label>
+                            <div id="availableCouponsList" class="list-group">
+                                <!-- Danh sách coupon sẽ được load bằng AJAX -->
+                            </div>
+                            <div id="noCouponsMessage" class="alert alert-info mt-2" style="display: none;">
+                                <i class="fas fa-info-circle"></i> Không có mã giảm giá khả dụng cho đơn hàng này
+                            </div>
                         </div>
 
                         <div class="d-grid">
@@ -58,18 +80,29 @@
 
                         if (cart != null && cart.Items.Any())
                         {
+                            var subtotal = cart.Items.Sum(i => i.Price * i.Quantity);
                             <ul class="list-group mb-3">
                                 @foreach (var item in cart.Items)
                                 {
                                     <li class="list-group-item d-flex justify-content-between lh-sm">
-                                        <div>                                            <h6 class="my-0">@item.ProductName</h6>
+                                        <div>
+                                            <h6 class="my-0">@item.ProductName</h6>
                                             <small class="text-muted">@item.Quantity x @item.Price.ToString("N0")đ</small>
                                         </div>
                                         <span class="text-muted">@((item.Price * item.Quantity).ToString("N0"))đ</span>
                                     </li>
-                                }                                <li class="list-group-item d-flex justify-content-between">
+                                }
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span>Tổng Phụ</span>
+                                    <strong id="subtotalAmount">@subtotal.ToString("N0")đ</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between" id="discountRow" style="display: none;">
+                                    <span>Giảm Giá</span>
+                                    <strong id="discountAmount" class="text-success">-0đ</strong>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between bg-light">
                                     <span>Tổng Cộng</span>
-                                    <strong>@cart.Items.Sum(i => i.Price * i.Quantity).ToString("N0")đ</strong>
+                                    <strong id="totalAmount">@subtotal.ToString("N0")đ</strong>
                                 </li>
                             </ul>
                         }
@@ -88,4 +121,143 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            let currentDiscountPercentage = 0;
+            const subtotal = parseFloat($('#subtotalAmount').text().replace(/[^\d.-]/g, ''));
+
+            $('#applyCouponBtn').click(function () {
+                const couponCode = $('#CouponCode').val().trim();
+                const messageDiv = $('#couponMessage');
+
+                if (!couponCode) {
+                    messageDiv.html('<div class="alert alert-warning">Vui lòng nhập mã giảm giá</div>');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("ValidateCoupon", "ShoppingCart")',
+                    type: 'POST',
+                    data: { couponCode: couponCode },
+                    success: function (response) {
+                        if (response.success) {
+                            currentDiscountPercentage = response.discountPercentage;
+                            updateTotal();
+                            messageDiv.html('<div class="alert alert-success">' + response.message + '</div>');
+                        } else {
+                            messageDiv.html('<div class="alert alert-danger">' + response.message + '</div>');
+                            currentDiscountPercentage = 0;
+                            updateTotal();
+                        }
+                    },
+                    error: function () {
+                        messageDiv.html('<div class="alert alert-danger">Lỗi khi xác thực mã giảm giá</div>');
+                        currentDiscountPercentage = 0;
+                        updateTotal();
+                    }
+                });
+            });
+
+            function updateTotal() {
+                const discountAmount = (subtotal * currentDiscountPercentage) / 100;
+                const total = subtotal - discountAmount;
+
+                if (currentDiscountPercentage > 0) {
+                    $('#discountRow').show();
+                    $('#discountAmount').text('-' + Math.round(discountAmount).toLocaleString('vi-VN') + 'đ');
+                } else {
+                    $('#discountRow').hide();
+                }
+
+                $('#totalAmount').text(Math.round(total).toLocaleString('vi-VN') + 'đ');
+            }
+
+            // Allow Enter key to apply coupon
+            $('#CouponCode').keypress(function (e) {
+                if (e.which == 13) {
+                    $('#applyCouponBtn').click();
+                    return false;
+                }
+            });
+
+            // Load available coupons
+            function loadAvailableCoupons() {
+                const cartItems = @Html.Raw(Json.Serialize(ViewBag.CartItems ?? new List<object>()));
+
+                if (!cartItems || cartItems.length === 0) {
+                    $('#availableCouponsContainer').hide();
+                    return;
+                }
+
+                const productIds = cartItems.map(item => item.productId);
+                const hasFreeship = @Html.Raw(ViewBag.HasFreeship?.ToString().ToLower() ?? "false");
+
+                $.ajax({
+                    url: '@Url.Action("GetAvailableCoupons", "Coupon")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        cartTotal: subtotal,
+                        hasFreeship: hasFreeship,
+                        productIds: productIds
+                    }),
+                    success: function (response) {
+                        if (response.success && response.coupons && response.coupons.length > 0) {
+                            $('#availableCouponsList').empty();
+                            $('#noCouponsMessage').hide();
+                            $('#availableCouponsContainer').show();
+
+                            response.coupons.forEach(function (coupon, index) {
+                                const couponHtml = `
+                                    <div class="list-group-item">
+                                        <div class="d-flex align-items-center">
+                                            <div class="form-check flex-grow-1">
+                                                <input class="form-check-input coupon-radio" type="radio" name="availableCoupon"
+                                                       id="coupon_${coupon.id}" value="${coupon.code}" data-discount="${coupon.discountPercentage}">
+                                                <label class="form-check-label w-100" for="coupon_${coupon.id}">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong><i class="fas fa-tag"></i> ${coupon.code}</strong>
+                                                            <span class="badge bg-success ms-2">Giảm ${coupon.discountPercentage}%</span>
+                                                        </div>
+                                                        <div class="text-end">
+                                                            <div class="text-success fw-bold">Tiết kiệm: ${coupon.savingAmount.toLocaleString('vi-VN')}đ</div>
+                                                            <small class="text-muted">Hết hạn: ${new Date(coupon.expiryDate).toLocaleDateString('vi-VN')}</small>
+                                                        </div>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                $('#availableCouponsList').append(couponHtml);
+                            });
+
+                            // Handle coupon selection
+                            $('.coupon-radio').change(function () {
+                                if ($(this).is(':checked')) {
+                                    const couponCode = $(this).val();
+                                    const discount = parseFloat($(this).data('discount'));
+                                    $('#CouponCode').val(couponCode);
+                                    currentDiscountPercentage = discount;
+                                    updateTotal();
+                                    $('#couponMessage').html(`<div class="alert alert-success"><i class="fas fa-check-circle"></i> Đã chọn mã giảm giá: <strong>${couponCode}</strong></div>`);
+                                }
+                            });
+                        } else {
+                            $('#availableCouponsList').empty();
+                            $('#noCouponsMessage').show();
+                            $('#availableCouponsContainer').show();
+                        }
+                    },
+                    error: function () {
+                        $('#availableCouponsContainer').hide();
+                    }
+                });
+            }
+
+            // Load coupons on page load
+            loadAvailableCoupons();
+        });
+    </script>
 }

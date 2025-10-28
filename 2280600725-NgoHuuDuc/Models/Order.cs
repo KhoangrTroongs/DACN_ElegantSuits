@@ -22,6 +22,13 @@ namespace NgoHuuDuc_2280600725.Models
         [Display(Name = "Trạng thái")]
         public OrderStatus Status { get; set; } = OrderStatus.Pending;
 
+        [Display(Name = "Mã giảm giá")]
+        public string? CouponCode { get; set; }
+
+        [Display(Name = "Số tiền giảm")]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal DiscountAmount { get; set; } = 0;
+
         [ForeignKey("UserId")]
         [ValidateNever]
         public ApplicationUser? User { get; set; }

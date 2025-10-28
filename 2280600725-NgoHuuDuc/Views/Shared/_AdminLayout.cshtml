@@ -59,6 +59,12 @@
                         <span class="menu-text">Quản lý đơn hàng</span>
                     </a>
                 </li>
+                <li class="@(ViewContext.RouteData.Values["controller"].ToString() == "Coupon" ? "active" : "")">
+                    <a asp-controller="Coupon" asp-action="Index">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span class="menu-text">Quản lý mã giảm giá</span>
+                    </a>
+                </li>
                 <li class="@(ViewContext.RouteData.Values["controller"].ToString() == "Statistics" ? "active" : "")">
                     <a asp-controller="Statistics" asp-action="Index">
                         <i class="fas fa-chart-line me-2"></i>

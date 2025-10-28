@@ -324,5 +324,17 @@ namespace NgoHuuDuc_2280600725.Responsitories
             return await PaginatedList<Product>.CreateAsync(query, pageIndex, pageSize);
         }
 
+        public async Task<List<Product>> GetProductsByIdsAsync(List<int> productIds)
+        {
+            if (productIds == null || productIds.Count == 0)
+            {
+                return new List<Product>();
+            }
+
+            return await _context.Products
+                .Where(p => productIds.Contains(p.Id))
+                .ToListAsync();
+        }
+
     }
 }

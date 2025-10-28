@@ -6,6 +6,7 @@ using NgoHuuDuc_2280600725.Data;
 using NgoHuuDuc_2280600725.Extensions;
 using NgoHuuDuc_2280600725.Models;
 using NgoHuuDuc_2280600725.Models.Enums;
+using NgoHuuDuc_2280600725.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 
@@ -16,12 +17,15 @@ namespace NgoHuuDuc_2280600725.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ICouponService _couponService;
 
         public ShoppingCartController(ApplicationDbContext context,
-        UserManager<ApplicationUser> userManager)
+        UserManager<ApplicationUser> userManager,
+        ICouponService couponService)
         {
             _context = context;
             _userManager = userManager;
+            _couponService = couponService;
         }
         public async Task<IActionResult> Index()
         {
@@ -80,6 +84,10 @@ namespace NgoHuuDuc_2280600725.Controllers
                     return RedirectToAction("Index", "Home");
                 }
 
+                // Truyền CartItems vào ViewBag để load available coupons
+                ViewBag.CartItems = cart.Items.Select(i => new { productId = i.ProductId }).ToList();
+                ViewBag.HasFreeship = false; // Có thể cập nhật logic này nếu có freeship
+
                 var order = new Order();
                 return View(order);
             }
@@ -136,15 +144,36 @@ namespace NgoHuuDuc_2280600725.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
+                // Calculate total price before discount
+                var totalPrice = cart.Items.Sum(i => i.Price * i.Quantity);
+                var discountAmount = 0m;
+                var couponCode = order.CouponCode;
+
+                // Validate and apply coupon if provided
+                if (!string.IsNullOrWhiteSpace(couponCode))
+                {
+                    var validationResult = await _couponService.ValidateCouponAsync(couponCode, totalPrice);
+                    if (!validationResult.IsValid)
+                    {
+                        TempData["ErrorMessage"] = validationResult.ErrorMessage;
+                        return View(order);
+                    }
+
+                    // Calculate discount amount
+                    discountAmount = (totalPrice * validationResult.Coupon.DiscountPercentage) / 100;
+                }
+
                 // Tạo đơn hàng mới
                 var newOrder = new Order
                 {
                     UserId = user.Id, // Sử dụng ID thực của người dùng
                     OrderDate = DateTime.Now,
-                    TotalPrice = cart.Items.Sum(i => i.Price * i.Quantity),
+                    TotalPrice = totalPrice - discountAmount,
                     Status = OrderStatus.Pending,
                     ShippingAddress = order.ShippingAddress,
-                    Notes = order.Notes
+                    Notes = order.Notes,
+                    CouponCode = !string.IsNullOrWhiteSpace(couponCode) ? couponCode.ToUpper() : null,
+                    DiscountAmount = discountAmount
                 };
 
                 _context.Orders.Add(newOrder);
@@ -189,6 +218,12 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                 // Lưu thay đổi vào database
                 await _context.SaveChangesAsync();
+
+                // Decrement coupon quantity if coupon was used
+                if (!string.IsNullOrWhiteSpace(couponCode))
+                {
+                    await _couponService.DecrementCouponQuantityAsync(couponCode);
+                }
 
                 return RedirectToAction("OrderCompleted", new { id = newOrder.Id });
             }
@@ -310,6 +345,37 @@ namespace NgoHuuDuc_2280600725.Controllers
                 Console.WriteLine($"Error in OrderDetails: {ex.Message}");
                 TempData["ErrorMessage"] = "An error occurred while loading your order details.";
                 return RedirectToAction(nameof(MyOrders));
+            }
+        }
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ValidateCoupon(string couponCode)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(couponCode))
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập mã giảm giá" });
+                }
+
+                var validationResult = await _couponService.ValidateCouponAsync(couponCode);
+                if (!validationResult.IsValid)
+                {
+                    return Json(new { success = false, message = validationResult.ErrorMessage });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    discountPercentage = validationResult.Coupon.DiscountPercentage,
+                    message = $"Áp dụng mã giảm giá thành công! Giảm {validationResult.Coupon.DiscountPercentage}%"
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in ValidateCoupon: {ex.Message}");
+                return Json(new { success = false, message = "Lỗi khi xác thực mã giảm giá" });
             }
         }
     }

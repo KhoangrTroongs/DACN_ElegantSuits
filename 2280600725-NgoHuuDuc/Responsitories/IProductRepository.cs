@@ -23,5 +23,6 @@ namespace NgoHuuDuc_2280600725.Responsitories
         Task<PaginatedList<Product>> SearchProductsAsync(string keyword, int pageIndex, int pageSize, bool includeHidden);
         Task<PaginatedList<Product>> SearchProductsAsync(string keyword, int pageIndex, int pageSize, bool includeHidden, string sortBy = "", string order = "asc");
 
+        Task<List<Product>> GetProductsByIdsAsync(List<int> productIds);
     }
 }

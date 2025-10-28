@@ -46,6 +46,11 @@ namespace NgoHuuDuc_2280600725.Models
         [Display(Name = "Danh mục")]
         public int CategoryId { get; set; }
 
+        [Display(Name = "Biên lợi nhuận")]
+        [Range(0, 1, ErrorMessage = "Biên lợi nhuận phải từ 0 đến 1")]
+        [Column(TypeName = "decimal(5, 2)")]
+        public decimal ProfitMargin { get; set; } = 0.45m; // 45% mặc định
+
         // Navigation properties
         [ForeignKey("CategoryId")]
         public virtual Category? Category { get; set; }

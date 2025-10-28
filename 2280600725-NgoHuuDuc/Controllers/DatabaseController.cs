@@ -137,5 +137,91 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return RedirectToAction("Index", "Home");
             }
         }
+
+        public async Task<IActionResult> SeedCoupons()
+        {
+            try
+            {
+                // Kiểm tra xem đã có coupon chưa
+                var existingCoupons = await _context.Coupons.CountAsync();
+                if (existingCoupons > 0)
+                {
+                    TempData["Info"] = "Coupon data already exists";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                // Tạo 5 coupon mẫu
+                var coupons = new List<Models.Coupon>
+                {
+                    new Models.Coupon
+                    {
+                        Code = "COUPON5",
+                        Quantity = -1, // Vô hạn
+                        DiscountPercentage = 5,
+                        MinimumAmount = 300000,
+                        ProfitMargin = 0.45m,
+                        ExpiryDate = DateTime.Now.AddMonths(12),
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
+                    },
+                    new Models.Coupon
+                    {
+                        Code = "COUPON10",
+                        Quantity = -1,
+                        DiscountPercentage = 10,
+                        MinimumAmount = 700000,
+                        ProfitMargin = 0.45m,
+                        ExpiryDate = DateTime.Now.AddMonths(12),
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
+                    },
+                    new Models.Coupon
+                    {
+                        Code = "COUPON15",
+                        Quantity = -1,
+                        DiscountPercentage = 15,
+                        MinimumAmount = 1000000,
+                        ProfitMargin = 0.45m,
+                        ExpiryDate = DateTime.Now.AddMonths(12),
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
+                    },
+                    new Models.Coupon
+                    {
+                        Code = "COUPON20",
+                        Quantity = -1,
+                        DiscountPercentage = 20,
+                        MinimumAmount = 1500000,
+                        ProfitMargin = 0.45m,
+                        ExpiryDate = DateTime.Now.AddMonths(12),
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
+                    },
+                    new Models.Coupon
+                    {
+                        Code = "COUPON25",
+                        Quantity = -1,
+                        DiscountPercentage = 25,
+                        MinimumAmount = 2000000,
+                        ProfitMargin = 0.45m,
+                        ExpiryDate = DateTime.Now.AddMonths(12),
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
+                    }
+                };
+
+                _context.Coupons.AddRange(coupons);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Coupon data seeded successfully";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error seeding coupons");
+                TempData["Error"] = "Error seeding coupons: " + ex.Message;
+                return RedirectToAction("Index", "Home");
+            }
+        }
     }
 }

@@ -1,0 +1,106 @@
+@model UpdateCouponDTO
+@using NgoHuuDuc_2280600725.DTOs
+
+@{
+    ViewData["Title"] = "Cập Nhật Mã Giảm Giá";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h2 class="mb-4">Cập Nhật Mã Giảm Giá</h2>
+
+            <form asp-action="Edit" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Mã Giảm Giá</label>
+                            <input type="text" class="form-control" value="@ViewData["CouponCode"]" disabled />
+                            <small class="text-muted">Không thể thay đổi mã giảm giá</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="DiscountPercentage" class="form-label">Phần Trăm Giảm (%)</label>
+                                    <input asp-for="DiscountPercentage" type="number" step="0.01" min="0" max="100" class="form-control" />
+                                    <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Quantity" class="form-label">Số Lượng</label>
+                                    <input asp-for="Quantity" type="number" class="form-control" />
+                                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                                    <small class="text-muted">-1 = Không giới hạn, 0 = Hết hạn</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="expiryDateContainer">
+                            <label asp-for="ExpiryDate" class="form-label">Ngày Hết Hạn</label>
+                            <input asp-for="ExpiryDate" type="datetime-local" class="form-control" />
+                            <span asp-validation-for="ExpiryDate" class="text-danger"></span>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt"></i> Bắt buộc khi số lượng không phải là "Không giới hạn"
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input asp-for="IsActive" type="checkbox" class="form-check-input" id="IsActive" />
+                                <label class="form-check-label" for="IsActive">
+                                    Kích hoạt mã giảm giá
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Cập Nhật
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            // Handle ExpiryDate visibility based on Quantity
+            const quantityInput = $('#Quantity');
+            const expiryDateContainer = $('#expiryDateContainer');
+            const expiryDateInput = $('#ExpiryDate');
+
+            function toggleExpiryDate() {
+                const quantity = parseInt(quantityInput.val());
+                if (quantity === -1) {
+                    // Hide ExpiryDate when quantity is unlimited
+                    expiryDateContainer.hide();
+                    expiryDateInput.removeAttr('required');
+                } else {
+                    // Show ExpiryDate when quantity is limited
+                    expiryDateContainer.show();
+                    expiryDateInput.attr('required', 'required');
+                }
+            }
+
+            // Initial check
+            toggleExpiryDate();
+
+            // Listen for changes
+            quantityInput.on('change', toggleExpiryDate);
+            quantityInput.on('input', toggleExpiryDate);
+        });
+    </script>
+}
+

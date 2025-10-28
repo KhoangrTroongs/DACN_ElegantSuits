@@ -39,6 +39,12 @@
                 <span>Quản lý đơn hàng</span>
             </a>
         </li>
+        <li class="@(controller == "Coupon" ? "active" : "")">
+            <a asp-controller="Coupon" asp-action="Index">
+                <i class="fas fa-ticket-alt me-2"></i>
+                <span>Quản lý mã giảm giá</span>
+            </a>
+        </li>
         <li class="@(controller == "Statistics" ? "active" : "")">
             <a asp-controller="Statistics" asp-action="Index">
                 <i class="fas fa-chart-line me-2"></i>
