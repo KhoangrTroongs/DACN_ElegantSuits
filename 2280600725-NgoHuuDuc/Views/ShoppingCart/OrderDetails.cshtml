@@ -23,7 +23,13 @@
                 <div class="card-header">
                     <h5 class="mb-0">Thông tin đơn hàng</h5>
                 </div>
-                <div class="card-body">                    <p><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                <div class="card-body">
+                    <p><strong>Ngày đặt hàng:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    @if (!string.IsNullOrEmpty(Model.CouponCode))
+                    {
+                        <p><strong>Mã giảm giá:</strong> <span class="badge bg-success">@Model.CouponCode</span></p>
+                        <p><strong>Số tiền giảm:</strong> <span class="text-success">-@Model.DiscountAmount.ToString("N0")đ</span></p>
+                    }
                     <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("N0")đ</p>
                     <p>
                         <strong>Trạng thái:</strong>
@@ -108,7 +114,22 @@
                         }
                     </tbody>
                     <tfoot>
-                        <tr>                            <td colspan="4" class="text-end"><strong>Tổng cộng:</strong></td>
+                        @{
+                            var subtotal = Model.OrderDetails?.Sum(od => od.Price * od.Quantity) ?? 0;
+                        }
+                        @if (subtotal > 0 && Model.DiscountAmount > 0)
+                        {
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Tổng tiền hàng:</strong></td>
+                                <td><strong>@subtotal.ToString("N0")đ</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end"><strong>Giảm giá (@Model.CouponCode):</strong></td>
+                                <td><strong class="text-success">-@Model.DiscountAmount.ToString("N0")đ</strong></td>
+                            </tr>
+                        }
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>Tổng thanh toán:</strong></td>
                             <td><strong>@Model.TotalPrice.ToString("N0")đ</strong></td>
                         </tr>
                     </tfoot>
