@@ -125,6 +125,10 @@
         $(document).ready(function () {
             let currentDiscountPercentage = 0;
             const subtotal = parseFloat($('#subtotalAmount').text().replace(/[^\d.-]/g, ''));
+            console.log("=== CHECKOUT PAGE DEBUG ===");
+            console.log("Subtotal:", subtotal);
+            console.log("ViewBag.CartItems:", @Html.Raw(Json.Serialize(ViewBag.CartItems ?? new List<object>())));
+            console.log("ViewBag.HasFreeship:", @Html.Raw(ViewBag.HasFreeship?.ToString().ToLower() ?? "false"));
 
             $('#applyCouponBtn').click(function () {
                 const couponCode = $('#CouponCode').val().trim();
@@ -183,14 +187,19 @@
             // Load available coupons
             function loadAvailableCoupons() {
                 const cartItems = @Html.Raw(Json.Serialize(ViewBag.CartItems ?? new List<object>()));
+                console.log("CartItems from ViewBag:", cartItems);
 
                 if (!cartItems || cartItems.length === 0) {
+                    console.log("No cart items, hiding coupons container");
                     $('#availableCouponsContainer').hide();
                     return;
                 }
 
                 const productIds = cartItems.map(item => item.productId);
                 const hasFreeship = @Html.Raw(ViewBag.HasFreeship?.ToString().ToLower() ?? "false");
+                console.log("ProductIds:", productIds);
+                console.log("HasFreeship:", hasFreeship);
+                console.log("Subtotal:", subtotal);
 
                 $.ajax({
                     url: '@Url.Action("GetAvailableCoupons", "Coupon")',
@@ -202,7 +211,9 @@
                         productIds: productIds
                     }),
                     success: function (response) {
+                        console.log("API Response:", response);
                         if (response.success && response.coupons && response.coupons.length > 0) {
+                            console.log("Found coupons:", response.coupons);
                             $('#availableCouponsList').empty();
                             $('#noCouponsMessage').hide();
                             $('#availableCouponsContainer').show();
@@ -213,16 +224,16 @@
                                         <div class="d-flex align-items-center">
                                             <div class="form-check flex-grow-1">
                                                 <input class="form-check-input coupon-radio" type="radio" name="availableCoupon"
-                                                       id="coupon_${coupon.id}" value="${coupon.code}" data-discount="${coupon.discountPercentage}">
-                                                <label class="form-check-label w-100" for="coupon_${coupon.id}">
+                                                       id="coupon_${coupon.Id}" value="${coupon.Code}" data-discount="${coupon.DiscountPercentage}">
+                                                <label class="form-check-label w-100" for="coupon_${coupon.Id}">
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <div>
-                                                            <strong><i class="fas fa-tag"></i> ${coupon.code}</strong>
-                                                            <span class="badge bg-success ms-2">Giảm ${coupon.discountPercentage}%</span>
+                                                            <strong><i class="fas fa-tag"></i> ${coupon.Code}</strong>
+                                                            <span class="badge bg-success ms-2">Giảm ${coupon.DiscountPercentage}%</span>
                                                         </div>
                                                         <div class="text-end">
-                                                            <div class="text-success fw-bold">Tiết kiệm: ${coupon.savingAmount.toLocaleString('vi-VN')}đ</div>
-                                                            <small class="text-muted">Hết hạn: ${new Date(coupon.expiryDate).toLocaleDateString('vi-VN')}</small>
+                                                            <div class="text-success fw-bold">Tiết kiệm: ${coupon.SavingAmount.toLocaleString('vi-VN')}đ</div>
+                                                            <small class="text-muted">Hết hạn: ${new Date(coupon.ExpiryDate).toLocaleDateString('vi-VN')}</small>
                                                         </div>
                                                     </div>
                                                 </label>

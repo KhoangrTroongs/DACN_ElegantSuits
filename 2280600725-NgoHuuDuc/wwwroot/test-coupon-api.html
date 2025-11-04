@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Coupon API</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Test Coupon API</h1>
+    <button onclick="testAPI()">Test GetAvailableCoupons API</button>
+    <pre id="result"></pre>
+
+    <script>
+        function testAPI() {
+            const request = {
+                cartTotal: 123425679002,
+                hasFreeship: false,
+                productIds: [3, 7]
+            };
+
+            console.log("Sending request:", request);
+
+            $.ajax({
+                url: '/Coupon/GetAvailableCoupons',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(request),
+                success: function (response) {
+                    console.log("Response:", response);
+                    document.getElementById('result').textContent = JSON.stringify(response, null, 2);
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error:", error);
+                    document.getElementById('result').textContent = "Error: " + error + "\n" + xhr.responseText;
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+

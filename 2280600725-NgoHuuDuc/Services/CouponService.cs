@@ -207,10 +207,14 @@ namespace NgoHuuDuc_2280600725.Services
         {
             try
             {
+                _logger.LogInformation($"=== GetAvailableCouponsAsync called ===");
+                _logger.LogInformation($"CartTotal: {cartTotal}, HasFreeship: {hasFreeship}, ProductIds: {string.Join(",", productIds)}");
+
                 var availableCoupons = new List<CouponDTO>();
 
                 // Lấy thông tin sản phẩm
                 var products = await _productRepository.GetProductsByIdsAsync(productIds);
+                _logger.LogInformation($"Found {products.Count} products");
 
                 // Bước 2: Kiểm tra margin sản phẩm (≥ 30%)
                 if (products.Any(p => p.ProfitMargin < 0.30m))
