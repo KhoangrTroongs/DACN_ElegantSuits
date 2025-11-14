@@ -14,6 +14,10 @@ namespace NgoHuuDuc_2280600725.Models
         [Display(Name = "Mã giảm giá")]
         public string Code { get; set; } = "";
 
+        [StringLength(500, ErrorMessage = "Chú thích không được vượt quá 500 ký tự")]
+        [Display(Name = "Chú thích")]
+        public string? Description { get; set; }
+
         [Required(ErrorMessage = "Số lượng không được để trống")]
         [Display(Name = "Số lượng")]
         public int Quantity { get; set; }
@@ -21,8 +25,7 @@ namespace NgoHuuDuc_2280600725.Models
         [Required(ErrorMessage = "Phần trăm giảm giá không được để trống")]
         [Range(0, 100, ErrorMessage = "Phần trăm giảm giá phải từ 0 đến 100")]
         [Display(Name = "Phần trăm giảm giá")]
-        [Column(TypeName = "decimal(5, 2)")]
-        public decimal DiscountPercentage { get; set; }
+        public int DiscountPercentage { get; set; }
 
         [Required(ErrorMessage = "Ngày hết hạn không được để trống")]
         [Display(Name = "Ngày hết hạn")]

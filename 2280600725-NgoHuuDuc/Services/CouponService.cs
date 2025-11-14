@@ -50,8 +50,10 @@ namespace NgoHuuDuc_2280600725.Services
             var coupon = new Coupon
             {
                 Code = couponDto.Code.ToUpper(),
+                Description = couponDto.Description,
                 Quantity = couponDto.Quantity,
                 DiscountPercentage = couponDto.DiscountPercentage,
+                MinimumAmount = couponDto.MinimumAmount,
                 ExpiryDate = couponDto.ExpiryDate ?? DateTime.MaxValue, // Use MaxValue if no expiry date (unlimited)
                 IsActive = couponDto.IsActive,
                 CreatedAt = DateTime.Now
@@ -69,8 +71,10 @@ namespace NgoHuuDuc_2280600725.Services
                 return null;
             }
 
+            coupon.Description = couponDto.Description;
             coupon.Quantity = couponDto.Quantity;
             coupon.DiscountPercentage = couponDto.DiscountPercentage;
+            coupon.MinimumAmount = couponDto.MinimumAmount;
             coupon.ExpiryDate = couponDto.ExpiryDate ?? DateTime.MaxValue; // Use MaxValue if no expiry date (unlimited)
             coupon.IsActive = couponDto.IsActive;
             coupon.UpdatedAt = DateTime.Now;
@@ -255,12 +259,12 @@ namespace NgoHuuDuc_2280600725.Services
                     availableCoupons.Add(MapToCouponDTO(coupon));
                 }
 
-                // Bước 5: Chọn coupon có % cao nhất
+                // Bước 5: Sắp xếp coupon theo % giảm giá giảm dần
                 if (availableCoupons.Any())
                 {
-                    var bestCoupon = availableCoupons.OrderByDescending(c => c.DiscountPercentage).First();
-                    _logger.LogInformation($"Best coupon selected: {bestCoupon.Code} ({bestCoupon.DiscountPercentage}%)");
-                    return new List<CouponDTO> { bestCoupon };
+                    var sortedCoupons = availableCoupons.OrderByDescending(c => c.DiscountPercentage).ToList();
+                    _logger.LogInformation($"Found {sortedCoupons.Count} available coupons");
+                    return sortedCoupons;
                 }
 
                 return availableCoupons;
@@ -278,12 +282,14 @@ namespace NgoHuuDuc_2280600725.Services
             {
                 Id = coupon.Id,
                 Code = coupon.Code,
+                Description = coupon.Description,
                 Quantity = coupon.Quantity,
                 DiscountPercentage = coupon.DiscountPercentage,
                 ExpiryDate = coupon.ExpiryDate,
                 IsActive = coupon.IsActive,
                 CreatedAt = coupon.CreatedAt,
-                UpdatedAt = coupon.UpdatedAt
+                UpdatedAt = coupon.UpdatedAt,
+                MinimumAmount = coupon.MinimumAmount
             };
         }
     }

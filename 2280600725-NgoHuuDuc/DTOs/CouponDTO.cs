@@ -9,11 +9,14 @@ namespace NgoHuuDuc_2280600725.DTOs
         [Display(Name = "Mã giảm giá")]
         public string Code { get; set; } = "";
 
+        [Display(Name = "Chú thích")]
+        public string? Description { get; set; }
+
         [Display(Name = "Số lượng")]
         public int Quantity { get; set; }
 
         [Display(Name = "Phần trăm giảm giá")]
-        public decimal DiscountPercentage { get; set; }
+        public int DiscountPercentage { get; set; }
 
         [Display(Name = "Ngày hết hạn")]
         public DateTime ExpiryDate { get; set; }
@@ -27,10 +30,14 @@ namespace NgoHuuDuc_2280600725.DTOs
         [Display(Name = "Ngày cập nhật")]
         public DateTime? UpdatedAt { get; set; }
 
+        [Display(Name = "Tối thiểu")]
+        public decimal MinimumAmount { get; set; }
+
         // Computed properties for display
         public bool IsExpired => DateTime.Now > ExpiryDate;
         public bool IsDepleted => Quantity == 0;
         public string Status => !IsActive ? "Không kích hoạt" : IsExpired ? "Đã hết hạn" : IsDepleted ? "Đã hết số lượng" : "Còn hiệu lực";
+        public int UsagePercentage => Quantity == -1 ? 0 : 100; // Simplified for display
     }
 
     public class CreateCouponDTO
@@ -39,15 +46,24 @@ namespace NgoHuuDuc_2280600725.DTOs
         [Display(Name = "Mã giảm giá")]
         public string Code { get; set; } = "";
 
+        [StringLength(500, ErrorMessage = "Chú thích không được vượt quá 500 ký tự")]
+        [Display(Name = "Chú thích")]
+        public string? Description { get; set; }
+
         [Required(ErrorMessage = "Số lượng không được để trống")]
         [CustomValidation(typeof(CouponDTOValidator), nameof(CouponDTOValidator.ValidateQuantity))]
         [Display(Name = "Số lượng")]
         public int Quantity { get; set; }
 
         [Required(ErrorMessage = "Phần trăm giảm giá không được để trống")]
-        [Range(0, 100, ErrorMessage = "Phần trăm giảm giá phải từ 0 đến 100")]
+        [Range(1, 100, ErrorMessage = "Phần trăm giảm giá phải từ 1 đến 100")]
         [Display(Name = "Phần trăm giảm giá")]
-        public decimal DiscountPercentage { get; set; }
+        public int DiscountPercentage { get; set; }
+
+        [Required(ErrorMessage = "Giá tối thiểu không được để trống")]
+        [Range(0, double.MaxValue, ErrorMessage = "Giá tối thiểu phải lớn hơn hoặc bằng 0")]
+        [Display(Name = "Giá tối thiểu")]
+        public decimal MinimumAmount { get; set; } = 0;
 
         [Display(Name = "Ngày hết hạn")]
         [DataType(DataType.DateTime)]
@@ -59,15 +75,24 @@ namespace NgoHuuDuc_2280600725.DTOs
 
     public class UpdateCouponDTO
     {
+        [StringLength(500, ErrorMessage = "Chú thích không được vượt quá 500 ký tự")]
+        [Display(Name = "Chú thích")]
+        public string? Description { get; set; }
+
         [Required(ErrorMessage = "Số lượng không được để trống")]
         [CustomValidation(typeof(CouponDTOValidator), nameof(CouponDTOValidator.ValidateQuantity))]
         [Display(Name = "Số lượng")]
         public int Quantity { get; set; }
 
         [Required(ErrorMessage = "Phần trăm giảm giá không được để trống")]
-        [Range(0, 100, ErrorMessage = "Phần trăm giảm giá phải từ 0 đến 100")]
+        [Range(1, 100, ErrorMessage = "Phần trăm giảm giá phải từ 1 đến 100")]
         [Display(Name = "Phần trăm giảm giá")]
-        public decimal DiscountPercentage { get; set; }
+        public int DiscountPercentage { get; set; }
+
+        [Required(ErrorMessage = "Giá tối thiểu không được để trống")]
+        [Range(0, double.MaxValue, ErrorMessage = "Giá tối thiểu phải lớn hơn hoặc bằng 0")]
+        [Display(Name = "Giá tối thiểu")]
+        public decimal MinimumAmount { get; set; } = 0;
 
         [Display(Name = "Ngày hết hạn")]
         [DataType(DataType.DateTime)]

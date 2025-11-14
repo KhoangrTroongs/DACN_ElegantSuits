@@ -219,6 +219,11 @@
                             $('#availableCouponsContainer').show();
 
                             response.coupons.forEach(function (coupon, index) {
+                                const descriptionHtml = coupon.Description ?
+                                    `<div class="text-muted small mt-1"><i class="fas fa-info-circle"></i> ${coupon.Description}</div>` : '';
+                                const minAmountHtml = coupon.MinimumAmount > 0 ?
+                                    `<div class="text-muted small">Đơn tối thiểu: ${coupon.MinimumAmount.toLocaleString('vi-VN')}đ</div>` : '';
+
                                 const couponHtml = `
                                     <div class="list-group-item">
                                         <div class="d-flex align-items-center">
@@ -226,12 +231,16 @@
                                                 <input class="form-check-input coupon-radio" type="radio" name="availableCoupon"
                                                        id="coupon_${coupon.Id}" value="${coupon.Code}" data-discount="${coupon.DiscountPercentage}">
                                                 <label class="form-check-label w-100" for="coupon_${coupon.Id}">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div>
-                                                            <strong><i class="fas fa-tag"></i> ${coupon.Code}</strong>
-                                                            <span class="badge bg-success ms-2">Giảm ${coupon.DiscountPercentage}%</span>
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div class="flex-grow-1">
+                                                            <div>
+                                                                <strong><i class="fas fa-tag"></i> ${coupon.Code}</strong>
+                                                                <span class="badge bg-success ms-2">Giảm ${coupon.DiscountPercentage}%</span>
+                                                            </div>
+                                                            ${descriptionHtml}
+                                                            ${minAmountHtml}
                                                         </div>
-                                                        <div class="text-end">
+                                                        <div class="text-end ms-3">
                                                             <div class="text-success fw-bold">Tiết kiệm: ${coupon.SavingAmount.toLocaleString('vi-VN')}đ</div>
                                                             <small class="text-muted">Hết hạn: ${new Date(coupon.ExpiryDate).toLocaleDateString('vi-VN')}</small>
                                                         </div>

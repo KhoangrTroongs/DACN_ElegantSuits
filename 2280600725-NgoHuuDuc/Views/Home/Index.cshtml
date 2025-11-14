@@ -1,8 +1,14 @@
 ﻿@using NgoHuuDuc_2280600725.Models
+@using NgoHuuDuc_2280600725.DTOs
 @{
     ViewData["Title"] = "Home Page";
     var productsByCategory = ViewBag.ProductsByCategory as Dictionary<string, List<Product>>;
     var categories = ViewBag.Categories as List<Category>;
+    var activeCoupons = ViewBag.ActiveCoupons as List<CouponDTO>;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/coupon-section.css" asp-append-version="true" />
 }
 
 @section Scripts {
@@ -313,6 +319,93 @@
 </div>
 
 <hr class="featurette-divider">
+
+@* Coupon Section *@
+@if (activeCoupons != null && activeCoupons.Any())
+{
+    <div class="container my-5">
+        <div class="coupon-section">
+            <!-- Header với hiệu ứng gradient -->
+            <div class="coupon-header text-center mb-4">
+                <div class="coupon-banner">
+                    <div class="banner-icon left">
+                        <i class="bi bi-gift-fill"></i>
+                    </div>
+                    <h2 class="banner-title">DEAL SỐC CÙNG VOUCHER</h2>
+                    <div class="banner-icon right">
+                        <i class="bi bi-gift-fill"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coupon Cards Carousel -->
+            <div class="coupon-carousel-wrapper">
+                <button class="coupon-carousel-btn prev" onclick="scrollCouponCarousel(-1)">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <div class="coupon-carousel">
+                    @foreach (var coupon in activeCoupons)
+                    {
+                        <div class="coupon-card" onclick="window.location.href='@Url.Action("Index", "Product")'">
+                            <div class="coupon-left">
+                                <div class="coupon-icon">
+                                    <i class="bi bi-ticket-perforated"></i>
+                                </div>
+                            </div>
+                            <div class="coupon-right">
+                                <div class="coupon-discount">
+                                    <span class="discount-text">Giảm @coupon.DiscountPercentage%</span>
+                                    @if (coupon.Quantity > 0)
+                                    {
+                                        <span class="coupon-quantity">x @coupon.Quantity</span>
+                                    }
+                                    else if (coupon.Quantity == -1)
+                                    {
+                                        <span class="coupon-quantity unlimited">∞</span>
+                                    }
+                                </div>
+                                @if (!string.IsNullOrEmpty(coupon.Description))
+                                {
+                                    <div class="coupon-condition">
+                                        @coupon.Description
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="coupon-condition">
+                                        Giảm tối đa @(coupon.MinimumAmount * coupon.DiscountPercentage / 100)₫
+                                    </div>
+                                }
+                                <div class="coupon-min-order">
+                                    Đơn Tối Thiểu @(coupon.MinimumAmount.ToString("N0"))₫
+                                </div>
+                                <div class="coupon-category">
+                                    <span class="badge bg-elegant-gold">Elegant Suits</span>
+                                </div>
+                                <div class="coupon-actions">
+                                    <a href="@Url.Action("Index", "Product")" class="btn btn-coupon-apply">Áp Dụng Mã</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <button class="coupon-carousel-btn next" onclick="scrollCouponCarousel(1)">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+
+            <script>
+                function scrollCouponCarousel(direction) {
+                    const carousel = document.querySelector('.coupon-carousel');
+                    const cardWidth = carousel.querySelector('.coupon-card').offsetWidth;
+                    const gap = 20; // gap between cards
+                    const scrollAmount = (cardWidth + gap) * direction;
+                    carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                }
+            </script>
+        </div>
+    </div>
+}
 
 @* <div class="container mt-4"> *@
 @*     <div class="row"> *@

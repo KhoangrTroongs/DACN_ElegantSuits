@@ -118,8 +118,10 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                 var updateDto = new UpdateCouponDTO
                 {
+                    Description = coupon.Description,
                     Quantity = coupon.Quantity,
                     DiscountPercentage = coupon.DiscountPercentage,
+                    MinimumAmount = coupon.MinimumAmount,
                     ExpiryDate = coupon.ExpiryDate,
                     IsActive = coupon.IsActive
                 };
@@ -258,7 +260,9 @@ namespace NgoHuuDuc_2280600725.Controllers
                     c.Code,
                     c.DiscountPercentage,
                     c.ExpiryDate,
-                    SavingAmount = Math.Round(request.CartTotal * (c.DiscountPercentage / 100), 0)
+                    c.MinimumAmount,
+                    c.Description,
+                    SavingAmount = Math.Round(request.CartTotal * c.DiscountPercentage / 100.0m, 0)
                 }).ToList();
 
                 return Json(new { success = true, message = "Lấy danh sách mã giảm giá thành công", coupons = couponList });

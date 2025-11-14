@@ -10,6 +10,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using NgoHuuDuc_2280600725.Services.Interfaces;
 
 namespace NgoHuuDuc_2280600725.Controllers
 {
@@ -18,12 +19,14 @@ namespace NgoHuuDuc_2280600725.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<HomeController> _logger;
+        private readonly ICouponService _couponService;
 
-        public HomeController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, ILogger<HomeController> logger)
+        public HomeController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, ILogger<HomeController> logger, ICouponService couponService)
         {
             _context = context;
             _userManager = userManager;
             _logger = logger;
+            _couponService = couponService;
         }
 
         public async Task<IActionResult> Index(int? categoryId)
@@ -55,6 +58,15 @@ namespace NgoHuuDuc_2280600725.Controllers
 
             // Gán dữ liệu sản phẩm theo danh mục cho ViewBag để truyền sang view
             ViewBag.ProductsByCategory = productsByCategory;
+
+            // Lấy danh sách coupon đang active và chưa hết hạn
+            var activeCoupons = await _couponService.GetAllCouponsAsync();
+            var validCoupons = activeCoupons
+                .Where(c => c.IsActive && !c.IsExpired && !c.IsDepleted)
+                .OrderByDescending(c => c.DiscountPercentage)
+                .Take(6) // Lấy tối đa 6 coupon
+                .ToList();
+            ViewBag.ActiveCoupons = validCoupons;
 
             return View();
         }
