@@ -7,6 +7,7 @@ using NgoHuuDuc_2280600725.Models;
 using NgoHuuDuc_2280600725.Models.AccountViewModels;
 using NgoHuuDuc_2280600725.Models.ViewModels;
 using NgoHuuDuc_2280600725.Responsitories;
+using NgoHuuDuc_2280600725.Services.Interfaces;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -17,13 +18,22 @@ namespace NgoHuuDuc_2280600725.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly ILogger<AccountController> _logger;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailService _emailService;
 
         public AccountController(
             IUserRepository userRepository,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            SignInManager<ApplicationUser> signInManager,
+            UserManager<ApplicationUser> userManager,
+            IEmailService emailService)
         {
             _userRepository = userRepository;
             _logger = logger;
+            _signInManager = signInManager;
+            _userManager = userManager;
+            _emailService = emailService;
         }
 
         // GET: /Account/Login
@@ -204,6 +214,162 @@ namespace NgoHuuDuc_2280600725.Controllers
             await _userRepository.SignOutAsync();
             _logger.LogInformation(5, "Đăng xuất thành công.");
             return RedirectToAction(nameof(HomeController.Index), "Home");
+        }
+
+        // POST: /Account/ExternalLogin
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+        {
+            // Request a redirect to the external login provider.
+            var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        // GET: /Account/ExternalLoginCallback
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+
+            if (remoteError != null)
+            {
+                _logger.LogError("Error from external provider: {Error}", remoteError);
+                ModelState.AddModelError(string.Empty, $"Lỗi từ nhà cung cấp: {remoteError}");
+                return RedirectToAction(nameof(Login));
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                _logger.LogWarning("External login info is null");
+                return RedirectToAction(nameof(Login));
+            }
+
+            // Sign in the user with this external login provider if the user already has a login.
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("User logged in with {Provider} provider.", info.LoginProvider);
+
+                // Send email notification for existing user
+                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                if (user != null)
+                {
+                    _ = _emailService.SendGoogleLoginWelcomeEmailAsync(user.Email ?? "", user.FullName);
+                }
+
+                return RedirectToLocal(returnUrl);
+            }
+
+            if (result.IsLockedOut)
+            {
+                _logger.LogWarning("User account locked out.");
+                return View("Lockout");
+            }
+            else
+            {
+                // If the user does not have an account, then create one.
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                var name = info.Principal.FindFirstValue(ClaimTypes.Name);
+                var picture = info.Principal.FindFirstValue("picture");
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    _logger.LogError("Email claim not received from Google");
+                    ModelState.AddModelError(string.Empty, "Không thể lấy thông tin email từ Google.");
+                    return RedirectToAction(nameof(Login));
+                }
+
+                // Check if user already exists with this email
+                var existingUser = await _userManager.FindByEmailAsync(email);
+
+                if (existingUser != null)
+                {
+                    // User exists, link the external login
+                    var addLoginResult = await _userManager.AddLoginAsync(existingUser, info);
+                    if (addLoginResult.Succeeded)
+                    {
+                        // Update OAuth properties
+                        existingUser.IsOAuthUser = true;
+                        existingUser.LoginProvider = info.LoginProvider;
+                        existingUser.ProviderKey = info.ProviderKey;
+
+                        if (!string.IsNullOrEmpty(picture) && string.IsNullOrEmpty(existingUser.AvatarUrl))
+                        {
+                            existingUser.AvatarUrl = picture;
+                        }
+
+                        await _userManager.UpdateAsync(existingUser);
+                        await _signInManager.SignInAsync(existingUser, isPersistent: false);
+
+                        _logger.LogInformation("External login linked to existing user {Email}", email);
+
+                        // Send email notification
+                        _ = _emailService.SendGoogleLoginWelcomeEmailAsync(email, existingUser.FullName);
+
+                        return RedirectToLocal(returnUrl);
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to link external login: {Errors}", string.Join(", ", addLoginResult.Errors.Select(e => e.Description)));
+                        ModelState.AddModelError(string.Empty, "Không thể liên kết tài khoản Google với tài khoản hiện có.");
+                        return RedirectToAction(nameof(Login));
+                    }
+                }
+
+                // Create new user
+                var user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true,
+                    FullName = name ?? email.Split('@')[0],
+                    DateOfBirth = DateTime.Now.AddYears(-20), // Default age
+                    Address = "",
+                    Gender = Gender.Male,
+                    AvatarUrl = picture ?? "/images/users/default-avatar.png",
+                    IsOAuthUser = true,
+                    LoginProvider = info.LoginProvider,
+                    ProviderKey = info.ProviderKey,
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+
+                if (createResult.Succeeded)
+                {
+                    // Add external login
+                    createResult = await _userManager.AddLoginAsync(user, info);
+
+                    if (createResult.Succeeded)
+                    {
+                        // Assign User role
+                        await _userManager.AddToRoleAsync(user, "User");
+
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        _logger.LogInformation("User created an account using {Provider} provider.", info.LoginProvider);
+
+                        // Send welcome email
+                        _ = _emailService.SendGoogleLoginWelcomeEmailAsync(email, user.FullName);
+
+                        return RedirectToLocal(returnUrl);
+                    }
+                }
+
+                foreach (var error in createResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                    _logger.LogError("Error creating user: {Error}", error.Description);
+                }
+
+                return RedirectToAction(nameof(Login));
+            }
         }
 
         // GET: Account

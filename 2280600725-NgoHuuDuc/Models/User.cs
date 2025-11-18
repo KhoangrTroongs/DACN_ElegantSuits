@@ -47,5 +47,15 @@ namespace NgoHuuDuc_2280600725.Models
         [RegularExpression(@"^0\d{9}$", ErrorMessage = "Số điện thoại phải bắt đầu bằng 0 và có 10 chữ số")]
         [Display(Name = "Số điện thoại")]
         public override string? PhoneNumber { get; set; }
+
+        // OAuth properties
+        [Display(Name = "Nhà cung cấp đăng nhập")]
+        public string? LoginProvider { get; set; }
+
+        [Display(Name = "ID nhà cung cấp")]
+        public string? ProviderKey { get; set; }
+
+        [Display(Name = "Đăng nhập bằng OAuth")]
+        public bool IsOAuthUser { get; set; } = false;
     }
 }

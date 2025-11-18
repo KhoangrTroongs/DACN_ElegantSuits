@@ -14,6 +14,7 @@ using OfficeOpenXml;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.IISIntegration;
+using System.Security.Claims;
 
 // Cấu hình EPPlus để sử dụng giấy phép không thương mại
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -63,6 +64,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IFabricService, FabricService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Configure Authentication with both Cookie and JWT
 builder.Services.AddAuthentication(options =>
@@ -71,6 +73,16 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
     options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
     options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+})
+.AddGoogle(googleOptions =>
+{
+    googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "";
+    googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "";
+    googleOptions.SaveTokens = true;
+
+    // Request additional scopes
+    googleOptions.Scope.Add("profile");
+    googleOptions.Scope.Add("email");
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
