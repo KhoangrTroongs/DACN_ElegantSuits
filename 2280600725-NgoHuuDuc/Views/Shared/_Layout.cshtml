@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
 
+    @* N8N Chatbox CSS *@
+    <link href="https://cdn.jsdelivr.net/npm/@@n8n/chat/dist/style.css" rel="stylesheet" />
+
     @* Render custom styles from individual views *@
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -149,6 +152,16 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    @* N8N Chatbox JavaScript *@
+    <script type="module">
+        import { createChat } from 'https://cdn.jsdelivr.net/npm/@@n8n/chat/dist/chat.bundle.es.js';
+
+        createChat({
+            webhookUrl: 'http://localhost:5678/webhook/5a617ed7-65aa-4fa0-93fa-fa4781e67818/chat'
+        });
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
     <script>
         // Back to top button
