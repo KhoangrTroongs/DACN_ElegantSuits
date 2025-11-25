@@ -348,6 +348,9 @@
                                 <i class='bx bx-cart-add'></i> Thêm vào giỏ hàng
                             </button>
                         </form>
+                        <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#virtualTryOnModal">
+                            <i class="fas fa-magic"></i> Thử đồ ảo
+                        </button>
                     }
                     else
                     {
@@ -807,3 +810,4 @@
         });
     </script>
 }
+@await Html.PartialAsync("_VirtualTryOnModal")

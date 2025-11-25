@@ -1,0 +1,102 @@
+@{
+    ViewData["Title"] = "Thanh toán thất bại";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-danger text-white text-center py-4">
+                    <i class="fas fa-times-circle fa-4x mb-3"></i>
+                    <h2 class="mb-0">Thanh toán thất bại</h2>
+                </div>
+                <div class="card-body p-5">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    <div class="text-center mb-4">
+                        <p class="lead">Rất tiếc, giao dịch của bạn không thành công. Vui lòng thử lại hoặc chọn phương thức thanh toán khác.</p>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-3">
+                            <a href="@Url.Action("Index", "ShoppingCart")" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-shopping-cart me-2"></i>Quay lại giỏ hàng
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary btn-lg w-100">
+                                <i class="fas fa-home me-2"></i>Về trang chủ
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 p-4 bg-light rounded">
+                        <h5 class="mb-3"><i class="fas fa-question-circle me-2"></i>Các nguyên nhân có thể</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-credit-card text-danger me-2"></i>
+                                Thẻ không đủ số dư hoặc đã hết hạn
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-lock text-danger me-2"></i>
+                                Thông tin xác thực không chính xác
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-ban text-danger me-2"></i>
+                                Giao dịch bị từ chối bởi ngân hàng
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-wifi text-danger me-2"></i>
+                                Mất kết nối trong quá trình thanh toán
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4 p-4 bg-info bg-opacity-10 rounded">
+                        <h6 class="mb-2"><i class="fas fa-headset me-2"></i>Cần hỗ trợ?</h6>
+                        <p class="mb-0">Liên hệ với chúng tôi qua hotline: <strong>1900-xxxx</strong> hoặc email: <strong>support@elegantsuits.com</strong></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        border-bottom: none;
+    }
+
+    .btn-lg {
+        padding: 12px 24px;
+        font-size: 1.1rem;
+    }
+
+    .fa-times-circle {
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        25% {
+            transform: translateX(-10px);
+        }
+        75% {
+            transform: translateX(10px);
+        }
+    }
+</style>

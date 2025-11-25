@@ -29,6 +29,22 @@ namespace NgoHuuDuc_2280600725.Models
         [Column(TypeName = "decimal(18, 2)")]
         public decimal DiscountAmount { get; set; } = 0;
 
+        [Display(Name = "Phương thức thanh toán")]
+        public string PaymentMethod { get; set; } = "COD"; // COD, MoMo
+
+        [Display(Name = "Trạng thái thanh toán")]
+        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.Pending;
+
+        [Display(Name = "Mã giao dịch")]
+        public string? TransactionId { get; set; }
+
+        [Display(Name = "Tổng tiền")]
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal TotalAmount { get; set; }
+
+        [Display(Name = "Trạng thái đơn hàng")]
+        public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
+
         [ForeignKey("UserId")]
         [ValidateNever]
         public ApplicationUser? User { get; set; }

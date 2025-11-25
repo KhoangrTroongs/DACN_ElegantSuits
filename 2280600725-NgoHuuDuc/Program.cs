@@ -65,6 +65,11 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IFabricService, FabricService>();
 builder.Services.AddScoped<ICouponService, CouponService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IMoMoService, MoMoService>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+
+// Register HttpClient for MoMo service
+builder.Services.AddHttpClient();
 
 // Configure Authentication with both Cookie and JWT
 builder.Services.AddAuthentication(options =>

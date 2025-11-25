@@ -18,14 +18,20 @@ namespace NgoHuuDuc_2280600725.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICouponService _couponService;
+        private readonly IMoMoService _moMoService;
+        private readonly IVnPayService _vnPayService;
 
         public ShoppingCartController(ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        ICouponService couponService)
+        ICouponService couponService,
+        IMoMoService moMoService,
+        IVnPayService vnPayService)
         {
             _context = context;
             _userManager = userManager;
             _couponService = couponService;
+            _moMoService = moMoService;
+            _vnPayService = vnPayService;
         }
         public async Task<IActionResult> Index()
         {
@@ -101,10 +107,15 @@ namespace NgoHuuDuc_2280600725.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Checkout(Order order)
+        public async Task<IActionResult> Checkout(Order order, string PaymentMethod)
         {
             try
             {
+                // Remove validation for payment-related fields
+                ModelState.Remove("PaymentStatus");
+                ModelState.Remove("OrderStatus");
+                ModelState.Remove("TotalAmount");
+
                 if (!ModelState.IsValid)
                 {
                     // Log các lỗi validate để debug
@@ -164,16 +175,21 @@ namespace NgoHuuDuc_2280600725.Controllers
                 }
 
                 // Tạo đơn hàng mới
+                var totalAmount = totalPrice - discountAmount;
                 var newOrder = new Order
                 {
                     UserId = user.Id, // Sử dụng ID thực của người dùng
                     OrderDate = DateTime.Now,
                     TotalPrice = totalPrice - discountAmount,
+                    TotalAmount = totalAmount,
                     Status = OrderStatus.Pending,
+                    OrderStatus = OrderStatus.Pending,
                     ShippingAddress = order.ShippingAddress,
                     Notes = order.Notes,
                     CouponCode = !string.IsNullOrWhiteSpace(couponCode) ? couponCode.ToUpper() : null,
-                    DiscountAmount = discountAmount
+                    DiscountAmount = discountAmount,
+                    PaymentMethod = PaymentMethod ?? "COD",
+                    PaymentStatus = PaymentStatus.Pending
                 };
 
                 _context.Orders.Add(newOrder);
@@ -225,7 +241,27 @@ namespace NgoHuuDuc_2280600725.Controllers
                     await _couponService.DecrementCouponQuantityAsync(couponCode);
                 }
 
-                return RedirectToAction("OrderCompleted", new { id = newOrder.Id });
+                // Redirect based on payment method
+                if (PaymentMethod == "MoMo")
+                {
+                    return RedirectToAction("ProcessMoMoPayment", new { orderId = newOrder.Id });
+                }
+                else if (PaymentMethod == "VnPay")
+                {
+                    // Call the API endpoint we created in PaymentController
+                    // Since we are in a controller, we can redirect to the action that returns JSON, 
+                    // but better to create a proper action that redirects to the URL.
+                    // However, PaymentController.CreateVnPayPayment returns JSON.
+                    // Let's create a helper method or redirect to a new action in ShoppingCartController 
+                    // that calls the service directly, similar to ProcessMoMoPayment.
+                    
+                    return RedirectToAction("ProcessVnPayPayment", new { orderId = newOrder.Id });
+                }
+                else
+                {
+                    // COD payment - mark as pending
+                    return RedirectToAction("OrderCompleted", new { id = newOrder.Id });
+                }
             }
             catch (Exception ex)
             {
@@ -238,6 +274,73 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                 TempData["ErrorMessage"] = "An error occurred while processing your order. Please try again.";
                 return RedirectToAction("Index");
+            }
+        }
+
+        public async Task<IActionResult> ProcessMoMoPayment(int orderId)
+        {
+            try
+            {
+                var order = await _context.Orders.FindAsync(orderId);
+                if (order == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy đơn hàng";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                var orderInfo = $"Thanh toán đơn hàng #{orderId}";
+                var result = await _moMoService.CreatePaymentAsync(
+                    orderId.ToString(),
+                    order.TotalAmount,
+                    orderInfo);
+
+                if (result.ResultCode == 0)
+                {
+                    // Redirect to MoMo payment page
+                    return Redirect(result.PayUrl);
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = $"Lỗi tạo thanh toán MoMo: {result.Message}";
+                    return RedirectToAction("OrderCompleted", new { id = orderId });
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tạo thanh toán";
+                return RedirectToAction("Index", "Home");
+            }
+        }
+
+        public async Task<IActionResult> ProcessVnPayPayment(int orderId)
+        {
+            try
+            {
+                var order = await _context.Orders.FindAsync(orderId);
+                if (order == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy đơn hàng";
+                    return RedirectToAction("Index", "Home");
+                }
+
+                var vnPayModel = new VnPayPaymentRequestModel
+                {
+                    Amount = (double)order.TotalAmount,
+                    CreatedDate = DateTime.Now,
+                    Description = $"Thanh toán đơn hàng #{orderId}",
+                    FullName = User.Identity?.Name ?? "Khách hàng",
+                    OrderId = orderId.ToString()
+                };
+
+                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, vnPayModel);
+
+                return Redirect(paymentUrl);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating VnPay payment: {ex.Message}");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tạo thanh toán VnPay";
+                return RedirectToAction("OrderCompleted", new { id = orderId });
             }
         }
 

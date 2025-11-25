@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace NgoHuuDuc_2280600725.Controllers
 {
-    [Authorize(Roles = "Administrator")]
+    [Authorize] // Allow all authenticated users
     public class OrderController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -23,12 +23,24 @@ namespace NgoHuuDuc_2280600725.Controllers
             _userManager = userManager;
         }
 
-        // GET: Order
+        // GET: Order - Show user's own orders (or all for admin)
         public async Task<IActionResult> Index()
         {
-            // Lấy danh sách tất cả đơn hàng, bao gồm thông tin người dùng, sắp xếp theo ngày đặt hàng mới nhất
-            var orders = await _context.Orders
-                .Include(o => o.User)
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            IQueryable<Order> ordersQuery = _context.Orders.Include(o => o.User);
+
+            // If not admin, only show user's own orders
+            if (!User.IsInRole("Administrator"))
+            {
+                ordersQuery = ordersQuery.Where(o => o.UserId == user.Id);
+            }
+
+            var orders = await ordersQuery
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
@@ -38,7 +50,6 @@ namespace NgoHuuDuc_2280600725.Controllers
         // GET: Order/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            // Lấy chi tiết đơn hàng theo id, bao gồm thông tin user và các sản phẩm trong đơn hàng
             var order = await _context.Orders
                 .Include(o => o.User)
                 .Include(o => o.OrderDetails)
@@ -50,27 +61,83 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return NotFound();
             }
 
+            // Check if user owns this order or is admin
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            if (!User.IsInRole("Administrator") && order.UserId != user.Id)
+            {
+                return Forbid();
+            }
+
             return View(order);
         }
 
-        // POST: Order/UpdateStatus
+        // POST: Order/UpdateStatus - Admin only
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> UpdateStatus(int id, OrderStatus status)
         {
-            // Tìm đơn hàng theo id
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
                 return NotFound();
             }
 
-            // Cập nhật trạng thái đơn hàng và lưu lại
             order.Status = status;
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Trạng thái đơn hàng đã được cập nhật thành công.";
             return RedirectToAction(nameof(Details), new { id = id });
+        }
+
+        // User actions
+        public async Task<IActionResult> OrderSuccess(int id)
+        {
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            // Check if user owns this order
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || order.UserId != user.Id)
+            {
+                return Forbid();
+            }
+
+            return View(order);
+        }
+
+        public async Task<IActionResult> OrderFailed(int? id)
+        {
+            if (id.HasValue)
+            {
+                var order = await _context.Orders
+                    .Include(o => o.OrderDetails)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
+                if (order != null)
+                {
+                    // Check if user owns this order
+                    var user = await _userManager.GetUserAsync(User);
+                    if (user != null && order.UserId == user.Id)
+                    {
+                        return View(order);
+                    }
+                }
+            }
+
+            return View();
         }
     }
 }

@@ -1,0 +1,98 @@
+@model Order
+@using NgoHuuDuc_2280600725.Models.Enums
+
+@{
+    ViewData["Title"] = "Đặt Hàng Thành Công";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h2 class="text-success mb-3">Đặt Hàng Thành Công!</h2>
+                    <p class="lead">Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đã được xác nhận.</p>
+                    
+                    <div class="alert alert-info mt-4">
+                        <h5><i class="fas fa-info-circle"></i> Thông Tin Đơn Hàng</h5>
+                        <hr>
+                        <div class="row text-start">
+                            <div class="col-md-6">
+                                <p><strong>Mã đơn hàng:</strong> #@Model.Id</p>
+                                <p><strong>Ngày đặt:</strong> @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                <p><strong>Phương thức thanh toán:</strong> @Model.PaymentMethod</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Tổng tiền:</strong> @Model.TotalAmount.ToString("N0")đ</p>
+                                <p><strong>Trạng thái thanh toán:</strong> 
+                                    @switch(Model.PaymentStatus)
+                                    {
+                                        case PaymentStatus.Paid:
+                                            <span class="badge bg-success">Đã thanh toán</span>
+                                            break;
+                                        case PaymentStatus.Pending:
+                                            <span class="badge bg-warning">Chờ thanh toán</span>
+                                            break;
+                                        case PaymentStatus.Failed:
+                                            <span class="badge bg-danger">Thất bại</span>
+                                            break;
+                                        default:
+                                            <span class="badge bg-secondary">@Model.PaymentStatus</span>
+                                            break;
+                                    }
+                                </p>
+                                @if (!string.IsNullOrEmpty(Model.TransactionId))
+                                {
+                                    <p><strong>Mã giao dịch:</strong> @Model.TransactionId</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.OrderDetails != null && Model.OrderDetails.Any())
+                    {
+                        <div class="mt-4">
+                            <h5>Chi Tiết Đơn Hàng</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Sản phẩm</th>
+                                            <th>Số lượng</th>
+                                            <th>Đơn giá</th>
+                                            <th>Thành tiền</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.OrderDetails)
+                                        {
+                                            <tr>
+                                                <td>@item.Product?.Name</td>
+                                                <td>@item.Quantity</td>
+                                                <td>@item.Price.ToString("N0")đ</td>
+                                                <td>@((item.Price * item.Quantity).ToString("N0"))đ</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mt-4">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-primary me-2">
+                            <i class="fas fa-home"></i> Về Trang Chủ
+                        </a>
+                        <a asp-controller="ShoppingCart" asp-action="MyOrders" class="btn btn-outline-primary">
+                            <i class="fas fa-list"></i> Xem Đơn Hàng Của Tôi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

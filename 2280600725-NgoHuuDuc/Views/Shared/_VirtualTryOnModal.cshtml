@@ -1,0 +1,303 @@
+@model NgoHuuDuc_2280600725.Models.Product
+
+<!-- Virtual Try-On Modal -->
+<div class="modal fade" id="virtualTryOnModal" tabindex="-1" aria-labelledby="virtualTryOnModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="modal-title text-white" id="virtualTryOnModalLabel">
+                    <i class="fas fa-magic me-2"></i>Thử Đồ Ảo - AI Virtual Try-On
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    <!-- Ảnh sản phẩm -->
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <i class="fas fa-tshirt me-2"></i>Sản phẩm
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px;">
+                                <img id="productImage" src="@Model.ImageUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 380px; object-fit: contain;">
+                            </div>
+                            <div class="card-footer text-center text-muted small">
+                                @Model.Name
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upload ảnh khách hàng -->
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-success text-white">
+                                <i class="fas fa-user me-2"></i>Ảnh của bạn
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px; position: relative;">
+                                <div id="uploadArea" class="upload-area w-100 h-100 d-flex flex-column align-items-center justify-content-center border border-2 border-dashed rounded" style="cursor: pointer; transition: all 0.3s;">
+                                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-2">Kéo thả ảnh vào đây</p>
+                                    <p class="text-muted small mb-3">hoặc</p>
+                                    <button type="button" class="btn btn-outline-success" id="selectImageBtn">
+                                        <i class="fas fa-folder-open me-2"></i>Chọn ảnh
+                                    </button>
+                                    <input type="file" id="customerImageInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
+                                </div>
+                                <img id="customerImagePreview" src="" alt="Customer" class="img-fluid rounded" style="display: none; max-height: 380px; object-fit: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <button type="button" id="removeCustomerImage" class="btn btn-sm btn-danger position-absolute" style="top: 10px; right: 10px; display: none;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="card-footer text-center text-muted small">
+                                JPG, PNG, WEBP (Max 5MB)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kết quả AI -->
+                    <div class="col-md-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-warning text-dark">
+                                <i class="fas fa-sparkles me-2"></i>Kết quả AI
+                            </div>
+                            <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px; position: relative;">
+                                <div id="resultPlaceholder" class="text-center">
+                                    <i class="fas fa-magic fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Kết quả sẽ hiển thị ở đây</p>
+                                </div>
+                                <div id="loadingSpinner" class="text-center" style="display: none;">
+                                    <div class="spinner-border text-warning mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                        <span class="visually-hidden">Đang xử lý...</span>
+                                    </div>
+                                    <p class="text-muted">AI đang tạo ảnh...</p>
+                                    <p class="text-muted small">Quá trình này có thể mất 10-30 giây</p>
+                                </div>
+                                <img id="resultImage" src="" alt="Result" class="img-fluid rounded" style="display: none; max-height: 380px; object-fit: contain;">
+                            </div>
+                            <div class="card-footer text-center">
+                                <button type="button" id="downloadResultBtn" class="btn btn-sm btn-outline-primary" style="display: none;">
+                                    <i class="fas fa-download me-2"></i>Tải xuống
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error message -->
+                <div id="errorMessage" class="alert alert-danger mt-3" style="display: none;" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span id="errorText"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Đóng
+                </button>
+                <button type="button" class="btn btn-primary" id="generateBtn" disabled>
+                    <i class="fas fa-magic me-2"></i>Tạo ảnh thử đồ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .upload-area:hover {
+        background-color: #f8f9fa;
+        border-color: #28a745 !important;
+    }
+
+    .upload-area.drag-over {
+        background-color: #e7f5e9;
+        border-color: #28a745 !important;
+    }
+
+    #virtualTryOnModal .card {
+        border: none;
+    }
+
+    #virtualTryOnModal .card-header {
+        font-weight: 600;
+        border-bottom: 2px solid rgba(0,0,0,0.1);
+    }
+</style>
+
+<script>
+// Initialize Virtual Try-On modal when shown
+$('#virtualTryOnModal').on('shown.bs.modal', function() {
+    let customerImageBase64 = null;
+    const productName = '@Model.Name';
+    const productImageUrl = '@Model.ImageUrl';
+    const modal = $(this);
+
+    // Handle file selection
+    modal.find('#selectImageBtn').off('click').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Select button clicked');
+        modal.find('#customerImageInput').trigger('click');
+    });
+
+    modal.find('#customerImageInput').off('change').on('change', function(e) {
+        if (e.target.files && e.target.files[0]) {
+            handleImageUpload(e.target.files[0]);
+        }
+    });
+
+    // Handle drag and drop
+    modal.find('#uploadArea').off('dragover').on('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).addClass('drag-over');
+    });
+
+    modal.find('#uploadArea').off('dragleave').on('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('drag-over');
+    });
+
+    modal.find('#uploadArea').off('drop').on('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $(this).removeClass('drag-over');
+        
+        const files = e.originalEvent.dataTransfer.files;
+        if (files.length > 0) {
+            handleImageUpload(files[0]);
+        }
+    });
+
+    // Handle image upload
+    function handleImageUpload(file) {
+        if (!file) {
+            showError('Không có file được chọn');
+            return;
+        }
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            showError('Vui lòng chọn file ảnh (JPG, PNG, WEBP)');
+            return;
+        }
+
+        // Validate file size (5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showError('Kích thước ảnh không được vượt quá 5MB');
+            return;
+        }
+
+        // Read and display image
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            customerImageBase64 = e.target.result;
+            modal.find('#customerImagePreview').attr('src', customerImageBase64).show();
+            modal.find('#uploadArea').hide();
+            modal.find('#removeCustomerImage').show();
+            modal.find('#generateBtn').prop('disabled', false);
+            hideError();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Remove customer image
+    modal.find('#removeCustomerImage').off('click').on('click', function() {
+        customerImageBase64 = null;
+        modal.find('#customerImagePreview').hide();
+        modal.find('#uploadArea').show();
+        $(this).hide();
+        modal.find('#generateBtn').prop('disabled', true);
+        modal.find('#customerImageInput').val('');
+    });
+
+    // Generate virtual try-on
+    modal.find('#generateBtn').off('click').on('click', function() {
+        if (!customerImageBase64) {
+            showError('Vui lòng upload ảnh của bạn');
+            return;
+        }
+
+        // Show loading
+        modal.find('#resultPlaceholder').hide();
+        modal.find('#resultImage').hide();
+        modal.find('#loadingSpinner').show();
+        modal.find('#generateBtn').prop('disabled', true);
+        hideError();
+
+        // Prepare data for n8n webhook
+        const requestData = {
+            productName: productName,
+            productImageUrl: productImageUrl,
+            customerImage: customerImageBase64
+        };
+
+        // TODO: Replace with your n8n webhook URL
+        const n8nWebhookUrl = 'http://localhost:5678/webhook/virtual-try-on';
+
+        // Send request to n8n
+        $.ajax({
+            url: n8nWebhookUrl,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(requestData),
+            timeout: 60000, // 60 seconds timeout
+            success: function(response) {
+                if (response.success && response.resultImage) {
+                    // Display result image
+                    modal.find('#resultImage').attr('src', response.resultImage).show();
+                    modal.find('#downloadResultBtn').show();
+                    modal.find('#loadingSpinner').hide();
+                } else {
+                    showError('Không thể tạo ảnh. Vui lòng thử lại.');
+                    modal.find('#loadingSpinner').hide();
+                    modal.find('#resultPlaceholder').show();
+                }
+                modal.find('#generateBtn').prop('disabled', false);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                showError('Lỗi kết nối đến AI service. Vui lòng thử lại sau.');
+                modal.find('#loadingSpinner').hide();
+                modal.find('#resultPlaceholder').show();
+                modal.find('#generateBtn').prop('disabled', false);
+            }
+        });
+    });
+
+    // Download result image
+    modal.find('#downloadResultBtn').off('click').on('click', function() {
+        const resultImage = modal.find('#resultImage').attr('src');
+        if (resultImage) {
+            const link = document.createElement('a');
+            link.href = resultImage;
+            link.download = `virtual-try-on-${productName}-${Date.now()}.png`;
+            link.click();
+        }
+    });
+
+    function showError(message) {
+        modal.find('#errorText').text(message);
+        modal.find('#errorMessage').fadeIn();
+    }
+
+    function hideError() {
+        modal.find('#errorMessage').fadeOut();
+    }
+});
+
+// Reset modal when closed
+$('#virtualTryOnModal').on('hidden.bs.modal', function() {
+    const modal = $(this);
+    modal.find('#customerImagePreview').hide();
+    modal.find('#uploadArea').show();
+    modal.find('#removeCustomerImage').hide();
+    modal.find('#resultImage').hide();
+    modal.find('#loadingSpinner').hide();
+    modal.find('#resultPlaceholder').show();
+    modal.find('#downloadResultBtn').hide();
+    modal.find('#generateBtn').prop('disabled', true);
+    modal.find('#customerImageInput').val('');
+    modal.find('#errorMessage').hide();
+});
+</script>
