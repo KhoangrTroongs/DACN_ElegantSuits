@@ -21,6 +21,17 @@ ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Cấu hình CORS cho Flutter App
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFlutterApp", policy =>
+    {
+        policy.AllowAnyOrigin()      // Cho phép mọi origin (Flutter web, mobile)
+              .AllowAnyMethod()       // Cho phép GET, POST, PUT, DELETE, etc.
+              .AllowAnyHeader();      // Cho phép mọi header
+    });
+});
+
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -241,6 +252,9 @@ if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Bật CORS - phải đặt trước Authentication
+app.UseCors("AllowFlutterApp");
 
 // Thêm cookie policy middleware trước authentication
 app.UseCookiePolicy();

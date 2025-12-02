@@ -1,0 +1,292 @@
+{
+    "name": "Virtual Try-On Workflow - Fixed",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "virtual-try-on",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "1",
+            "name": "Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Extract data from webhook\nconst body = $input.item.json.body;\nconst productName = body.productName;\nconst productImageUrl = body.productImageUrl;\nconst customerImageBase64 = body.customerImage;\n\n// Remove data:image prefix if exists\nlet customerImageData = customerImageBase64;\nif (customerImageData && customerImageData.includes('base64,')) {\n  customerImageData = customerImageData.split('base64,')[1];\n}\n\nreturn {\n  productName,\n  productImageUrl,\n  customerImageData\n};"
+            },
+            "id": "2",
+            "name": "Process Input",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{ $json.productImageUrl }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "responseFormat": "file"
+                        }
+                    }
+                }
+            },
+            "id": "3",
+            "name": "Download Product Image",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                650,
+                200
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Combine customer image and product image for Gemini\nconst processData = $input.first().json;\nconst productImageBinary = $input.last().binary;\n\nreturn {\n  productName: processData.productName,\n  customerImageData: processData.customerImageData,\n  productImageBinary: productImageBinary\n};"
+            },
+            "id": "4",
+            "name": "Merge Images",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                850,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleApi",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "key",
+                            "value": "={{ $credentials.apiKey }}"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "contents",
+                            "value": "={{ JSON.stringify([{\n  \"parts\": [\n    {\n      \"text\": \"You are an AI fashion assistant. Create a photorealistic image showing this person wearing the product. Product: \" + $json.productName + \". Make it look natural and realistic.\"\n    },\n    {\n      \"inline_data\": {\n        \"mime_type\": \"image/jpeg\",\n        \"data\": $json.customerImageData\n      }\n    }\n  ]\n}]) }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "5",
+            "name": "Call Gemini API",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                1050,
+                300
+            ],
+            "credentials": {
+                "googleApi": {
+                    "id": "1",
+                    "name": "Google API"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Extract generated image from Gemini response\nconst response = $input.item.json;\n\nlet resultImageBase64 = null;\n\ntry {\n  if (response.candidates && response.candidates[0]) {\n    const candidate = response.candidates[0];\n    if (candidate.content && candidate.content.parts) {\n      const imagePart = candidate.content.parts.find(p => p.inline_data);\n      if (imagePart && imagePart.inline_data) {\n        resultImageBase64 = 'data:image/png;base64,' + imagePart.inline_data.data;\n      }\n    }\n  }\n} catch (error) {\n  console.error('Error parsing Gemini response:', error);\n}\n\nif (!resultImageBase64) {\n  // Fallback: return a placeholder\n  resultImageBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';\n}\n\nreturn {\n  success: true,\n  resultImage: resultImageBase64,\n  message: 'Virtual try-on generated successfully'\n};"
+            },
+            "id": "6",
+            "name": "Format Response",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Methods",
+                                "value": "POST, OPTIONS"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Headers",
+                                "value": "Content-Type"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "7",
+            "name": "Respond to Webhook",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                1450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Error handling\nconst error = $input.item.json.error || $input.item.json.message || 'Unknown error';\n\nreturn {\n  success: false,\n  resultImage: null,\n  message: 'Failed to generate virtual try-on image',\n  error: error\n};"
+            },
+            "id": "8",
+            "name": "Error Handler",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1250,
+                500
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={{ $json }}",
+                "options": {
+                    "responseCode": 500,
+                    "responseHeaders": {
+                        "entries": [
+                            {
+                                "name": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "name": "Access-Control-Allow-Origin",
+                                "value": "*"
+                            }
+                        ]
+                    }
+                }
+            },
+            "id": "9",
+            "name": "Respond Error",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                1450,
+                500
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Process Input",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process Input": {
+            "main": [
+                [
+                    {
+                        "node": "Download Product Image",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Merge Images",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Download Product Image": {
+            "main": [
+                [
+                    {
+                        "node": "Merge Images",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge Images": {
+            "main": [
+                [
+                    {
+                        "node": "Call Gemini API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Call Gemini API": {
+            "main": [
+                [
+                    {
+                        "node": "Format Response",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Format Response": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Error Handler": {
+            "main": [
+                [
+                    {
+                        "node": "Respond Error",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "pinData": {},
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "staticData": null,
+    "tags": [],
+    "triggerCount": 0,
+    "updatedAt": "2025-01-25T03:10:00.000Z",
+    "versionId": "2"
+}

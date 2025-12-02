@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NgoHuuDuc_2280600725.DTOs;
@@ -7,7 +8,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Administrator")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
     public class CouponApiController : ControllerBase
     {
         private readonly ICouponService _couponService;

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NgoHuuDuc_2280600725.DTOs;
@@ -115,7 +116,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
         // POST: api/Products
         [HttpPost]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
         public async Task<ActionResult<ResponseDTO<ProductDTO>>> CreateProduct([FromForm] CreateProductDTO productDto, IFormFile? image)
         {
             try
@@ -140,7 +141,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
         // PUT: api/Products/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
         public async Task<ActionResult<ResponseDTO<ProductDTO>>> UpdateProduct(int id, [FromForm] UpdateProductDTO productDto, IFormFile? image)
         {
             try
@@ -170,7 +171,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
         // DELETE: api/Products/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
         public async Task<ActionResult<ResponseDTO<bool>>> DeleteProduct(int id)
         {
             try

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NgoHuuDuc_2280600725.DTOs;
@@ -8,7 +9,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class OrdersController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -24,7 +25,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
         // GET: api/Orders
         [HttpGet]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
         public async Task<ActionResult<ResponseDTO<IEnumerable<OrderDTO>>>> GetAllOrders()
         {
             try
@@ -137,7 +138,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
         // PUT: api/Orders/5/status
         [HttpPut("{id}/status")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
         public async Task<ActionResult<ResponseDTO<OrderDTO>>> UpdateOrderStatus(int id, UpdateOrderStatusDTO updateOrderStatusDto)
         {
             try
@@ -167,7 +168,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
         // DELETE: api/Orders/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Administrator")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
         public async Task<ActionResult<ResponseDTO<bool>>> DeleteOrder(int id)
         {
             try
