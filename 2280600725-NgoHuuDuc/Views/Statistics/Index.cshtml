@@ -39,194 +39,167 @@
     <!-- Thống kê tổng quan -->
     <div class="row mb-4">
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-primary shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                Tổng đơn hàng
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalOrders</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fas fa-shopping-cart"></i>
                 </div>
+                <div class="dashboard-stat-value">@Model.TotalOrders</div>
+                <div class="dashboard-stat-label">Tổng đơn hàng</div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-success shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                Doanh thu (Đã giao hàng)
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalRevenue.ToString("C0")</div>
-                            <div class="text-xs text-muted">Chỉ tính từ đơn hàng đã giao</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fas fa-dollar-sign"></i>
                 </div>
+                <div class="dashboard-stat-value">@Model.TotalRevenue.ToString("N0")₫</div>
+                <div class="dashboard-stat-label">Doanh thu (Đã giao hàng)</div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-info shadow h-100 py-2">
-                <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                Tổng sản phẩm
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalProducts</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-box fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fas fa-box"></i>
                 </div>
+                <div class="dashboard-stat-value">@Model.TotalProducts</div>
+                <div class="dashboard-stat-label">Tổng sản phẩm</div>
             </div>
         </div>
 
         <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-left-warning shadow h-100 py-2">
+            <div class="dashboard-stat">
+                <div class="dashboard-stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="dashboard-stat-value">@Model.TotalUsers</div>
+                <div class="dashboard-stat-label">Tổng người dùng</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thống kê đơn hàng theo trạng thái -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-stat" style="border-left: 4px solid #ffc107;">
+                <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="dashboard-stat-value" style="color: #ffc107;">@Model.PendingOrders</div>
+                <div class="dashboard-stat-label">Đơn chờ xử lý</div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-stat" style="border-left: 4px solid #17a2b8;">
+                <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="dashboard-stat-value" style="color: #17a2b8;">@Model.ConfirmedOrders</div>
+                <div class="dashboard-stat-label">Đã xác nhận</div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-stat" style="border-left: 4px solid #6f42c1;">
+                <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="dashboard-stat-value" style="color: #6f42c1;">@Model.ShippingOrders</div>
+                <div class="dashboard-stat-label">Đang giao hàng</div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-stat" style="border-left: 4px solid #28a745;">
+                <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="dashboard-stat-value" style="color: #28a745;">@Model.DeliveredOrders</div>
+                <div class="dashboard-stat-label">Đã giao hàng</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Đơn hàng bị hủy -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-stat" style="border-left: 4px solid #dc3545;">
+                <div class="dashboard-stat-icon" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="dashboard-stat-value" style="color: #dc3545;">@Model.CancelledOrders</div>
+                <div class="dashboard-stat-label">Đơn đã hủy</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Biểu đồ doanh thu -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-area"></i>
+                    <span>Biểu đồ doanh thu theo thời gian</span>
+                </div>
                 <div class="card-body">
-                    <div class="row no-gutters align-items-center">
-                        <div class="col mr-2">
-                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                Tổng người dùng
-                            </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalUsers</div>
-                        </div>
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-gray-300"></i>
-                        </div>
-                    </div>
+                    <canvas id="revenueChart" height="100"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Thống kê theo trạng thái đơn hàng -->
+    <!-- Sản phẩm bán chạy -->
     <div class="row mb-4">
         <div class="col-lg-6">
-            <div class="card card-elegant mb-4">
+            <div class="dashboard-card">
                 <div class="card-header">
-                    <h6 class="m-0 font-weight-bold">Thống kê đơn hàng theo trạng thái</h6>
+                    <i class="fas fa-fire"></i>
+                    <span>Top 5 sản phẩm bán chạy</span>
                 </div>
                 <div class="card-body">
-                    <div class="chart-pie pt-4">
-                        <canvas id="orderStatusChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small">
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-warning"></i> Chờ xác nhận (@Model.PendingOrders)
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-info"></i> Đã xác nhận (@Model.ConfirmedOrders)
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-primary"></i> Đang giao hàng (@Model.ShippingOrders)
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-success"></i> Đã giao hàng (@Model.DeliveredOrders)
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-danger"></i> Đã hủy (@Model.CancelledOrders)
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-secondary"></i> Hoàn trả (@Model.ReturnedOrders)
-                        </span>
-                    </div>
+                    @if (Model.TopProducts != null && Model.TopProducts.Any())
+                    {
+                        <table class="table dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-end">Số lượng</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{int rank = 1;}
+                                @foreach (var product in Model.TopProducts)
+                                {
+                                    <tr>
+                                        <td><span class="badge bg-warning text-dark">@rank</span></td>
+                                        <td>@product.ProductName</td>
+                                        <td class="text-end fw-bold">@product.Quantity</td>
+                                    </tr>
+                                    rank++;
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted text-center py-4">Chưa có dữ liệu</p>
+                    }
                 </div>
             </div>
         </div>
 
         <div class="col-lg-6">
-            <div class="card card-elegant mb-4">
+            <div class="dashboard-card">
                 <div class="card-header">
-                    <h6 class="m-0 font-weight-bold">Thống kê doanh thu theo trạng thái</h6>
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Phân bố đơn hàng theo trạng thái</span>
                 </div>
                 <div class="card-body">
-                    <div class="chart-pie pt-4">
-                        <canvas id="revenueStatusChart"></canvas>
-                    </div>
-                    <div class="mt-4 text-center small">
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-warning"></i> Chờ xác nhận (@Model.PendingRevenue.ToString("C0"))
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-info"></i> Đã xác nhận (@Model.ConfirmedRevenue.ToString("C0"))
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-primary"></i> Đang giao hàng (@Model.ShippingRevenue.ToString("C0"))
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-success"></i> Đã giao hàng (@Model.DeliveredRevenue.ToString("C0"))
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-danger"></i> Đã hủy (@Model.CancelledRevenue.ToString("C0"))
-                        </span>
-                        <span class="mr-2">
-                            <i class="fas fa-circle text-secondary"></i> Hoàn trả (@Model.ReturnedRevenue.ToString("C0"))
-                        </span>
-                    </div>
+                    <canvas id="orderStatusChart" height="200"></canvas>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Thống kê theo ngày -->
-    <div class="card card-elegant mb-4">
-        <div class="card-header">
-            <h6 class="m-0 font-weight-bold">Thống kê doanh thu theo ngày (Chỉ đơn hàng đã giao)</h6>
-        </div>
-        <div class="card-body">
-            <div class="chart-area">
-                <canvas id="dailyRevenueChart"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Top sản phẩm bán chạy -->
-    <div class="card card-elegant mb-4">
-        <div class="card-header">
-            <h6 class="m-0 font-weight-bold">Top sản phẩm bán chạy (Chỉ đơn hàng đã giao)</h6>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Sản phẩm</th>
-                            <th>Số lượng đã bán</th>
-                            <th>Doanh thu</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var product in Model.TopProducts)
-                        {
-                            <tr>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        @if (!string.IsNullOrEmpty(product.ImageUrl))
-                                        {
-                                            <img src="@product.ImageUrl" alt="@product.ProductName" style="width:50px; height:50px; object-fit:cover" class="me-2" />
-                                        }
-                                        <span>@product.ProductName</span>
-                                    </div>
-                                </td>
-                                <td>@product.Quantity</td>
-                                <td>@product.Revenue.ToString("C0")</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -235,154 +208,58 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Biểu đồ trạng thái đơn hàng
-        var orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
-        var orderStatusChart = new Chart(orderStatusCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao hàng', 'Đã giao hàng', 'Đã hủy', 'Hoàn trả'],
-                datasets: [{
-                    data: [@Model.PendingOrders, @Model.ConfirmedOrders, @Model.ShippingOrders, @Model.DeliveredOrders, @Model.CancelledOrders, @Model.ReturnedOrders],
-                    backgroundColor: ['#f6c23e', '#36b9cc', '#4e73df', '#1cc88a', '#e74a3b', '#858796'],
-                    hoverBackgroundColor: ['#f6c23e', '#36b9cc', '#4e73df', '#1cc88a', '#e74a3b', '#858796'],
-                    hoverBorderColor: "rgba(234, 236, 244, 1)",
-                }],
-            },
-            options: {
-                maintainAspectRatio: false,
-                tooltips: {
-                    backgroundColor: "rgb(255,255,255)",
-                    bodyFontColor: "#858796",
-                    borderColor: '#dddfeb',
-                    borderWidth: 1,
-                    xPadding: 15,
-                    yPadding: 15,
-                    displayColors: false,
-                    caretPadding: 10,
-                },
-                legend: {
-                    display: false
-                },
-                cutoutPercentage: 80,
-            },
-        });
+        // Revenue Chart
+        var revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        var revenueData = @Html.Raw(Json.Serialize(Model.DailyStatistics ?? new List<NgoHuuDuc_2280600725.Models.ViewModels.DailyStatisticsViewModel>()));
 
-        // Biểu đồ doanh thu theo trạng thái
-        var revenueStatusCtx = document.getElementById('revenueStatusChart').getContext('2d');
-        var revenueStatusChart = new Chart(revenueStatusCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Chờ xác nhận', 'Đã xác nhận', 'Đang giao hàng', 'Đã giao hàng', 'Đã hủy', 'Hoàn trả'],
-                datasets: [{
-                    data: [@Model.PendingRevenue, @Model.ConfirmedRevenue, @Model.ShippingRevenue, @Model.DeliveredRevenue, @Model.CancelledRevenue, @Model.ReturnedRevenue],
-                    backgroundColor: ['#f6c23e', '#36b9cc', '#4e73df', '#1cc88a', '#e74a3b', '#858796'],
-                    hoverBackgroundColor: ['#f6c23e', '#36b9cc', '#4e73df', '#1cc88a', '#e74a3b', '#858796'],
-                    hoverBorderColor: "rgba(234, 236, 244, 1)",
-                }],
-            },
-            options: {
-                maintainAspectRatio: false,
-                tooltips: {
-                    backgroundColor: "rgb(255,255,255)",
-                    bodyFontColor: "#858796",
-                    borderColor: '#dddfeb',
-                    borderWidth: 1,
-                    xPadding: 15,
-                    yPadding: 15,
-                    displayColors: false,
-                    caretPadding: 10,
-                },
-                legend: {
-                    display: false
-                },
-                cutoutPercentage: 80,
-            },
-        });
-
-        // Biểu đồ doanh thu theo ngày
-        var dailyRevenueCtx = document.getElementById('dailyRevenueChart').getContext('2d');
-        var dailyRevenueChart = new Chart(dailyRevenueCtx, {
+        new Chart(revenueCtx, {
             type: 'line',
             data: {
-                labels: [@Html.Raw(string.Join(",", Model.DailyStatistics.Select(d => $"'{d.Date.ToString("dd/MM")}'").ToArray()))],
+                labels: revenueData.map(item => new Date(item.Date).toLocaleDateString('vi-VN')),
                 datasets: [{
-                    label: "Doanh thu",
-                    lineTension: 0.3,
-                    backgroundColor: "rgba(78, 115, 223, 0.05)",
-                    borderColor: "rgba(78, 115, 223, 1)",
-                    pointRadius: 3,
-                    pointBackgroundColor: "rgba(78, 115, 223, 1)",
-                    pointBorderColor: "rgba(78, 115, 223, 1)",
-                    pointHoverRadius: 3,
-                    pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
-                    pointHoverBorderColor: "rgba(78, 115, 223, 1)",
-                    pointHitRadius: 10,
-                    pointBorderWidth: 2,
-                    data: [@string.Join(",", Model.DailyStatistics.Select(d => d.Revenue).ToArray())],
-                }],
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData.map(item => item.Revenue),
+                    borderColor: '#D4AF37',
+                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
             },
             options: {
-                maintainAspectRatio: false,
-                layout: {
-                    padding: {
-                        left: 10,
-                        right: 25,
-                        top: 25,
-                        bottom: 0
-                    }
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
                 },
                 scales: {
-                    xAxes: [{
-                        time: {
-                            unit: 'date'
-                        },
-                        gridLines: {
-                            display: false,
-                            drawBorder: false
-                        },
+                    y: {
+                        beginAtZero: true,
                         ticks: {
-                            maxTicksLimit: 7
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            maxTicksLimit: 5,
-                            padding: 10,
-                            callback: function(value, index, values) {
-                                return value.toLocaleString('vi-VN') + ' đ';
+                            callback: function(value) {
+                                return value.toLocaleString('vi-VN') + '₫';
                             }
-                        },
-                        gridLines: {
-                            color: "rgb(234, 236, 244)",
-                            zeroLineColor: "rgb(234, 236, 244)",
-                            drawBorder: false,
-                            borderDash: [2],
-                            zeroLineBorderDash: [2]
                         }
-                    }],
-                },
-                legend: {
-                    display: false
-                },
-                tooltips: {
-                    backgroundColor: "rgb(255,255,255)",
-                    bodyFontColor: "#858796",
-                    titleMarginBottom: 10,
-                    titleFontColor: '#6e707e',
-                    titleFontSize: 14,
-                    borderColor: '#dddfeb',
-                    borderWidth: 1,
-                    xPadding: 15,
-                    yPadding: 15,
-                    displayColors: false,
-                    intersect: false,
-                    mode: 'index',
-                    caretPadding: 10,
-                    callbacks: {
-                        label: function(tooltipItem, chart) {
-                            var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
-                            return datasetLabel + ': ' + tooltipItem.yLabel.toLocaleString('vi-VN') + ' đ';
-                        }
+                    }
+                }
+            }
+        });
+
+        // Order Status Chart
+        var statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Chờ xử lý', 'Đã xác nhận', 'Đang giao', 'Đã giao', 'Đã hủy'],
+                datasets: [{
+                    data: [@Model.PendingOrders, @Model.ConfirmedOrders, @Model.ShippingOrders, @Model.DeliveredOrders, @Model.CancelledOrders],
+                    backgroundColor: ['#ffc107', '#17a2b8', '#6f42c1', '#28a745', '#dc3545'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
                     }
                 }
             }

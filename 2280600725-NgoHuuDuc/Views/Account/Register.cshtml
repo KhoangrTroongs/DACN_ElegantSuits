@@ -2,124 +2,216 @@
 
 @{
     ViewData["Title"] = "Đăng ký";
+    Layout = null;
 }
 
-<h1>@ViewData["Title"]</h1>
-
-<div class="row">
-    <div class="col-md-6">
-        <form asp-controller="Account" asp-action="Register" method="post" enctype="multipart/form-data">
-            <h4>Tạo tài khoản mới</h4>
-            <hr />
-            <div asp-validation-summary="All" class="text-danger"></div>
-
-            <div class="form-group mb-3">
-                <label asp-for="AvatarFile" class="form-label"></label>
-                <input asp-for="AvatarFile" type="file" class="form-control" accept="image/*" />
-                <span asp-validation-for="AvatarFile" class="text-danger"></span>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Elegant Suits</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/elegant-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modern-ui.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { margin: 0; padding: 0; min-height: 100vh; }
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #1A1A1A 0%, #222222 100%);
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .register-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(212,175,55,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(212,175,55,0.05) 0%, transparent 50%);
+        }
+        .register-card {
+            background: rgba(34, 34, 34, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+        .form-label-dark { color: rgba(255,255,255,0.8); font-weight: 500; margin-bottom: 8px; }
+        .form-control-dark {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .form-control-dark:focus {
+            border-color: var(--elegant-gold);
+            box-shadow: 0 0 0 4px rgba(212,175,55,0.2);
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+        .form-control-dark::placeholder { color: rgba(255,255,255,0.5); }
+        .form-control-dark.is-invalid { border-color: #F44336; }
+        .link-gold { color: var(--elegant-gold); text-decoration: none; transition: all 0.3s; }
+        .link-gold:hover { color: var(--elegant-gold-light); }
+        .avatar-upload { text-align: center; margin-bottom: 24px; }
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--elegant-gold) 0%, var(--elegant-gold-dark) 100%);
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 3px solid rgba(212,175,55,0.3);
+        }
+        .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .avatar-preview i { font-size: 40px; color: #1A1A1A; }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card animate-scaleIn">
+            <div class="text-center mb-4">
+                <div class="login-logo mx-auto mb-3">
+                    <i class="fas fa-tshirt"></i>
+                </div>
+                <h1 style="color: var(--elegant-gold); font-size: 1.5rem; font-weight: 700;">Tạo tài khoản mới</h1>
+                <p style="color: rgba(255,255,255,0.6);">Tham gia Elegant Suits ngay hôm nay</p>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" />
-                <span asp-validation-for="Email" class="text-danger"></span>
-            </div>
+            <form asp-controller="Account" asp-action="Register" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="All" class="alert alert-danger" style="background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.3); color: #F44336; border-radius: 12px;"></div>
 
-            <div class="form-group mb-3">
-                <label asp-for="FullName" class="form-label"></label>
-                <input asp-for="FullName" class="form-control" />
-                <span asp-validation-for="FullName" class="text-danger"></span>
-            </div>
+                <div class="avatar-upload">
+                    <div class="avatar-preview" id="avatarPreview">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <label for="AvatarFile" class="btn btn-outline-warning btn-sm" style="border-radius: 20px;">
+                        <i class="fas fa-camera me-1"></i> Chọn ảnh đại diện
+                    </label>
+                    <input asp-for="AvatarFile" type="file" class="d-none" id="AvatarFile" accept="image/*" onchange="previewAvatar(this)" />
+                </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" />
-                <span asp-validation-for="Password" class="text-danger"></span>
-            </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Email" class="form-label-dark"><i class="fas fa-envelope me-2"></i>Email</label>
+                        <input asp-for="Email" class="form-control form-control-dark" placeholder="your@email.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="FullName" class="form-label-dark"><i class="fas fa-user me-2"></i>Họ tên</label>
+                        <input asp-for="FullName" class="form-control form-control-dark" placeholder="Nguyễn Văn A" />
+                        <span asp-validation-for="FullName" class="text-danger small"></span>
+                    </div>
+                </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="ConfirmPassword" class="form-label"></label>
-                <input asp-for="ConfirmPassword" class="form-control" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger" id="confirmPasswordError"></span>
-            </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Password" class="form-label-dark"><i class="fas fa-lock me-2"></i>Mật khẩu</label>
+                        <input asp-for="Password" class="form-control form-control-dark" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="ConfirmPassword" class="form-label-dark"><i class="fas fa-lock me-2"></i>Xác nhận</label>
+                        <input asp-for="ConfirmPassword" class="form-control form-control-dark" placeholder="••••••••" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small" id="confirmPasswordError"></span>
+                    </div>
+                </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="DateOfBirth" class="form-label"></label>
-                <input asp-for="DateOfBirth" class="form-control" type="date" />
-                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
-            </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DateOfBirth" class="form-label-dark"><i class="fas fa-calendar me-2"></i>Ngày sinh</label>
+                        <input asp-for="DateOfBirth" class="form-control form-control-dark" type="date" />
+                        <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PhoneNumber" class="form-label-dark"><i class="fas fa-phone me-2"></i>Số điện thoại</label>
+                        <input asp-for="PhoneNumber" class="form-control form-control-dark" placeholder="0123 456 789" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                    </div>
+                </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="PhoneNumber" class="form-label"></label>
-                <input asp-for="PhoneNumber" class="form-control" />
-                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-            </div>
+                <div class="mb-4">
+                    <label asp-for="Address" class="form-label-dark"><i class="fas fa-map-marker-alt me-2"></i>Địa chỉ</label>
+                    <input asp-for="Address" class="form-control form-control-dark" placeholder="123 Đường ABC, Quận XYZ" />
+                    <span asp-validation-for="Address" class="text-danger small"></span>
+                </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="Address" class="form-label"></label>
-                <input asp-for="Address" class="form-control" />
-                <span asp-validation-for="Address" class="text-danger"></span>
-            </div>
+                <button type="submit" class="btn btn-gold-gradient w-100 mb-3">
+                    <i class="fas fa-user-plus me-2"></i>Đăng ký
+                </button>
 
-            <div class="form-group">
-                <button type="submit" class="btn btn-primary">Đăng ký</button>
-                <a asp-action="Login" class="btn btn-secondary">Đã có tài khoản?</a>
-            </div>
-        </form>
+                <div class="text-center">
+                    <p style="color: rgba(255,255,255,0.6);">
+                        Đã có tài khoản? <a asp-action="Login" class="link-gold">Đăng nhập</a>
+                    </p>
+                    <a asp-controller="Home" asp-action="Index" class="link-gold" style="font-size: 14px;">
+                        <i class="fas fa-arrow-left me-1"></i> Quay về trang chủ
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-@section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script>
-        // Thêm xác thực client-side cho mật khẩu xác nhận
+        function previewAvatar(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#avatarPreview').html('<img src="' + e.target.result + '" />');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // Password validation
         $(document).ready(function() {
-            // Kiểm tra mật khẩu xác nhận khi người dùng nhập
             $("#ConfirmPassword").on("input", function() {
                 var password = $("#Password").val();
                 var confirmPassword = $(this).val();
-
                 if (password !== confirmPassword) {
-                    // Hiển thị lỗi nếu mật khẩu không khớp
                     $(this).addClass("is-invalid");
-                    $("#confirmPasswordError").text("Mật khẩu xác nhận không khớp với mật khẩu đã nhập.");
-                    $("#confirmPasswordError").show();
+                    $("#confirmPasswordError").text("Mật khẩu xác nhận không khớp.");
                 } else {
-                    // Xóa lỗi nếu mật khẩu khớp
                     $(this).removeClass("is-invalid");
                     $("#confirmPasswordError").text("");
-                    $("#confirmPasswordError").hide();
                 }
             });
-
-            // Kiểm tra lại khi mật khẩu thay đổi
             $("#Password").on("input", function() {
-                // Kích hoạt sự kiện input trên ConfirmPassword để kiểm tra lại
                 $("#ConfirmPassword").trigger("input");
             });
-
-            // Kiểm tra trước khi submit form
             $("form").on("submit", function(e) {
                 var password = $("#Password").val();
                 var confirmPassword = $("#ConfirmPassword").val();
-
                 if (password !== confirmPassword) {
-                    e.preventDefault(); // Ngăn form submit
+                    e.preventDefault();
                     $("#ConfirmPassword").addClass("is-invalid");
-                    $("#confirmPasswordError").text("Mật khẩu xác nhận không khớp với mật khẩu đã nhập.");
-                    $("#confirmPasswordError").show();
-
-                    // Cuộn đến vị trí lỗi
-                    $('html, body').animate({
-                        scrollTop: $("#ConfirmPassword").offset().top - 100
-                    }, 200);
-
+                    $("#confirmPasswordError").text("Mật khẩu xác nhận không khớp.");
                     return false;
                 }
-
                 return true;
             });
         });
     </script>
-}
+</body>
+</html>

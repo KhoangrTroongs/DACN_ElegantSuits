@@ -2,92 +2,145 @@
 
 @{
     ViewData["Title"] = "Đăng nhập";
+    Layout = null;
 }
 
-<style>
-    .google-btn {
-        background-color: #fff;
-        border: 1px solid #dadce0;
-        color: #3c4043;
-        padding: 10px 24px;
-        font-size: 14px;
-        font-weight: 500;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 12px;
-        transition: all 0.2s;
-        width: 100%;
-    }
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Elegant Suits</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/elegant-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modern-ui.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        .google-btn {
+            background-color: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        .google-btn:hover {
+            background-color: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .google-icon {
+            width: 20px;
+            height: 20px;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .divider span {
+            padding: 0 16px;
+            color: rgba(255,255,255,0.5);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-label-dark {
+            color: rgba(255,255,255,0.8);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .form-check-dark .form-check-input {
+            background-color: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .form-check-dark .form-check-input:checked {
+            background-color: var(--elegant-gold);
+            border-color: var(--elegant-gold);
+        }
+        .form-check-dark .form-check-label {
+            color: rgba(255,255,255,0.7);
+        }
+        .link-gold {
+            color: var(--elegant-gold);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .link-gold:hover {
+            color: var(--elegant-gold-light);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card animate-scaleIn">
+            <!-- Logo -->
+            <div class="login-logo">
+                <i class="fas fa-tshirt"></i>
+            </div>
 
-    .google-btn:hover {
-        background-color: #f8f9fa;
-        border-color: #dadce0;
-        box-shadow: 0 1px 2px 0 rgba(60,64,67,.30), 0 1px 3px 1px rgba(60,64,67,.15);
-    }
+            <!-- Title -->
+            <h1 class="login-title">Elegant Suits</h1>
+            <p class="login-subtitle">Đăng nhập vào tài khoản của bạn</p>
 
-    .google-icon {
-        width: 18px;
-        height: 18px;
-    }
-
-    .divider {
-        display: flex;
-        align-items: center;
-        text-align: center;
-        margin: 20px 0;
-    }
-
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid #dadce0;
-    }
-
-    .divider span {
-        padding: 0 10px;
-        color: #5f6368;
-        font-size: 14px;
-    }
-</style>
-
-<h1>@ViewData["Title"]</h1>
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <section>
+            <!-- Login Form -->
             <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
-                <h4>Sử dụng tài khoản để đăng nhập.</h4>
-                <hr />
-                <div asp-validation-summary="All" class="text-danger"></div>
-                <div class="form-group mb-3">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
+                <div asp-validation-summary="All" class="alert alert-danger" style="background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.3); color: #F44336; border-radius: 12px; display: none;"></div>
+
+                <div class="mb-4">
+                    <label asp-for="Email" class="form-label-dark">
+                        <i class="fas fa-envelope me-2"></i>Email
+                    </label>
+                    <input asp-for="Email" class="form-control form-control-dark" placeholder="Nhập email của bạn" />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
                 </div>
-                <div class="form-group mb-3">
-                    <label asp-for="Password" class="form-label"></label>
-                    <input asp-for="Password" class="form-control" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
+
+                <div class="mb-4">
+                    <label asp-for="Password" class="form-label-dark">
+                        <i class="fas fa-lock me-2"></i>Mật khẩu
+                    </label>
+                    <input asp-for="Password" class="form-control form-control-dark" placeholder="Nhập mật khẩu" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
                 </div>
-                <div class="form-group mb-3">
+
+                <div class="mb-4 form-check-dark">
                     <div class="form-check">
                         <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label"></label>
+                        <label asp-for="RememberMe" class="form-check-label">Ghi nhớ đăng nhập</label>
                     </div>
                 </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary w-100">Đăng nhập</button>
-                </div>
 
+                <button type="submit" class="btn btn-gold-gradient w-100 mb-3">
+                    <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                </button>
             </form>
 
             <div class="divider">
-                <span>HOẶC</span>
+                <span>Hoặc</span>
             </div>
 
-            <!-- Google Login Button -->
+            <!-- Google Login -->
             <form asp-controller="Account" asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
                 <input type="hidden" name="provider" value="Google" />
                 <button type="submit" class="google-btn">
@@ -101,15 +154,34 @@
                 </button>
             </form>
 
-            <div class="form-group mt-3 text-center">
-                <p>
-                    <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">Đăng ký tài khoản mới</a>
+            <!-- Register Link -->
+            <div class="text-center mt-4">
+                <p style="color: rgba(255,255,255,0.6);">
+                    Chưa có tài khoản?
+                    <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" class="link-gold">Đăng ký ngay</a>
                 </p>
             </div>
-        </section>
-    </div>
-</div>
 
-@section Scripts {
-    @await Html.PartialAsync("_ValidationScriptsPartial")
-}
+            <!-- Back to Home -->
+            <div class="text-center mt-3">
+                <a asp-controller="Home" asp-action="Index" class="link-gold" style="font-size: 14px;">
+                    <i class="fas fa-arrow-left me-1"></i> Quay về trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        // Show validation summary if there are errors
+        $(document).ready(function() {
+            var summary = $('[data-valmsg-summary]');
+            if (summary.find('li').length > 0) {
+                summary.show();
+            }
+        });
+    </script>
+</body>
+</html>

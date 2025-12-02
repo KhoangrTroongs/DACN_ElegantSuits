@@ -579,9 +579,17 @@ html {
 
 /* Animations */
 @keyframes goldPulse {
-    0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7); }
-    70% { box-shadow: 0 0 0 8px rgba(212, 175, 55, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(212, 175, 55, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(212, 175, 55, 0);
+    }
 }
 
 .gold-pulse {
@@ -753,12 +761,14 @@ html {
 }
 
 /* Contact Page Styling */
-.contact-info-card, .contact-form-card {
+.contact-info-card,
+.contact-form-card {
     background-color: #fff;
     transition: all 0.3s ease;
 }
 
-.contact-info-card:hover, .contact-form-card:hover {
+.contact-info-card:hover,
+.contact-form-card:hover {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -987,29 +997,199 @@ html {
 
 /* Animation keyframes */
 @keyframes scaleDown {
-    0% { transform: scale(1); }
-    100% { transform: scale(0.98); }
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(0.98);
+    }
 }
 
 @keyframes scaleUp {
-    0% { transform: scale(0.98); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(0.98);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 @keyframes zoomIn {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 /* Animation for carousel controls when clicked */
 .product-carousel .carousel-control-prev:active .carousel-control-prev-icon,
 .product-carousel .carousel-control-next:active .carousel-control-next-icon {
     animation: pulse 0.3s ease-out;
+}
+
+/* ========== Enhanced Product Cards ========== */
+.product-card {
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    background: #fff;
+}
+
+.product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15), 0 0 0 2px rgba(212, 175, 55, 0.3);
+}
+
+.product-card .card-img-top {
+    transition: transform 0.5s ease;
+}
+
+.product-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.product-card .card-body {
+    padding: 1.25rem;
+}
+
+.product-card .card-title {
+    color: var(--elegant-dark);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.product-card:hover .card-title {
+    color: var(--elegant-gold);
+}
+
+.product-card .card-text {
+    font-size: 1.1rem;
+    color: var(--elegant-gold-dark) !important;
+}
+
+/* Product Card Badge */
+.product-card .badge-sale {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 10;
+}
+
+.product-card .badge-new {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, var(--elegant-gold) 0%, var(--elegant-gold-dark) 100%);
+    color: var(--elegant-dark);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    z-index: 10;
+}
+
+/* Quick Action Buttons */
+.product-card .quick-actions {
+    position: absolute;
+    bottom: -50px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    transition: bottom 0.3s ease;
+}
+
+.product-card:hover .quick-actions {
+    bottom: 0;
+}
+
+.product-card .quick-actions .btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--elegant-dark);
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.product-card .quick-actions .btn:hover {
+    background: var(--elegant-gold);
+    transform: scale(1.1);
+}
+
+/* ========== Enhanced Profile Images ========== */
+.profile-img-elegant {
+    border: 3px solid var(--elegant-gold);
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);
+    transition: all 0.3s ease;
+    object-fit: cover;
+}
+
+.profile-img-elegant:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4);
+}
+
+/* ========== Enhanced Featurette ========== */
+.featurette-heading {
+    color: var(--elegant-dark);
+}
+
+.featurette-heading .text-body-secondary {
+    color: var(--elegant-gold) !important;
+    display: block;
+    font-size: 0.6em;
+    margin-top: 8px;
+}
+
+/* ========== Page Transitions ========== */
+.page-enter {
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: all 0.4s ease-out;
 }
