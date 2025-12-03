@@ -23,6 +23,8 @@ namespace NgoHuuDuc_2280600725.DTOs
         public int CategoryId { get; set; }
 
         public string? CategoryName { get; set; }
+
+        public string? LinearCode { get; set; }
     }
 
     public class CreateProductDTO
@@ -65,11 +67,13 @@ namespace NgoHuuDuc_2280600725.DTOs
         [Range(0, int.MaxValue, ErrorMessage = "Số lượng phải lớn hơn hoặc bằng 0")]
         public int Quantity { get; set; } = 0;
 
-
-
         [Required(ErrorMessage = "Danh mục không được để trống")]
         public int CategoryId { get; set; }
 
         public string? Model3DUrl { get; set; }
+
+        public string? ImageUrl { get; set; }
+
+        public bool IsHidden { get; set; } = false;
     }
 }

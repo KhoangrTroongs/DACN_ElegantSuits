@@ -347,7 +347,7 @@ namespace NgoHuuDuc_2280600725.Controllers
                 Price = product.Price,
                 Quantity = product.Quantity,
                 IsHidden = product.IsHidden,
-
+                LinearCode = product.LinearCode,
                 CategoryId = product.CategoryId,
                 ExistingImageUrl = product.ImageUrl,
                 ExistingModel3DUrl = product.Model3DUrl,
@@ -387,7 +387,7 @@ namespace NgoHuuDuc_2280600725.Controllers
             product.Price = model.Price;
             product.Quantity = model.Quantity;
             product.IsHidden = model.IsHidden;
-
+            product.LinearCode = model.LinearCode;
             product.CategoryId = model.CategoryId;
 
             if (model.Image != null && model.Image.Length > 0)

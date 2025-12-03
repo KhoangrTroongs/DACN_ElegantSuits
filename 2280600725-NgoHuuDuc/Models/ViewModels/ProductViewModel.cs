@@ -29,6 +29,10 @@ namespace NgoHuuDuc_2280600725.Models.ViewModels
         [Display(Name = "Ẩn sản phẩm")]
         public bool IsHidden { get; set; } = false;
 
+        [Display(Name = "Mã Linear (Barcode)")]
+        [StringLength(12, MinimumLength = 12, ErrorMessage = "Mã Linear phải có đúng 12 ký tự số")]
+        [RegularExpression(@"^\d{12}$", ErrorMessage = "Mã Linear phải gồm 12 chữ số")]
+        public string? LinearCode { get; set; }
 
         [Display(Name = "Hình ảnh")]
         public IFormFile? Image { get; set; }  // Make nullable

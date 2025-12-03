@@ -297,9 +297,9 @@ namespace NgoHuuDuc_2280600725.Services
                 Price = product.Price,
                 ImageUrl = product.ImageUrl,
                 Quantity = product.Quantity,
-
                 CategoryId = product.CategoryId,
-                CategoryName = product.Category?.Name
+                CategoryName = product.Category?.Name,
+                LinearCode = product.LinearCode
             };
         }
     }

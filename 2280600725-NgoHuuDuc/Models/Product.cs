@@ -51,6 +51,10 @@ namespace NgoHuuDuc_2280600725.Models
         [Column(TypeName = "decimal(5, 2)")]
         public decimal ProfitMargin { get; set; } = 0.45m; // 45% mặc định
 
+        [Display(Name = "Mã Linear (Barcode)")]
+        [StringLength(12, MinimumLength = 12, ErrorMessage = "Mã Linear phải có đúng 12 ký tự")]
+        public string? LinearCode { get; set; }
+
         // Navigation properties
         [ForeignKey("CategoryId")]
         public virtual Category? Category { get; set; }

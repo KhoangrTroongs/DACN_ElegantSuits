@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using NgoHuuDuc_2280600725.DTOs;
 using NgoHuuDuc_2280600725.Helpers;
 using NgoHuuDuc_2280600725.Services.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace NgoHuuDuc_2280600725.Controllers.API
 {
@@ -13,13 +14,16 @@ namespace NgoHuuDuc_2280600725.Controllers.API
     {
         private readonly IProductService _productService;
         private readonly ILogger<ProductsController> _logger;
+        private readonly IWebHostEnvironment _environment;
 
         public ProductsController(
             IProductService productService,
-            ILogger<ProductsController> logger)
+            ILogger<ProductsController> logger,
+            IWebHostEnvironment environment)
         {
             _productService = productService;
             _logger = logger;
+            _environment = environment;
         }
 
         // GET: api/Products
@@ -190,6 +194,147 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                 // Ghi log lỗi khi xóa sản phẩm
                 _logger.LogError(ex, "Error deleting product {Id}", id);
                 return StatusCode(500, ResponseDTO<bool>.Fail("An error occurred while deleting the product."));
+            }
+        }
+
+        // POST: api/Products/{id}/upload-image
+        [HttpPost("{id}/upload-image")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
+        public async Task<ActionResult<ResponseDTO<string>>> UploadProductImage(int id, IFormFile image)
+        {
+            try
+            {
+                if (image == null || image.Length == 0)
+                {
+                    return BadRequest(ResponseDTO<string>.Fail("No image file provided."));
+                }
+
+                // Kiểm tra định dạng file
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(ResponseDTO<string>.Fail("Invalid file format. Allowed: jpg, jpeg, png, gif, webp"));
+                }
+
+                // Lấy thông tin sản phẩm
+                var product = await _productService.GetProductByIdAsync(id);
+                if (product == null)
+                {
+                    return NotFound(ResponseDTO<string>.Fail("Product not found."));
+                }
+
+                // Tạo thư mục images/products nếu chưa tồn tại
+                var productImagesPath = Path.Combine(_environment.WebRootPath, "images", "products");
+                if (!Directory.Exists(productImagesPath))
+                {
+                    Directory.CreateDirectory(productImagesPath);
+                }
+
+                // Tạo tên file: tên sản phẩm_xx.extension
+                // Làm sạch tên sản phẩm (loại bỏ ký tự đặc biệt)
+                var cleanProductName = Regex.Replace(product.Name, @"[^a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\s]", "")
+                    .Replace(" ", "_")
+                    .Trim();
+
+                // Đếm số ảnh hiện có của sản phẩm
+                var existingImages = Directory.GetFiles(productImagesPath, $"{cleanProductName}_*.*");
+                var imageNumber = existingImages.Length + 1;
+                var fileName = $"{cleanProductName}_{imageNumber:D2}{extension}";
+                var filePath = Path.Combine(productImagesPath, fileName);
+
+                // Lưu file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                // Đường dẫn tương đối để lưu vào database
+                var relativeUrl = $"/images/products/{fileName}";
+
+                // Cập nhật ImageUrl của sản phẩm
+                var updateDto = new UpdateProductDTO
+                {
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    CategoryId = product.CategoryId,
+                    IsHidden = product.IsHidden,
+                    ImageUrl = relativeUrl
+                };
+                await _productService.UpdateProductAsync(id, updateDto, null);
+
+                _logger.LogInformation("Image uploaded for product {ProductId}: {FileName}", id, fileName);
+
+                return Ok(ResponseDTO<string>.Success(relativeUrl, "Image uploaded successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading image for product {Id}", id);
+                return StatusCode(500, ResponseDTO<string>.Fail("An error occurred while uploading the image."));
+            }
+        }
+
+        // POST: api/Products/upload-temp-image
+        // Upload ảnh tạm cho sản phẩm mới (chưa có ID)
+        [HttpPost("upload-temp-image")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
+        public async Task<ActionResult<ResponseDTO<string>>> UploadTempImage(IFormFile image, [FromForm] string productName)
+        {
+            try
+            {
+                if (image == null || image.Length == 0)
+                {
+                    return BadRequest(ResponseDTO<string>.Fail("No image file provided."));
+                }
+
+                if (string.IsNullOrWhiteSpace(productName))
+                {
+                    return BadRequest(ResponseDTO<string>.Fail("Product name is required."));
+                }
+
+                // Kiểm tra định dạng file
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(ResponseDTO<string>.Fail("Invalid file format. Allowed: jpg, jpeg, png, gif, webp"));
+                }
+
+                // Tạo thư mục images/products nếu chưa tồn tại
+                var productImagesPath = Path.Combine(_environment.WebRootPath, "images", "products");
+                if (!Directory.Exists(productImagesPath))
+                {
+                    Directory.CreateDirectory(productImagesPath);
+                }
+
+                // Làm sạch tên sản phẩm
+                var cleanProductName = Regex.Replace(productName, @"[^a-zA-Z0-9\u00C0-\u024F\u1E00-\u1EFF\s]", "")
+                    .Replace(" ", "_")
+                    .Trim();
+
+                // Đếm số ảnh hiện có của sản phẩm
+                var existingImages = Directory.GetFiles(productImagesPath, $"{cleanProductName}_*.*");
+                var imageNumber = existingImages.Length + 1;
+                var fileName = $"{cleanProductName}_{imageNumber:D2}{extension}";
+                var filePath = Path.Combine(productImagesPath, fileName);
+
+                // Lưu file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                var relativeUrl = $"/images/products/{fileName}";
+
+                _logger.LogInformation("Temp image uploaded: {FileName}", fileName);
+
+                return Ok(ResponseDTO<string>.Success(relativeUrl, "Image uploaded successfully."));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error uploading temp image");
+                return StatusCode(500, ResponseDTO<string>.Fail("An error occurred while uploading the image."));
             }
         }
     }
