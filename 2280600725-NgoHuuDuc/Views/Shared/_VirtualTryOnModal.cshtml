@@ -34,13 +34,13 @@
                                 <i class="fas fa-user me-2"></i>Ảnh của bạn
                             </div>
                             <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px; position: relative;">
-                                <div id="uploadArea" class="upload-area w-100 h-100 d-flex flex-column align-items-center justify-content-center border border-2 border-dashed rounded" style="cursor: pointer; transition: all 0.3s;">
+                                <div id="uploadArea" class="upload-area w-100 h-100 d-flex flex-column align-items-center justify-content-center border border-2 border-dashed rounded" style="cursor: pointer; transition: all 0.3s; border-color: #28a745 !important;">
                                     <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                                     <p class="text-muted mb-2">Kéo thả ảnh vào đây</p>
                                     <p class="text-muted small mb-3">hoặc</p>
-                                    <button type="button" class="btn btn-outline-success" id="selectImageBtn">
+                                    <label for="customerImageInput" class="btn btn-success" style="cursor: pointer; display: inline-block; padding: 8px 20px;">
                                         <i class="fas fa-folder-open me-2"></i>Chọn ảnh
-                                    </button>
+                                    </label>
                                     <input type="file" id="customerImageInput" accept="image/jpeg,image/jpg,image/png,image/webp" style="display: none;">
                                 </div>
                                 <img id="customerImagePreview" src="" alt="Customer" class="img-fluid rounded" style="display: none; max-height: 380px; object-fit: contain; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
@@ -123,181 +123,278 @@
 </style>
 
 <script>
-// Initialize Virtual Try-On modal when shown
-$('#virtualTryOnModal').on('shown.bs.modal', function() {
-    let customerImageBase64 = null;
-    const productName = '@Model.Name';
-    const productImageUrl = '@Model.ImageUrl';
-    const modal = $(this);
-
-    // Handle file selection
-    modal.find('#selectImageBtn').off('click').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Select button clicked');
-        modal.find('#customerImageInput').trigger('click');
-    });
-
-    modal.find('#customerImageInput').off('change').on('change', function(e) {
-        if (e.target.files && e.target.files[0]) {
-            handleImageUpload(e.target.files[0]);
-        }
-    });
-
-    // Handle drag and drop
-    modal.find('#uploadArea').off('dragover').on('dragover', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $(this).addClass('drag-over');
-    });
-
-    modal.find('#uploadArea').off('dragleave').on('dragleave', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $(this).removeClass('drag-over');
-    });
-
-    modal.find('#uploadArea').off('drop').on('drop', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $(this).removeClass('drag-over');
-        
-        const files = e.originalEvent.dataTransfer.files;
-        if (files.length > 0) {
-            handleImageUpload(files[0]);
-        }
-    });
-
-    // Handle image upload
-    function handleImageUpload(file) {
-        if (!file) {
-            showError('Không có file được chọn');
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for jQuery to be available
+    function initVirtualTryOn() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(initVirtualTryOn, 100);
             return;
         }
 
-        // Validate file type
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-        if (!validTypes.includes(file.type)) {
-            showError('Vui lòng chọn file ảnh (JPG, PNG, WEBP)');
-            return;
-        }
+        console.log('Virtual Try-On initialized');
 
-        // Validate file size (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            showError('Kích thước ảnh không được vượt quá 5MB');
-            return;
-        }
+        // Variables
+        let customerImageBase64 = null;
+        const productName = '@Html.Raw(Model.Name.Replace("'", "\\'"))';
+        const productImageUrl = '@Model.ImageUrl';
+        const productCategory = '@(Model.Category?.Name ?? "Quần áo")';
+        const productCategoryId = @Model.CategoryId;
 
-        // Read and display image
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            customerImageBase64 = e.target.result;
-            modal.find('#customerImagePreview').attr('src', customerImageBase64).show();
-            modal.find('#uploadArea').hide();
-            modal.find('#removeCustomerImage').show();
-            modal.find('#generateBtn').prop('disabled', false);
-            hideError();
-        };
-        reader.readAsDataURL(file);
-    }
-
-    // Remove customer image
-    modal.find('#removeCustomerImage').off('click').on('click', function() {
-        customerImageBase64 = null;
-        modal.find('#customerImagePreview').hide();
-        modal.find('#uploadArea').show();
-        $(this).hide();
-        modal.find('#generateBtn').prop('disabled', true);
-        modal.find('#customerImageInput').val('');
-    });
-
-    // Generate virtual try-on
-    modal.find('#generateBtn').off('click').on('click', function() {
-        if (!customerImageBase64) {
-            showError('Vui lòng upload ảnh của bạn');
-            return;
-        }
-
-        // Show loading
-        modal.find('#resultPlaceholder').hide();
-        modal.find('#resultImage').hide();
-        modal.find('#loadingSpinner').show();
-        modal.find('#generateBtn').prop('disabled', true);
-        hideError();
-
-        // Prepare data for n8n webhook
-        const requestData = {
-            productName: productName,
-            productImageUrl: productImageUrl,
-            customerImage: customerImageBase64
-        };
-
-        // TODO: Replace with your n8n webhook URL
-        const n8nWebhookUrl = 'http://localhost:5678/webhook/virtual-try-on';
-
-        // Send request to n8n
-        $.ajax({
-            url: n8nWebhookUrl,
-            method: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(requestData),
-            timeout: 60000, // 60 seconds timeout
-            success: function(response) {
-                if (response.success && response.resultImage) {
-                    // Display result image
-                    modal.find('#resultImage').attr('src', response.resultImage).show();
-                    modal.find('#downloadResultBtn').show();
-                    modal.find('#loadingSpinner').hide();
-                } else {
-                    showError('Không thể tạo ảnh. Vui lòng thử lại.');
-                    modal.find('#loadingSpinner').hide();
-                    modal.find('#resultPlaceholder').show();
-                }
-                modal.find('#generateBtn').prop('disabled', false);
-            },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                showError('Lỗi kết nối đến AI service. Vui lòng thử lại sau.');
-                modal.find('#loadingSpinner').hide();
-                modal.find('#resultPlaceholder').show();
-                modal.find('#generateBtn').prop('disabled', false);
+        // Handle file selection - use document-level delegation
+        jQuery(document).on('change', '#customerImageInput', function(e) {
+            console.log('File input change event triggered');
+            const files = e.target.files;
+            console.log('Files selected:', files);
+            if (files && files[0]) {
+                handleImageUpload(files[0]);
             }
         });
-    });
 
-    // Download result image
-    modal.find('#downloadResultBtn').off('click').on('click', function() {
-        const resultImage = modal.find('#resultImage').attr('src');
-        if (resultImage) {
-            const link = document.createElement('a');
-            link.href = resultImage;
-            link.download = `virtual-try-on-${productName}-${Date.now()}.png`;
-            link.click();
+        // Handle drag and drop
+        jQuery(document).on('dragover', '#uploadArea', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            jQuery(this).addClass('drag-over');
+        });
+
+        jQuery(document).on('dragleave', '#uploadArea', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            jQuery(this).removeClass('drag-over');
+        });
+
+        jQuery(document).on('drop', '#uploadArea', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            jQuery(this).removeClass('drag-over');
+
+            const files = e.originalEvent.dataTransfer.files;
+            if (files.length > 0) {
+                handleImageUpload(files[0]);
+            }
+        });
+
+        // Handle image upload
+        function handleImageUpload(file) {
+            console.log('handleImageUpload called with:', file.name, file.type, file.size);
+
+            if (!file) {
+                showError('Không có file được chọn');
+                return;
+            }
+
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showError('Vui lòng chọn file ảnh (JPG, PNG, WEBP)');
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showError('Kích thước ảnh không được vượt quá 5MB');
+                return;
+            }
+
+            // Read and display image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                console.log('FileReader completed, showing preview');
+                customerImageBase64 = e.target.result;
+                jQuery('#customerImagePreview').attr('src', customerImageBase64).css('display', 'block');
+                jQuery('#uploadArea').hide();
+                jQuery('#removeCustomerImage').css('display', 'block');
+                jQuery('#generateBtn').prop('disabled', false);
+                hideError();
+            };
+            reader.onerror = function(err) {
+                console.error('FileReader error:', err);
+                showError('Lỗi khi đọc file ảnh');
+            };
+            reader.readAsDataURL(file);
         }
-    });
 
-    function showError(message) {
-        modal.find('#errorText').text(message);
-        modal.find('#errorMessage').fadeIn();
+        // Remove customer image
+        jQuery(document).on('click', '#removeCustomerImage', function() {
+            customerImageBase64 = null;
+            jQuery('#customerImagePreview').hide();
+            jQuery('#uploadArea').show();
+            jQuery(this).hide();
+            jQuery('#generateBtn').prop('disabled', true);
+            jQuery('#customerImageInput').val('');
+        });
+
+        // Generate virtual try-on
+        jQuery(document).on('click', '#generateBtn', async function() {
+            if (!customerImageBase64) {
+                showError('Vui lòng upload ảnh của bạn');
+                return;
+            }
+
+            // Show loading
+            jQuery('#resultPlaceholder').hide();
+            jQuery('#resultImage').hide();
+            jQuery('#loadingSpinner').show();
+            jQuery('#generateBtn').prop('disabled', true);
+            hideError();
+
+            try {
+                // Fetch product image and convert to base64
+                let productImageBase64Raw = '';
+                let productImageMimeType = 'image/png';
+
+                console.log('Product image URL:', productImageUrl);
+
+                // Get the product image from the img element directly (more reliable)
+                const productImgElement = document.getElementById('productImage');
+                if (productImgElement && productImgElement.complete) {
+                    // Create canvas to convert image to base64
+                    const canvas = document.createElement('canvas');
+                    canvas.width = productImgElement.naturalWidth;
+                    canvas.height = productImgElement.naturalHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(productImgElement, 0, 0);
+
+                    // Get base64 from canvas
+                    const productDataUrl = canvas.toDataURL('image/png');
+                    productImageBase64Raw = productDataUrl.split(',')[1];
+                    productImageMimeType = 'image/png';
+                    console.log('Product image converted via canvas, length:', productImageBase64Raw.length);
+                } else {
+                    // Fallback: Try to fetch the image
+                    try {
+                        const productImgResponse = await fetch(productImageUrl, { mode: 'cors' });
+                        if (!productImgResponse.ok) {
+                            throw new Error('Fetch failed: ' + productImgResponse.status);
+                        }
+                        const productImgBlob = await productImgResponse.blob();
+                        productImageMimeType = productImgBlob.type || 'image/png';
+
+                        const productDataUrl = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () => resolve(reader.result);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(productImgBlob);
+                        });
+
+                        productImageBase64Raw = productDataUrl.split(',')[1] || '';
+                        console.log('Product image fetched, length:', productImageBase64Raw.length);
+                    } catch (fetchError) {
+                        console.error('Fetch error:', fetchError);
+                        showError('Không thể tải ảnh sản phẩm. Vui lòng thử lại.');
+                        jQuery('#loadingSpinner').hide();
+                        jQuery('#resultPlaceholder').show();
+                        jQuery('#generateBtn').prop('disabled', false);
+                        return;
+                    }
+                }
+
+                if (!productImageBase64Raw || productImageBase64Raw.length < 100) {
+                    showError('Ảnh sản phẩm không hợp lệ. Vui lòng tải lại trang.');
+                    jQuery('#loadingSpinner').hide();
+                    jQuery('#resultPlaceholder').show();
+                    jQuery('#generateBtn').prop('disabled', false);
+                    return;
+                }
+
+                // Extract mime type and raw base64 from customer image
+                const customerImageMimeType = customerImageBase64.match(/^data:([^;]+);/)?.[1] || 'image/png';
+                const customerImageBase64Raw = customerImageBase64.split(',')[1] || customerImageBase64;
+
+                console.log('Customer image length:', customerImageBase64Raw.length);
+
+                // Prepare data for n8n webhook
+                const requestData = {
+                    productName: productName,
+                    productCategory: productCategory,
+                    productCategoryId: productCategoryId,
+                    productImage: productImageBase64Raw,
+                    productImageMimeType: productImageMimeType,
+                    customerImage: customerImageBase64Raw,
+                    customerImageMimeType: customerImageMimeType
+                };
+
+                // n8n webhook URL - Production URL (workflow must be activated)
+                const n8nWebhookUrl = 'http://localhost:5678/webhook/virtual-try-on';
+
+                // Send request to n8n
+                jQuery.ajax({
+                    url: n8nWebhookUrl,
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    timeout: 120000, // 120 seconds timeout for AI processing
+                    success: function(response) {
+                        if (response.success && response.resultImage) {
+                            // Display result image
+                            jQuery('#resultImage').attr('src', response.resultImage).show();
+                            jQuery('#downloadResultBtn').show();
+                            jQuery('#loadingSpinner').hide();
+                        } else {
+                            showError('Không thể tạo ảnh. Vui lòng thử lại.');
+                            jQuery('#loadingSpinner').hide();
+                            jQuery('#resultPlaceholder').show();
+                        }
+                        jQuery('#generateBtn').prop('disabled', false);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                        let errorMessage = 'Lỗi kết nối đến AI service. Vui lòng thử lại sau.';
+                        if (status === 'timeout') {
+                            errorMessage = 'Quá thời gian chờ. AI đang xử lý, vui lòng thử lại.';
+                        }
+                        showError(errorMessage);
+                        jQuery('#loadingSpinner').hide();
+                        jQuery('#resultPlaceholder').show();
+                        jQuery('#generateBtn').prop('disabled', false);
+                    }
+                });
+            } catch (error) {
+                console.error('Error preparing images:', error);
+                showError('Lỗi khi xử lý ảnh. Vui lòng thử lại.');
+                jQuery('#loadingSpinner').hide();
+                jQuery('#resultPlaceholder').show();
+                jQuery('#generateBtn').prop('disabled', false);
+            }
+        });
+
+        // Download result image
+        jQuery(document).on('click', '#downloadResultBtn', function() {
+            const resultImage = jQuery('#resultImage').attr('src');
+            if (resultImage) {
+                const link = document.createElement('a');
+                link.href = resultImage;
+                link.download = `virtual-try-on-${productName}-${Date.now()}.png`;
+                link.click();
+            }
+        });
+
+        function showError(message) {
+            jQuery('#errorText').text(message);
+            jQuery('#errorMessage').fadeIn();
+        }
+
+        function hideError() {
+            jQuery('#errorMessage').fadeOut();
+        }
+
+        // Reset modal when closed
+        jQuery('#virtualTryOnModal').on('hidden.bs.modal', function() {
+            customerImageBase64 = null;
+            jQuery('#customerImagePreview').hide();
+            jQuery('#uploadArea').show();
+            jQuery('#removeCustomerImage').hide();
+            jQuery('#resultImage').hide();
+            jQuery('#loadingSpinner').hide();
+            jQuery('#resultPlaceholder').show();
+            jQuery('#downloadResultBtn').hide();
+            jQuery('#generateBtn').prop('disabled', true);
+            jQuery('#customerImageInput').val('');
+            jQuery('#errorMessage').hide();
+        });
     }
 
-    function hideError() {
-        modal.find('#errorMessage').fadeOut();
-    }
-});
-
-// Reset modal when closed
-$('#virtualTryOnModal').on('hidden.bs.modal', function() {
-    const modal = $(this);
-    modal.find('#customerImagePreview').hide();
-    modal.find('#uploadArea').show();
-    modal.find('#removeCustomerImage').hide();
-    modal.find('#resultImage').hide();
-    modal.find('#loadingSpinner').hide();
-    modal.find('#resultPlaceholder').show();
-    modal.find('#downloadResultBtn').hide();
-    modal.find('#generateBtn').prop('disabled', true);
-    modal.find('#customerImageInput').val('');
-    modal.find('#errorMessage').hide();
+    // Start initialization
+    initVirtualTryOn();
 });
 </script>

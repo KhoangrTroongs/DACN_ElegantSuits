@@ -241,7 +241,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Tạm tắt HTTPS redirect để cho phép điện thoại thật kết nối qua HTTP
+// app.UseHttpsRedirection();
 
 // Trước app.UseStaticFiles();
 if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users")))
