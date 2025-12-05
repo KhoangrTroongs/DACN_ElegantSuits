@@ -1,0 +1,264 @@
+{
+  "name": "MergeImage",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "virtual-try-on",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        976
+      ],
+      "id": "08e39917-2425-4170-8c1d-d40e698cf706",
+      "name": "Webhook",
+      "webhookId": "7a642384-8037-4a7b-a960-9d1bf87cb2fb"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6cb078e5-dad8-42a1-920c-ba3fb62c2e72",
+              "name": "data",
+              "value": "={{ $json.body.productImage.replace(/^data:image\\/[a-z]+;base64,/, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "1d185e24-8307-4844-abb1-911abaa57b51",
+              "name": "mimeType",
+              "value": "={{ $json.body.productImageMimeType || 'image/png' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        880
+      ],
+      "id": "475e5905-72e6-4d0b-a1c8-5cb2eb0f5897",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6cb078e5-dad8-42a1-920c-ba3fb62c2e72",
+              "name": "data",
+              "value": "={{ $('Webhook').item.json.body.customerImage.replace(/^data:image\\/[a-z]+;base64,/, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "6e19fba0-c306-479f-a6c4-5d379e2dfd96",
+              "name": "mimeType",
+              "value": "={{ $('Webhook').item.json.body.customerImageMimeType || 'image/png' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        1056
+      ],
+      "id": "2ac378b1-924f-41f4-9fc9-ed059a6fc40d",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"inlineData\":{\n    \"mimeType\":\"{{ $json.mimeType }}\",\n    \"data\":\"{{$json.data}}\"\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        960
+      ],
+      "id": "2d980f66-11f6-4d1f-a8cd-6cfe8c515e1b",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "inlineData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        960
+      ],
+      "id": "08347cfc-9e34-4f62-9829-e54142d169db",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        624,
+        960
+      ],
+      "id": "4b73b8ad-e61d-49fc-a6df-dcdd24b5632f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-goog-api-key",
+              "value": "AIzaSyCPSXXN8II-pyAFnNspH-JtWx8JGj1mAv0"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"You are an expert virtual try-on assistant specialized in clothing pattern reproduction.\\n\\nFIRST IMAGE: Product photo of {{ $('Webhook').item.json.body.productName }} (Category: {{ $('Webhook').item.json.body.productCategory }}). Study the EXACT pattern, colors, and design carefully.\\n\\nSECOND IMAGE: Customer photo.\\n\\nYOUR TASK:\\n1. Carefully analyze the EXACT pattern, print, colors of the clothing in first image\\n2. Replace the customer's clothes with this EXACT clothing item\\n3. PRESERVE THE EXACT PATTERN - if it has floral print, stripes, checks, or any design, reproduce it EXACTLY as shown\\n\\nCategory guide:\\n- Veston/Suit: Replace with COMPLETE suit (jacket, pants, shirt, tie)\\n- Quần tây/Pants: Replace ONLY pants\\n- Áo sơ mi/Shirt: Replace ONLY the shirt/top\\n- Áo Gile/Vest: Replace/add vest layer\\n\\nPATTERN RULES (VERY IMPORTANT):\\n1. If clothing has FLORAL pattern - reproduce the EXACT flowers, leaves, colors\\n2. If clothing has STRIPES - reproduce exact stripe width and colors\\n3. If clothing has CHECKS/PLAID - reproduce exact pattern\\n4. If clothing is SOLID color - use that exact color\\n5. DO NOT simplify or change the pattern in any way\\n\\nOTHER RULES:\\n1. Keep face, hairstyle, body, pose, background exactly the same\\n2. Replace clothes completely regardless of current outfit\\n3. Clothing must fit naturally on the body\\n4. Maintain realistic lighting and shadows\\n\\nGenerate a photorealistic image with the EXACT clothing pattern preserved.\"\n        },\n        {\n          \"inlineData\": {\n            \"mimeType\": \"{{ $json.inlineData[0].inlineData.mimeType }}\",\n            \"data\": \"{{ $json.inlineData[0].inlineData.data }}\"\n          }\n        },\n        {\n          \"inlineData\": {\n            \"mimeType\": \"{{ $json.inlineData[1].inlineData.mimeType }}\",\n            \"data\": \"{{ $json.inlineData[1].inlineData.data }}\"\n          }\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"responseModalities\": [\"TEXT\", \"IMAGE\"]\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1264,
+        960
+      ],
+      "id": "7e5ff090-2b18-43ff-8cd5-d7268aae2f07",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n   \"success\": true,\n  \"resultImage\": \"data:image/png;base64,{{ $json.candidates[0].content.parts.find(p => p.inlineData).inlineData.data }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1552,
+        960
+      ],
+      "id": "ad9f96f1-f95a-4d2e-a07a-0899ca9cca4b",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "b63acb98-8255-4269-bd13-3cec44177c7b",
+  "meta": {
+    "instanceId": "6da5fe8883551ad71b156239ce69e7a7a2ef733a9d08fecad549b091e93b20c1"
+  },
+  "id": "5JwSskzBSyX0pCQg",
+  "tags": []
+}
