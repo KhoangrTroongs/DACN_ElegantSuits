@@ -159,9 +159,165 @@
         import { createChat } from 'https://cdn.jsdelivr.net/npm/@@n8n/chat/dist/chat.bundle.es.js';
 
         createChat({
-            webhookUrl: 'http://localhost:5678/webhook/5a617ed7-65aa-4fa0-93fa-fa4781e67818/chat'
+            webhookUrl: 'http://localhost:5678/webhook/5a617ed7-65aa-4fa0-93fa-fa4781e67818/chat',
+            initialMessages: [
+                'Chào mừng Quý khách đến với **Elegant Suits**! 👔✨',
+                'Tôi là trợ lý tư vấn của cửa hàng. Tôi có thể giúp Quý khách:\n\n• Tư vấn chọn vest, áo sơ mi, quần tây\n• Hướng dẫn đo size phù hợp\n• Giới thiệu các sản phẩm mới\n• Hỗ trợ đặt hàng và thanh toán\n\nQuý khách cần hỗ trợ gì ạ?'
+            ],
+            i18n: {
+                en: {
+                    title: 'Elegant Suits',
+                    subtitle: 'Tư vấn thời trang nam cao cấp',
+                    footer: '',
+                    getStarted: 'Bắt đầu trò chuyện',
+                    inputPlaceholder: 'Nhập câu hỏi của bạn...',
+                    closeButtonTooltip: 'Đóng chat'
+                }
+            },
+            theme: {
+                primaryColor: '#1a1a1a',
+                secondaryColor: '#d4af37',
+                backgroundColor: '#ffffff',
+                messageBackgroundColor: '#f8f8f8',
+                userMessageBackgroundColor: '#1a1a1a',
+                userMessageTextColor: '#ffffff',
+                botMessageBackgroundColor: '#f0f0f0',
+                botMessageTextColor: '#1a1a1a',
+                headerBackgroundColor: '#1a1a1a',
+                headerTextColor: '#d4af37',
+                inputBackgroundColor: '#ffffff',
+                inputTextColor: '#1a1a1a',
+                inputBorderColor: '#d4af37',
+                buttonBackgroundColor: '#d4af37',
+                buttonTextColor: '#1a1a1a'
+            }
         });
     </script>
+
+    <style>
+        /* Elegant Suits Chatbox Custom Styles */
+        :root {
+            --chat--color-primary: #1a1a1a;
+            --chat--color-secondary: #d4af37;
+            --chat--color-white: #ffffff;
+            --chat--color-light: #f8f8f8;
+            --chat--color-dark: #1a1a1a;
+            --chat--header--background: #1a1a1a;
+            --chat--header--color: #d4af37;
+            --chat--message--bot--background: #f5f5f5;
+            --chat--message--user--background: #1a1a1a;
+            --chat--message--user--color: #ffffff;
+            --chat--toggle--background: #1a1a1a;
+            --chat--toggle--hover--background: #333333;
+            --chat--toggle--active--background: #d4af37;
+            --chat--button--background: #d4af37;
+            --chat--button--hover--background: #b38728;
+            --chat--button--color: #1a1a1a;
+        }
+
+        .n8n-chat .chat-toggle {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%) !important;
+            border: 2px solid #d4af37 !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+        }
+
+        .n8n-chat .chat-toggle:hover {
+            background: linear-gradient(135deg, #d4af37 0%, #b38728 100%) !important;
+            transform: scale(1.05);
+        }
+
+        .n8n-chat .chat-toggle svg {
+            fill: #d4af37 !important;
+        }
+
+        .n8n-chat .chat-toggle:hover svg {
+            fill: #1a1a1a !important;
+        }
+
+        .n8n-chat .chat-window {
+            border: 2px solid #d4af37 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+        }
+
+        .n8n-chat .chat-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+            border-bottom: 2px solid #d4af37 !important;
+            padding: 16px 20px !important;
+        }
+
+        .n8n-chat .chat-header .title {
+            color: #d4af37 !important;
+            font-weight: 700 !important;
+            font-size: 1.2rem !important;
+        }
+
+        .n8n-chat .chat-header .subtitle {
+            color: #cccccc !important;
+            font-size: 0.85rem !important;
+        }
+
+        .n8n-chat .chat-message-bot .message-content {
+            background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%) !important;
+            border-left: 3px solid #d4af37 !important;
+            color: #1a1a1a !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+        }
+
+        .n8n-chat .chat-message-user .message-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+            color: #ffffff !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+        }
+
+        .n8n-chat .chat-input {
+            border: 2px solid #e0e0e0 !important;
+            border-radius: 25px !important;
+            padding: 12px 20px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .n8n-chat .chat-input:focus {
+            border-color: #d4af37 !important;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
+        }
+
+        .n8n-chat .chat-input-container button {
+            background: linear-gradient(135deg, #d4af37 0%, #b38728 100%) !important;
+            color: #1a1a1a !important;
+            border-radius: 50% !important;
+            width: 40px !important;
+            height: 40px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .n8n-chat .chat-input-container button:hover {
+            transform: scale(1.1) !important;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4) !important;
+        }
+
+        .n8n-chat .chat-footer {
+            background: #f8f8f8 !important;
+            border-top: 1px solid #e0e0e0 !important;
+            padding: 12px 16px !important;
+        }
+
+        .n8n-chat .get-started-button {
+            background: linear-gradient(135deg, #d4af37 0%, #b38728 100%) !important;
+            color: #1a1a1a !important;
+            font-weight: 600 !important;
+            border-radius: 25px !important;
+            padding: 12px 24px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .n8n-chat .get-started-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
+        }
+    </style>
 
     @await RenderSectionAsync("Scripts", required: false)
     <script>
