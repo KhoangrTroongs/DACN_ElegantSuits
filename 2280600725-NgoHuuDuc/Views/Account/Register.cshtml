@@ -97,7 +97,7 @@
             </div>
 
             <form asp-controller="Account" asp-action="Register" method="post" enctype="multipart/form-data">
-                <div asp-validation-summary="All" class="alert alert-danger" style="background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.3); color: #F44336; border-radius: 12px;"></div>
+                <div asp-validation-summary="All" class="alert alert-danger" style="background: rgba(244,67,54,0.1); border: 1px solid rgba(244,67,54,0.3); color: #F44336; border-radius: 12px; display: none;"></div>
 
                 <div class="avatar-upload">
                     <div class="avatar-preview" id="avatarPreview">
@@ -183,6 +183,14 @@
                 reader.readAsDataURL(input.files[0]);
             }
         }
+
+        // Show validation summary if there are errors
+        $(document).ready(function() {
+            var validationSummary = $('[asp-validation-summary]');
+            if (validationSummary.find('li').length > 0 || validationSummary.text().trim().length > 0) {
+                validationSummary.show();
+            }
+        });
 
         // Password validation
         $(document).ready(function() {

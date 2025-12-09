@@ -136,6 +136,38 @@ namespace NgoHuuDuc_2280600725.Controllers.API
             }
         }
 
+        // POST: api/Orders/pos
+        // Tạo đơn hàng từ POS (Point of Sale) - admin tạo đơn cho khách hàng
+        [HttpPost("pos")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
+        public async Task<ActionResult<ResponseDTO<OrderDTO>>> CreatePosOrder(CreatePosOrderDTO posOrderDto)
+        {
+            try
+            {
+                // Kiểm tra dữ liệu đầu vào hợp lệ
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ResponseDTO<OrderDTO>.Fail("Invalid order data.", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+                }
+
+                // Tạo đơn hàng POS
+                var order = await _orderService.CreatePosOrderAsync(posOrderDto);
+                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, ResponseDTO<OrderDTO>.Success(order));
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Bắt lỗi nghiệp vụ
+                _logger.LogWarning(ex, "Validation error creating POS order");
+                return BadRequest(ResponseDTO<OrderDTO>.Fail(ex.Message));
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi khi tạo đơn hàng POS
+                _logger.LogError(ex, "Error creating POS order");
+                return StatusCode(500, ResponseDTO<OrderDTO>.Fail("An error occurred while creating the order."));
+            }
+        }
+
         // PUT: api/Orders/5/status
         [HttpPut("{id}/status")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]

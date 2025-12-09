@@ -138,6 +138,93 @@ namespace NgoHuuDuc_2280600725.Services
             return MapToOrderDTO(createdOrder);
         }
 
+        /// <summary>
+        /// Tạo đơn hàng từ POS (Point of Sale) - nhận order items trực tiếp từ request
+        /// </summary>
+        public async Task<OrderDTO> CreatePosOrderAsync(CreatePosOrderDTO posOrderDto)
+        {
+            // Validate items
+            if (posOrderDto.Items == null || !posOrderDto.Items.Any())
+            {
+                throw new InvalidOperationException("Danh sách sản phẩm không được để trống.");
+            }
+
+            // Kiểm tra số lượng tồn kho và lấy thông tin sản phẩm
+            decimal totalPrice = 0;
+            var orderDetails = new List<OrderDetail>();
+
+            foreach (var item in posOrderDto.Items)
+            {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null)
+                {
+                    throw new InvalidOperationException($"Sản phẩm với ID {item.ProductId} không tồn tại.");
+                }
+
+                if (product.Quantity < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Sản phẩm '{product.Name}' chỉ còn {product.Quantity} trong kho.");
+                }
+
+                // Sử dụng giá từ DB thay vì từ request để tránh gian lận
+                var price = product.Price;
+                totalPrice += price * item.Quantity;
+
+                orderDetails.Add(new OrderDetail
+                {
+                    ProductId = item.ProductId,
+                    Price = price,
+                    Quantity = item.Quantity,
+                    Size = item.Size
+                });
+
+                // Trừ số lượng tồn kho
+                product.Quantity -= item.Quantity;
+                _context.Products.Update(product);
+            }
+
+            // Tính discount nếu có coupon
+            decimal discountAmount = 0;
+            if (!string.IsNullOrEmpty(posOrderDto.CouponCode))
+            {
+                var coupon = await _context.Coupons.FirstOrDefaultAsync(c => c.Code == posOrderDto.CouponCode && c.IsActive);
+                if (coupon != null && coupon.ExpiryDate > DateTime.Now && coupon.Quantity > 0)
+                {
+                    discountAmount = totalPrice * coupon.DiscountPercentage / 100;
+                    coupon.Quantity--; // Giảm số lượng coupon
+                    _context.Coupons.Update(coupon);
+                }
+            }
+
+            // Tạo order
+            var order = new Order
+            {
+                UserId = posOrderDto.CustomerId,
+                OrderDate = DateTime.Now,
+                ShippingAddress = posOrderDto.ShippingAddress,
+                Notes = posOrderDto.Notes,
+                Status = OrderStatus.Confirmed, // POS order đã xác nhận ngay
+                TotalPrice = totalPrice - discountAmount,
+                CouponCode = posOrderDto.CouponCode,
+                DiscountAmount = discountAmount,
+                PaymentMethod = posOrderDto.PaymentMethod,
+                PaymentStatus = posOrderDto.PaymentMethod == "Cash" ? PaymentStatus.Paid : PaymentStatus.Pending,
+                OrderDetails = orderDetails
+            };
+
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // Lấy lại đơn hàng vừa tạo
+            var createdOrder = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.OrderDetails)
+                .ThenInclude(od => od.Product)
+                .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+            return MapToOrderDTO(createdOrder);
+        }
+
         public async Task<OrderDTO?> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDto)
         {
             // Lấy đơn hàng theo Id

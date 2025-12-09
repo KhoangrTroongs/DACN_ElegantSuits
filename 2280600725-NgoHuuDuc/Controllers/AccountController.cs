@@ -70,6 +70,21 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return View(model);
             }
 
+            // Kiểm tra xem tài khoản có tồn tại không
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Tài khoản không tồn tại. Vui lòng kiểm tra lại email hoặc đăng ký tài khoản mới.");
+                return View(model);
+            }
+
+            // Kiểm tra xem tài khoản có phải là OAuth user (Google login) không
+            if (user.IsOAuthUser && !string.IsNullOrEmpty(user.LoginProvider))
+            {
+                ModelState.AddModelError(string.Empty, $"Tài khoản này đã được đăng ký bằng {user.LoginProvider}. Vui lòng sử dụng nút 'Đăng nhập với Google' bên dưới.");
+                return View(model);
+            }
+
             // Clear existing cookies
             await _userRepository.SignOutAsync();
 
@@ -104,7 +119,8 @@ namespace NgoHuuDuc_2280600725.Controllers
                 return View("Lockout");
             }
 
-            ModelState.AddModelError(string.Empty, "Đăng nhập không thành công.");
+            // Nếu đến đây nghĩa là mật khẩu sai
+            ModelState.AddModelError(string.Empty, "Mật khẩu không chính xác. Vui lòng thử lại.");
             return View(model);
         }
 

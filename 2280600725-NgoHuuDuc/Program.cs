@@ -293,7 +293,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     // Tạo các vai trò khác
-    var roles = new[] { "User", "Staff", "Manager" };
+    var roles = new[] { "User", "Staff", "Manager", "Customer" };
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -330,6 +330,30 @@ using (var scope = app.Services.CreateScope())
             {
                 await userManager.AddToRoleAsync(admin, "Administrator");
             }
+        }
+    }
+
+    // Tạo tài khoản "Khách Vãn Lai" mặc định cho POS
+    var guestEmail = "khachvanlai@example.com";
+    var guestUser = await userManager.FindByEmailAsync(guestEmail);
+    if (guestUser == null)
+    {
+        var guest = new ApplicationUser
+        {
+            UserName = guestEmail,
+            Email = guestEmail,
+            EmailConfirmed = true,
+            FullName = "Khách Vãn Lai",
+            DateOfBirth = DateTime.Now,
+            Address = "Khách hàng mua trực tiếp tại cửa hàng",
+            Gender = Gender.Male,
+            PhoneNumber = "0000000000"
+        };
+
+        var guestResult = await userManager.CreateAsync(guest, "Khach@123");
+        if (guestResult.Succeeded)
+        {
+            await userManager.AddToRoleAsync(guest, "Customer");
         }
     }
 

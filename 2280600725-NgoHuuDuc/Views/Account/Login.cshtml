@@ -177,9 +177,9 @@
     <script>
         // Show validation summary if there are errors
         $(document).ready(function() {
-            var summary = $('[data-valmsg-summary]');
-            if (summary.find('li').length > 0) {
-                summary.show();
+            var validationSummary = $('[asp-validation-summary]');
+            if (validationSummary.find('li').length > 0 || validationSummary.text().trim().length > 0) {
+                validationSummary.show();
             }
         });
     </script>

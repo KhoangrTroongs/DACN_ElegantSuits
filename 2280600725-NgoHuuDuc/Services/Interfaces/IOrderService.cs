@@ -9,6 +9,7 @@ namespace NgoHuuDuc_2280600725.Services.Interfaces
         Task<IEnumerable<OrderDTO>> GetUserOrdersAsync(string userId);
         Task<OrderDTO?> GetOrderByIdAsync(int id);
         Task<OrderDTO> CreateOrderAsync(string userId, CreateOrderDTO orderDto);
+        Task<OrderDTO> CreatePosOrderAsync(CreatePosOrderDTO posOrderDto);
         Task<OrderDTO?> UpdateOrderStatusAsync(int id, UpdateOrderStatusDTO updateOrderStatusDto);
         Task<bool> DeleteOrderAsync(int id);
     }
