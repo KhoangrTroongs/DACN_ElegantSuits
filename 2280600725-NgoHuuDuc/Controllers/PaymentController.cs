@@ -199,6 +199,9 @@ namespace NgoHuuDuc_2280600725.Controllers
                 _logger.LogInformation("VnPay return callback received");
                 _logger.LogInformation("Query string: {QueryString}", Request.QueryString.Value);
                 
+                // Check if this is a mobile request
+                var isMobile = Request.Query.ContainsKey("mobile") && Request.Query["mobile"] == "true";
+                
                 var response = _vnPayService.PaymentExecute(Request.Query);
                 
                 _logger.LogInformation("VnPay response - Success: {Success}, ResponseCode: {ResponseCode}, OrderId: {OrderId}", 
@@ -207,6 +210,10 @@ namespace NgoHuuDuc_2280600725.Controllers
                 if (response == null)
                 {
                     _logger.LogError("VnPay response is null");
+                    if (isMobile)
+                    {
+                        return Redirect($"elegantsuits://payment-result?orderId=0&status=error");
+                    }
                     TempData["ErrorMessage"] = "Không nhận được phản hồi từ VnPay";
                     return RedirectToAction("PaymentFailed");
                 }
@@ -214,6 +221,10 @@ namespace NgoHuuDuc_2280600725.Controllers
                 if (!response.Success)
                 {
                     _logger.LogWarning("VnPay signature validation failed or response unsuccessful");
+                    if (isMobile)
+                    {
+                        return Redirect($"elegantsuits://payment-result?orderId={response.OrderId}&status=failed");
+                    }
                     TempData["ErrorMessage"] = "Chữ ký không hợp lệ hoặc giao dịch không thành công";
                     return RedirectToAction("PaymentFailed");
                 }
@@ -238,6 +249,13 @@ namespace NgoHuuDuc_2280600725.Controllers
                             await _context.SaveChangesAsync();
 
                             _logger.LogInformation("Order {OrderId} updated successfully", orderId);
+                            
+                            // Redirect to mobile app if mobile request
+                            if (isMobile)
+                            {
+                                return Redirect($"elegantsuits://payment-result?orderId={orderId}&status=success");
+                            }
+                            
                             TempData["SuccessMessage"] = $"Thanh toán VnPay thành công! Mã đơn hàng: #{orderId}";
                             return RedirectToAction("PaymentSuccess");
                         }
@@ -249,6 +267,11 @@ namespace NgoHuuDuc_2280600725.Controllers
                             var allOrderIds = await _context.Orders.Select(o => o.Id).ToListAsync();
                             _logger.LogWarning("Available order IDs in database: {OrderIds}", string.Join(", ", allOrderIds));
                             
+                            if (isMobile)
+                            {
+                                return Redirect($"elegantsuits://payment-result?orderId={orderId}&status=notfound");
+                            }
+                            
                             TempData["ErrorMessage"] = $"Không tìm thấy đơn hàng #{orderId}";
                             return RedirectToAction("PaymentFailed");
                         }
@@ -256,12 +279,20 @@ namespace NgoHuuDuc_2280600725.Controllers
                     else
                     {
                         _logger.LogError("Failed to parse OrderId '{OrderId}' to int", orderId);
+                        if (isMobile)
+                        {
+                            return Redirect($"elegantsuits://payment-result?orderId=0&status=invalid");
+                        }
                         TempData["ErrorMessage"] = "Mã đơn hàng không hợp lệ";
                         return RedirectToAction("PaymentFailed");
                     }
                 }
 
                 _logger.LogWarning("VnPay payment failed with response code: {ResponseCode}", response.VnPayResponseCode);
+                if (isMobile)
+                {
+                    return Redirect($"elegantsuits://payment-result?orderId={response.OrderId}&status={response.VnPayResponseCode}");
+                }
                 TempData["ErrorMessage"] = $"Thanh toán VnPay thất bại. Mã lỗi: {response.VnPayResponseCode}";
                 return RedirectToAction("PaymentFailed");
             }

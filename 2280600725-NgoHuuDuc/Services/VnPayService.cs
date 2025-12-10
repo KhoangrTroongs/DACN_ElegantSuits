@@ -14,7 +14,7 @@ namespace NgoHuuDuc_2280600725.Services
             _config = config;
         }
 
-        public string CreatePaymentUrl(HttpContext context, VnPayPaymentRequestModel model)
+        public string CreatePaymentUrl(HttpContext context, VnPayPaymentRequestModel model, string returnUrl = null)
         {
             var vnpay = new VnPayLibrary();
             
@@ -31,7 +31,9 @@ namespace NgoHuuDuc_2280600725.Services
             vnpay.AddRequestData("vnp_OrderInfo", "Thanh toan don hang:" + model.OrderId);
             vnpay.AddRequestData("vnp_OrderType", "other");
             
-            vnpay.AddRequestData("vnp_ReturnUrl", _config["VnPay:PaymentBackReturnUrl"]);
+            // Use custom returnUrl if provided, otherwise use config
+            var finalReturnUrl = returnUrl ?? _config["VnPay:PaymentBackReturnUrl"];
+            vnpay.AddRequestData("vnp_ReturnUrl", finalReturnUrl);
             vnpay.AddRequestData("vnp_TxnRef", model.OrderId); // Use OrderId instead of timestamp
 
             var paymentUrl = vnpay.CreateRequestUrl(_config["VnPay:BaseUrl"], _config["VnPay:HashSecret"]);

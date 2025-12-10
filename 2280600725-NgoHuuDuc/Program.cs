@@ -286,6 +286,9 @@ using (var scope = app.Services.CreateScope())
     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
     var dbContext = services.GetRequiredService<ApplicationDbContext>();
 
+    // Đảm bảo database đã được tạo
+    await dbContext.Database.EnsureCreatedAsync();
+
     // Tạo vai trò Administrator nếu chưa tồn tại
     if (!await roleManager.RoleExistsAsync("Administrator"))
     {

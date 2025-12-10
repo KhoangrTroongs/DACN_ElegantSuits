@@ -4,7 +4,7 @@ namespace NgoHuuDuc_2280600725.Services.Interfaces
 {
     public interface IVnPayService
     {
-        string CreatePaymentUrl(HttpContext context, VnPayPaymentRequestModel model);
+        string CreatePaymentUrl(HttpContext context, VnPayPaymentRequestModel model, string returnUrl = null);
         VnPayPaymentResponseModel PaymentExecute(IQueryCollection collections);
     }
 

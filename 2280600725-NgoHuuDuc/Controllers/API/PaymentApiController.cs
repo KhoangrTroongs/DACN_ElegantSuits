@@ -16,15 +16,18 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         private readonly IVnPayService _vnPayService;
         private readonly ApplicationDbContext _context;
         private readonly ILogger<PaymentApiController> _logger;
+        private readonly IConfiguration _configuration;
 
         public PaymentApiController(
             IVnPayService vnPayService,
             ApplicationDbContext context,
-            ILogger<PaymentApiController> logger)
+            ILogger<PaymentApiController> logger,
+            IConfiguration configuration)
         {
             _vnPayService = vnPayService;
             _context = context;
             _logger = logger;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -45,14 +48,19 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
                 var vnPayModel = new VnPayPaymentRequestModel
                 {
-                    Amount = (double)order.TotalAmount,
+                    Amount = (double)order.TotalPrice,
                     CreatedDate = DateTime.Now,
                     Description = $"Thanh toán đơn hàng #{orderId}",
                     FullName = "Khách hàng POS",
                     OrderId = orderId.ToString()
                 };
 
-                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, vnPayModel);
+                _logger.LogInformation("Creating VNPay URL. OrderId: {OrderId}, TotalAmount: {TotalAmount}, VnPayAmount: {VnPayAmount}", 
+                    orderId, order.TotalPrice, (long)(vnPayModel.Amount * 100));
+
+                // Mobile app needs to use LAN IP instead of localhost
+                var returnUrl = "http://192.168.1.8:5050/Payment/VnPayReturn?mobile=true";
+                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, vnPayModel, returnUrl);
 
                 // Update order status to pending
                 order.PaymentMethod = "VnPay";
@@ -96,7 +104,7 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     orderId = order.Id,
                     paymentStatus = order.PaymentStatus.ToString(),
                     paymentMethod = order.PaymentMethod,
-                    totalAmount = order.TotalAmount,
+                    totalAmount = order.TotalPrice,
                     isPaid = order.PaymentStatus == PaymentStatus.Paid
                 });
             }

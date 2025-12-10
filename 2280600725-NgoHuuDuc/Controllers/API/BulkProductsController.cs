@@ -204,12 +204,14 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                 {
                     var worksheet = package.Workbook.Worksheets.Add("Products");
 
-                    // Thiết lập header cho file Excel
-                    string[] headers = new string[] { "ID", "Tên sản phẩm", "Danh mục", "Giá", "Tồn kho", "Mô tả" };
+                    // Thiết lập header cho file Excel (thêm LinearCode)
+                    string[] headers = new string[] { "ID", "Tên sản phẩm", "Mã Linear (Barcode)", "Danh mục", "Giá", "Tồn kho", "Mô tả" };
                     for (int i = 0; i < headers.Length; i++)
                     {
                         worksheet.Cells[1, i + 1].Value = headers[i];
                         worksheet.Cells[1, i + 1].Style.Font.Bold = true;
+                        worksheet.Cells[1, i + 1].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                        worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
                     }
 
                     // Điền dữ liệu từng sản phẩm vào file Excel
@@ -220,11 +222,15 @@ namespace NgoHuuDuc_2280600725.Controllers.API
 
                         worksheet.Cells[row, 1].Value = product.Id;
                         worksheet.Cells[row, 2].Value = product.Name;
-                        worksheet.Cells[row, 3].Value = product.Category?.Name;
-                        worksheet.Cells[row, 4].Value = product.Price;
-                        worksheet.Cells[row, 5].Value = product.Quantity;
-                        worksheet.Cells[row, 6].Value = product.Description;
+                        worksheet.Cells[row, 3].Value = product.LinearCode ?? "";
+                        worksheet.Cells[row, 4].Value = product.Category?.Name;
+                        worksheet.Cells[row, 5].Value = product.Price;
+                        worksheet.Cells[row, 6].Value = product.Quantity;
+                        worksheet.Cells[row, 7].Value = product.Description;
                     }
+
+                    // Auto-fit columns
+                    worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
 
                     // Lưu file Excel vào bộ nhớ và trả về cho client
                     var fileBytes = package.GetAsByteArray();
