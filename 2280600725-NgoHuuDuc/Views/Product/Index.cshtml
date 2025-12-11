@@ -190,6 +190,12 @@
                                         </a>
                                     </li>
                                     <li>
+                                        <a class="dropdown-item" href="#" id="exportBarcodesBtn">
+                                            <i class="fas fa-barcode me-1 text-warning"></i>Xuất PDF mã vạch
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
                                         <a class="dropdown-item" href="#" id="importExcelBtn">
                                             <i class="fas fa-file-import me-1 text-primary"></i>Nhập từ Excel
                                         </a>
@@ -1067,11 +1073,44 @@
                             }
                         });
                     } else {
-                        // Nếu không có sản phẩm nào được chọn, hiển thị modal để lọc
-                        $('#exportOption').val('all');
-                        var exportExcelModal = new bootstrap.Modal(document.getElementById('exportExcelModal'));
-                        exportExcelModal.show();
+                        // Nếu không có sản phẩm nào được chọn, hiển thị modal để chọn tùy chọn xuất
+                        $('#exportExcelModal').modal('show');
                     }
+                });
+
+                // Export Barcodes button click
+                $('#exportBarcodesBtn').click(function(e) {
+                    e.preventDefault();
+                    
+                    // Hiển thị thông báo đang tạo mã vạch
+                    var toastHtml = `
+                    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                        <div id="barcodeToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header bg-danger text-white">
+                                <i class="fas fa-file-pdf me-2"></i>
+                                <strong class="me-auto">Xuất PDF Mã Vạch</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                Đang tạo file PDF chứa danh sách mã vạch...
+                            </div>
+                        </div>
+                    </div>`;
+                    
+                    if ($('#barcodeToast').length === 0) {
+                        $('body').append(toastHtml);
+                    }
+                    
+                    var barcodeToast = new bootstrap.Toast(document.getElementById('barcodeToast'));
+                    barcodeToast.show();
+                    
+                    // Download file PDF
+                    window.location.href = '/api/Barcode/export-pdf';
+                    
+                    // Ẩn toast sau 3 giây
+                    setTimeout(function() {
+                        barcodeToast.hide();
+                    }, 3000);
                 });
 
                 // Search functionality
