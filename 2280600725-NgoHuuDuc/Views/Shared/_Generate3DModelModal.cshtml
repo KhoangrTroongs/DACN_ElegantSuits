@@ -1,0 +1,211 @@
+@model NgoHuuDuc_2280600725.Models.ViewModels.ProductViewModel
+
+<!-- Generate 3D Model Modal -->
+<div class="modal fade" id="generate3DModelModal" tabindex="-1" aria-labelledby="generate3DModelModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg,#0ea5e9,#6366f1);">
+        <h5 class="modal-title text-white" id="generate3DModelModalLabel">
+          <i class="fas fa-cube me-2"></i>Tạo mô hình 3D từ ảnh sản phẩm
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-3 p-md-4">
+        <div class="row g-3 g-md-4 align-items-stretch">
+          <!-- Ảnh sản phẩm -->
+          <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-primary text-white py-2">
+                <i class="fas fa-image me-2"></i>Ảnh sản phẩm
+              </div>
+              <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 340px;">
+                <img id="gen3d_productImage" src="@Model.ExistingImageUrl" alt="@Model.Name" class="img-fluid rounded" style="max-height: 320px; object-fit: contain;">
+              </div>
+              <div class="card-footer small text-muted text-center">
+                @Model.Name
+              </div>
+            </div>
+          </div>
+
+          <!-- Điều khiển -->
+          <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-info text-white py-2">
+                <i class="fas fa-robot me-2"></i>Trình tạo mô hình
+              </div>
+              <div class="card-body d-flex flex-column justify-content-center">
+                <div id="gen3d_idle">
+                  <p class="text-muted">Bấm nút bên dưới để gửi ảnh sản phẩm sang n8n và tạo mô hình 3D (.glb).</p>
+                  <button type="button" id="gen3d_startBtn" class="btn btn-primary w-100">
+                    <i class="fas fa-cogs me-2"></i>Bắt đầu tạo mô hình 3D
+                  </button>
+                </div>
+
+                <div id="gen3d_loading" class="text-center" style="display:none;">
+                  <div class="spinner-border text-primary mb-3" role="status" style="width:3rem;height:3rem;"></div>
+                  <p class="mb-1 text-muted">Đang tạo mô hình 3D, vui lòng chờ...</p>
+                  <p class="small text-muted">Quá trình có thể mất 1-3 phút tùy ảnh và máy chủ.</p>
+                </div>
+
+                <div id="gen3d_error" class="alert alert-danger d-none mt-2" role="alert">
+                  <i class="fas fa-exclamation-triangle me-2"></i><span id="gen3d_errorText"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Kết quả mô hình -->
+          <div class="col-md-4">
+            <div class="card h-100 shadow-sm">
+              <div class="card-header bg-warning text-dark py-2">
+                <i class="fas fa-vr-cardboard me-2"></i>Xem trước mô hình
+              </div>
+              <div class="card-body" style="min-height: 340px;">
+                <div id="gen3d_placeholder" class="h-100 d-flex flex-column align-items-center justify-content-center text-center">
+                  <i class="fas fa-cube fa-2x text-muted mb-2"></i>
+                  <p class="text-muted mb-0">Mô hình 3D sẽ hiển thị ở đây</p>
+                </div>
+                <model-viewer id="gen3d_viewer" style="width:100%;height:320px;border:1px solid #eee;border-radius:8px;background:#f8f9fa;display:none;"
+                  camera-controls auto-rotate ar ar-modes="webxr scene-viewer quick-look">
+                </model-viewer>
+              </div>
+              <div class="card-footer d-flex gap-2 justify-content-end">
+                <a id="gen3d_download" href="#" download class="btn btn-sm btn-outline-primary d-none">
+                  <i class="fas fa-download me-1"></i>Tải GLB
+                </a>
+                <button id="gen3d_saveBtn" type="button" class="btn btn-sm btn-success d-none">
+                  <i class="fas fa-save me-1"></i>Lưu vào sản phẩm
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-1"></i>Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  let modelUrl = null;
+  const productId = @Model.Id;
+  const productName = '@Html.Raw((Model.Name ?? "").Replace("'", "\\'"))';
+  const productImageUrl = '@(Model.ExistingImageUrl ?? "")';
+
+  const startUrl = `/api/model3d/start/${productId}`; // Backend duplicates image and calls n8n webhook
+
+  function setLoading(v){
+    document.getElementById('gen3d_idle').style.display = v ? 'none' : 'block';
+    document.getElementById('gen3d_loading').style.display = v ? 'block' : 'none';
+  }
+  function showError(msg){
+    const el = document.getElementById('gen3d_error');
+    document.getElementById('gen3d_errorText').textContent = msg || 'Đã xảy ra lỗi';
+    el.classList.remove('d-none');
+  }
+  function hideError(){
+    const el = document.getElementById('gen3d_error');
+    el.classList.add('d-none');
+  }
+
+  async function startGeneration(){
+    hideError(); setLoading(true);
+    try{
+      if(!productImageUrl){ throw new Error('Sản phẩm chưa có ảnh'); }
+
+      const res = await fetch(startUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      if(!res.ok){
+        const errData = await res.json();
+        throw new Error(errData.message || 'Bắt đầu tạo mô hình thất bại');
+      }
+      const data = await res.json();
+
+      // Webhook đã được gửi, bây giờ chờ callback từ N8N
+      // Polling để kiểm tra trạng thái
+      await pollStatusUntilReady(180, 2000); // chờ tối đa 6 phút với polling mỗi 2 giây
+    } catch(err){
+      console.error(err);
+      showError(err && err.message ? err.message : 'Không thể bắt đầu tạo mô hình');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function pollStatusUntilReady(maxTries, intervalMs){
+    for(let i=0;i<maxTries;i++){
+      try {
+        const res = await fetch(`/api/model3d/status/${productId}`);
+        if(res.ok){
+          const st = await res.json();
+          if(st && st.ready && st.model3DUrl){
+            modelUrl = st.model3DUrl;
+            document.getElementById('gen3d_placeholder').style.display = 'none';
+            const viewer = document.getElementById('gen3d_viewer');
+            viewer.setAttribute('src', modelUrl);
+            viewer.style.display = 'block';
+            const dl = document.getElementById('gen3d_download');
+            dl.href = modelUrl; dl.classList.remove('d-none');
+            document.getElementById('gen3d_saveBtn').classList.add('d-none'); // đã lưu sẵn bởi N8N callback
+            return;
+          }
+        }
+      } catch(e) {
+        console.log('Polling attempt', i+1, 'failed:', e.message);
+      }
+      await new Promise(r=>setTimeout(r, intervalMs));
+    }
+    showError('Quá thời gian chờ mô hình 3D. Vui lòng thử lại sau.');
+  }
+
+  async function saveToProduct(){
+    if(!modelUrl){ return; }
+    try{
+      // Mô hình đã được lưu bởi callback từ N8N
+      // Chỉ cần hiển thị thông báo thành công
+      const btn = document.getElementById('gen3d_saveBtn');
+      btn.classList.add('btn-success');
+      btn.innerHTML = '<i class="fas fa-check me-1"></i>Đã lưu';
+      setTimeout(()=>{
+        btn.innerHTML = '<i class="fas fa-save me-1"></i>Lưu vào sản phẩm';
+      }, 2000);
+    } catch(err){
+      console.error(err);
+      showError(err && err.message ? err.message : 'Lưu thất bại');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const startBtn = document.getElementById('gen3d_startBtn');
+    const saveBtn = document.getElementById('gen3d_saveBtn');
+    if(startBtn) startBtn.addEventListener('click', startGeneration);
+    if(saveBtn) saveBtn.addEventListener('click', saveToProduct);
+
+    // Reset modal on close
+    const modalEl = document.getElementById('generate3DModelModal');
+    if(modalEl){
+      modalEl.addEventListener('hidden.bs.modal', function(){
+        hideError(); modelUrl = null; setLoading(false);
+        document.getElementById('gen3d_idle').style.display = 'block';
+        document.getElementById('gen3d_loading').style.display = 'none';
+        document.getElementById('gen3d_placeholder').style.display = 'flex';
+        const viewer = document.getElementById('gen3d_viewer');
+        viewer.removeAttribute('src'); viewer.style.display = 'none';
+        const dl = document.getElementById('gen3d_download');
+        dl.href = '#'; dl.classList.add('d-none');
+        document.getElementById('gen3d_saveBtn').classList.add('d-none');
+      });
+    }
+  });
+})();
+</script>
+

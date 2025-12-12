@@ -163,7 +163,12 @@
 
             <div class="form-group mb-3">
                 <label asp-for="Model3D" class="control-label">Mô hình 3D (không bắt buộc)</label>
-                <input asp-for="Model3D" type="file" class="form-control" accept=".glb,.gltf,.obj" />
+                <div class="input-group">
+                    <input asp-for="Model3D" type="file" class="form-control" accept=".glb,.gltf,.obj" />
+                    <a href="http://localhost:5678/form-test/3cf7e768-b69e-4347-9292-567ce14e32ab" target="_blank" class="btn btn-info">
+                        <i class="fas fa-cube"></i> Tạo Model 3D
+                    </a>
+                </div>
                 <span asp-validation-for="Model3D" class="text-danger"></span>
             </div>
 
