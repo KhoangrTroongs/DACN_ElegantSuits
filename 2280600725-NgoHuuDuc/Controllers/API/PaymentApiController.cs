@@ -34,9 +34,10 @@ namespace NgoHuuDuc_2280600725.Controllers.API
         /// Tạo URL thanh toán VNPay cho đơn hàng
         /// </summary>
         /// <param name="orderId">ID đơn hàng</param>
+        /// <param name="clientHost">IP của máy chủ (từ phía client gửi lên)</param>
         /// <returns>URL thanh toán VNPay</returns>
         [HttpPost("vnpay/create/{orderId}")]
-        public async Task<IActionResult> CreateVnPayPayment(int orderId)
+        public async Task<IActionResult> CreateVnPayPayment(int orderId, [FromQuery] string? clientHost = null)
         {
             try
             {
@@ -59,7 +60,13 @@ namespace NgoHuuDuc_2280600725.Controllers.API
                     orderId, order.TotalPrice, (long)(vnPayModel.Amount * 100));
 
                 // Mobile app needs to use LAN IP instead of localhost
-                var returnUrl = "http://192.168.1.8:5050/Payment/VnPayReturn?mobile=true";
+                // Use clientHost if provided, otherwise fallback to configured IP or default
+                string hostIp = !string.IsNullOrEmpty(clientHost) ? clientHost : "192.168.1.8";
+                
+                // Ensure no port is duplicated if clientHost already has it (though usually it's just IP)
+                // Assuming clientHost is just the IP (e.g. "192.168.1.5")
+                var returnUrl = $"http://{hostIp}:5050/Payment/VnPayReturn?mobile=true";
+                
                 var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, vnPayModel, returnUrl);
 
                 // Update order status to pending

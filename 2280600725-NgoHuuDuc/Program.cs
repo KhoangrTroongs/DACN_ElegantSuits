@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using System.Security.Claims;
+using NgoHuuDuc_2280600725.Hubs;
 
 // Cấu hình EPPlus để sử dụng giấy phép không thương mại
 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
@@ -81,6 +82,9 @@ builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 // Register HttpClient for MoMo service
 builder.Services.AddHttpClient();
+
+// Register SignalR
+builder.Services.AddSignalR();
 
 // Configure Authentication with both Cookie and JWT
 builder.Services.AddAuthentication(options =>
@@ -277,6 +281,9 @@ app.MapControllers(); // This maps attribute-routed controllers
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Map SignalR Hub
+app.MapHub<OrderHub>("/orderHub");
 
 // Seed Administrator Role và tài khoản admin
 using (var scope = app.Services.CreateScope())

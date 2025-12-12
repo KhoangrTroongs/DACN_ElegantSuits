@@ -7,6 +7,8 @@ using NgoHuuDuc_2280600725.Extensions;
 using NgoHuuDuc_2280600725.Models;
 using NgoHuuDuc_2280600725.Models.Enums;
 using NgoHuuDuc_2280600725.Services.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using NgoHuuDuc_2280600725.Hubs;
 using System;
 using System.Collections.Generic;
 
@@ -20,18 +22,21 @@ namespace NgoHuuDuc_2280600725.Controllers
         private readonly ICouponService _couponService;
         private readonly IMoMoService _moMoService;
         private readonly IVnPayService _vnPayService;
+        private readonly IHubContext<OrderHub> _hubContext;
 
         public ShoppingCartController(ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
         ICouponService couponService,
         IMoMoService moMoService,
-        IVnPayService vnPayService)
+        IVnPayService vnPayService,
+        IHubContext<OrderHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
             _couponService = couponService;
             _moMoService = moMoService;
             _vnPayService = vnPayService;
+            _hubContext = hubContext;
         }
         public async Task<IActionResult> Index()
         {
@@ -234,6 +239,9 @@ namespace NgoHuuDuc_2280600725.Controllers
 
                 // Lưu thay đổi vào database
                 await _context.SaveChangesAsync();
+
+                // Gửi thông báo SignalR
+                await _hubContext.Clients.All.SendAsync("ReceiveOrderNotification", $"Đơn hàng mới #{newOrder.Id} vừa được đặt!");
 
                 // Decrement coupon quantity if coupon was used
                 if (!string.IsNullOrWhiteSpace(couponCode))
