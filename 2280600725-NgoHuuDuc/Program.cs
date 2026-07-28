@@ -254,12 +254,11 @@ if (!Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "
     Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users"));
 }
 
-app.UseStaticFiles();
-
-app.UseRouting();
 
 // Bật CORS - phải đặt trước Authentication
 app.UseCors("AllowFlutterApp");
+
+app.UseStaticFiles();
 
 // Thêm cookie policy middleware trước authentication
 app.UseCookiePolicy();
