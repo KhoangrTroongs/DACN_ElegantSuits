@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/backend/" />
+  <Folder Name="/backend/src/">
+    <Project Path="backend/src/ElegantSuits.Api/ElegantSuits.Api.csproj" />
+    <Project Path="backend/src/ElegantSuits.Application/ElegantSuits.Application.csproj" />
+    <Project Path="backend/src/ElegantSuits.Domain/ElegantSuits.Domain.csproj" />
+    <Project Path="backend/src/ElegantSuits.Infrastructure/ElegantSuits.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/backend/tests/">
+    <Project Path="backend/tests/ElegantSuits.Api.Tests/ElegantSuits.Api.Tests.csproj" />
+    <Project Path="backend/tests/ElegantSuits.Application.Tests/ElegantSuits.Application.Tests.csproj" />
+  </Folder>
+  <Folder Name="/frontend/" />
+  <Folder Name="/frontend/src/">
+    <Project Path="frontend/src/ElegantSuits.Web/ElegantSuits.Web.csproj" />
+  </Folder>
+</Solution>
