@@ -1,0 +1,427 @@
+@model ElegantSuits.Web.Models.ProductViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    ViewData["Title"] = "T?o s?n ph?m";
+    if (Model.Categories == null)
+    {
+        Model.Categories = new List<Category>();
+    }
+}
+
+<h1>T?o m?i</h1>
+
+@if (ViewBag.SelectedCategoryName != null)
+{
+    <p><strong>Danh m?c d� ch?n:</strong> @ViewBag.SelectedCategoryName</p>
+}
+
+<h4>S?n ph?m</h4>
+<hr />
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <strong>C� l?i x?y ra:</strong>
+        <ul>
+            @foreach (var modelState in ViewData.ModelState.Values)
+            {
+                foreach (var error in modelState.Errors)
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            }
+        </ul>
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="form-group mb-3">
+                <label asp-for="Name" class="control-label">T�n s?n ph?m *</label>
+                <input asp-for="Name" class="form-control" required />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Description" class="control-label"></label>
+                <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+                <small class="form-text text-muted">M� t? s?n ph?m. Th�ng tin v? k�ch thu?c s? du?c qu?n l� ri�ng b?ng n�t "Qu?n l� k�ch c?" ? ph?n s? lu?ng.</small>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Price" class="control-label"></label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Quantity" class="control-label"></label>
+                <div class="input-group">
+                    <input asp-for="Quantity" class="form-control" type="number" min="0" />
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sizesModal">
+                        <i class="fas fa-tshirt"></i> Qu?n l� k�ch c?
+                    </button>
+                </div>
+                <span asp-validation-for="Quantity" class="text-danger"></span>
+                <small class="form-text text-muted">S? lu?ng t?ng c?a t?t c? c�c k�ch c?. S? d?ng n�t "Qu?n l� k�ch c?" d? th�m/s?a/x�a k�ch c?.</small>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="CategoryId" class="control-label">Danh m?c *</label>
+                <select asp-for="CategoryId" class="form-control">
+                    <option value="">-- Ch?n danh m?c --</option>
+                    @foreach (var category in Model.Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="CategoryId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label class="control-label">V?i (kh�ng b?t bu?c)</label>
+                <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+                    @if (Model.Fabrics != null && Model.Fabrics.Any())
+                    {
+                        @foreach (var fabric in Model.Fabrics.OrderBy(f => f.FabricGroupName).ThenBy(f => f.Name))
+                        {
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="fabric_@fabric.Id"
+                                       name="SelectedFabricIds" value="@fabric.Id" />
+                                <label class="form-check-label" for="fabric_@fabric.Id">
+                                    @fabric.Name
+                                    @if (!string.IsNullOrEmpty(fabric.FabricGroupName))
+                                    {
+                                        <span class="text-muted">(@fabric.FabricGroupName)</span>
+                                    }
+                                </label>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Kh�ng c� v?i n�o. Vui l�ng t?o v?i tru?c.</p>
+                    }
+                </div>
+                <small class="form-text text-muted">Ch?n c�c v?i c� s?n cho s?n ph?m n�y. Kh�ch h�ng s? c� th? ch?n t? c�c v?i n�y khi thi?t k?.</small>
+            </div>
+
+            <div class="form-group mb-3">
+                <div class="form-check">
+                    <input asp-for="IsHidden" class="form-check-input" />
+                    <label asp-for="IsHidden" class="form-check-label">?n s?n ph?m</label>
+                </div>
+                <small class="form-text text-muted">Khi du?c ch?n, s?n ph?m s? kh�ng hi?n th? cho kh�ch h�ng.</small>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Image" class="control-label">H�nh ?nh (kh�ng b?t bu?c)</label>
+                <input asp-for="Image" type="file" class="form-control" accept="image/*" />
+                <small class="text-muted">�? tr?ng n?u kh�ng c� h�nh ?nh. Ch?p nh?n: .jpg, .jpeg, .png, .gif</small>
+                <span asp-validation-for="Image" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="Model3D" class="control-label">M� h�nh 3D (kh�ng b?t bu?c)</label>
+                <div class="input-group">
+                    <input asp-for="Model3D" type="file" class="form-control" accept=".glb,.gltf,.obj" />
+                    <a href="http://localhost:5678/form-test/3cf7e768-b69e-4347-9292-567ce14e32ab" target="_blank" class="btn btn-info">
+                        <i class="fas fa-cube"></i> T?o Model 3D
+                    </a>
+                </div>
+                <small class="text-muted">�? tr?ng n?u kh�ng c� m� h�nh 3D. Ch?p nh?n: .glb, .gltf, .obj</small>
+                <span asp-validation-for="Model3D" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">T?o m?i</button>
+                <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal qu?n l� k�ch c? -->
+<div class="modal fade" id="sizesModal" tabindex="-1" aria-labelledby="sizesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sizesModalLabel">Qu?n l� k�ch c? s?n ph?m</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Th�m k�ch c? m?i</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="sizeInput" class="form-label">K�ch c?</label>
+                                    <input type="text" class="form-control" id="sizeInput" required placeholder="V� d?: S, M, L, XL, 38, 40, 42..." />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="quantityInput" class="form-label">S? lu?ng</label>
+                                    <input type="number" class="form-control" id="quantityInput" required min="0" value="0" />
+                                </div>
+                                <button type="button" class="btn btn-primary" id="addSizeBtn">Th�m k�ch c?</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Danh s�ch k�ch c?</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped" id="sizesTable">
+                                        <thead>
+                                            <tr>
+                                                <th>K�ch c?</th>
+                                                <th>S? lu?ng</th>
+                                                <th>Thao t�c</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Danh s�ch k�ch c? s? du?c th�m v�o d�y b?ng JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="noSizesMessage" class="alert alert-info">
+                                    Chua c� k�ch c? n�o cho s?n ph?m n�y. H�y th�m k�ch c? m?i.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">��ng</button>
+                <button type="button" class="btn btn-primary" id="saveSizesBtn">Luu thay d?i</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal ch?nh s?a k�ch c? -->
+<div class="modal fade" id="editSizeModal" tabindex="-1" aria-labelledby="editSizeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editSizeModalLabel">Ch?nh s?a k�ch c?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="editSizeInput" class="form-label">K�ch c?</label>
+                    <input type="text" class="form-control" id="editSizeInput" required readonly />
+                </div>
+                <div class="mb-3">
+                    <label for="editQuantityInput" class="form-label">S? lu?ng</label>
+                    <input type="number" class="form-control" id="editQuantityInput" required min="0" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">H?y</button>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">Luu thay d?i</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Th�m input ?n d? luu th�ng tin k�ch c? -->
+<input type="hidden" id="productSizes" name="ProductSizes" />
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        $(document).ready(function() {
+            // Kh?i t?o m?ng luu tr? k�ch c?
+            var sizes = [];
+
+            // Hi?n th?/?n th�ng b�o kh�ng c� k�ch c?
+            function updateNoSizesMessage() {
+                if (sizes.length === 0) {
+                    $('#noSizesMessage').show();
+                    $('#sizesTable').hide();
+                } else {
+                    $('#noSizesMessage').hide();
+                    $('#sizesTable').show();
+                }
+            }
+
+            // C?p nh?t b?ng k�ch c?
+            function updateSizesTable() {
+                var tbody = $('#sizesTable tbody');
+                tbody.empty();
+
+                sizes.forEach(function(item) {
+                    var row = $('<tr>');
+                    row.append($('<td>').text(item.size));
+                    row.append($('<td>').text(item.quantity));
+
+                    var actionsCell = $('<td>');
+
+                    // N�t x�a
+                    var deleteBtn = $('<button>')
+                        .addClass('btn btn-danger btn-sm me-1')
+                        .attr('type', 'button')
+                        .attr('data-size', item.size)
+                        .html('<i class="fas fa-trash"></i>')
+                        .click(function() {
+                            if (confirm('B?n c� ch?c ch?n mu?n x�a k�ch c? n�y?')) {
+                                var sizeToDelete = $(this).data('size');
+                                sizes = sizes.filter(function(s) {
+                                    return s.size !== sizeToDelete;
+                                });
+                                updateSizesTable();
+                                updateTotalQuantity();
+                                updateNoSizesMessage();
+                            }
+                        });
+
+                    // N�t s?a
+                    var editBtn = $('<button>')
+                        .addClass('btn btn-primary btn-sm')
+                        .attr('type', 'button')
+                        .attr('data-size', item.size)
+                        .attr('data-quantity', item.quantity)
+                        .html('<i class="fas fa-edit"></i>')
+                        .click(function() {
+                            var size = $(this).data('size');
+                            var quantity = $(this).data('quantity');
+
+                            $('#editSizeInput').val(size);
+                            $('#editQuantityInput').val(quantity);
+
+                            $('#editSizeModal').modal('show');
+                        });
+
+                    actionsCell.append(deleteBtn);
+                    actionsCell.append(editBtn);
+                    row.append(actionsCell);
+
+                    tbody.append(row);
+                });
+
+                // C?p nh?t input ?n
+                updateSizesInput();
+            }
+
+            // C?p nh?t t?ng s? lu?ng
+            function updateTotalQuantity() {
+                var total = 0;
+                sizes.forEach(function(item) {
+                    total += parseInt(item.quantity);
+                });
+                $('#Quantity').val(total);
+            }
+
+            // C?p nh?t input ?n
+            function updateSizesInput() {
+                $('#productSizes').val(JSON.stringify(sizes));
+            }
+
+            // Kh?i t?o
+            updateNoSizesMessage();
+
+            // X? l� s? ki?n khi nh?n n�t th�m k�ch c?
+            $('#addSizeBtn').click(function() {
+                var size = $('#sizeInput').val().trim();
+                var quantity = parseInt($('#quantityInput').val());
+
+                if (!size) {
+                    alert('Vui l�ng nh?p k�ch c?');
+                    return;
+                }
+
+                if (isNaN(quantity) || quantity < 0) {
+                    alert('S? lu?ng ph?i l� s? kh�ng �m');
+                    return;
+                }
+
+                // Ki?m tra xem k�ch c? d� t?n t?i chua
+                var existingSize = sizes.find(function(item) {
+                    return item.size === size;
+                });
+
+                if (existingSize) {
+                    alert('K�ch c? n�y d� t?n t?i. Vui l�ng s? d?ng ch?c nang ch?nh s?a.');
+                    return;
+                }
+
+                // Th�m k�ch c? m?i
+                sizes.push({
+                    size: size,
+                    quantity: quantity
+                });
+
+                // C?p nh?t giao di?n
+                updateSizesTable();
+                updateTotalQuantity();
+                updateNoSizesMessage();
+
+                // X�a d? li?u nh?p
+                $('#sizeInput').val('');
+                $('#quantityInput').val(0);
+            });
+
+            // X? l� s? ki?n khi nh?n n�t luu ch?nh s?a
+            $('#saveEditBtn').click(function() {
+                var size = $('#editSizeInput').val();
+                var quantity = parseInt($('#editQuantityInput').val());
+
+                if (isNaN(quantity) || quantity < 0) {
+                    alert('S? lu?ng ph?i l� s? kh�ng �m');
+                    return;
+                }
+
+                // C?p nh?t k�ch c?
+                var sizeIndex = sizes.findIndex(function(item) {
+                    return item.size === size;
+                });
+
+                if (sizeIndex !== -1) {
+                    sizes[sizeIndex].quantity = quantity;
+
+                    // C?p nh?t giao di?n
+                    updateSizesTable();
+                    updateTotalQuantity();
+
+                    // ��ng modal
+                    $('#editSizeModal').modal('hide');
+                }
+            });
+
+            // X? l� s? ki?n khi nh?n n�t luu thay d?i
+            $('#saveSizesBtn').click(function() {
+                // ��ng modal
+                $('#sizesModal').modal('hide');
+            });
+
+            // X? l� s? ki?n khi submit form
+            $('form').submit(function() {
+                // Th�m th�ng tin k�ch c? v�o m� t? s?n ph?m
+                if (sizes.length > 0) {
+                    var sizeSection = sizes.map(function(item) {
+                        return item.size + ':' + item.quantity;
+                    }).join(',');
+
+                    var description = $('#Description').val() || '';
+
+                    // Th�m ph?n k�ch c? v�o cu?i m� t?
+                    if (description) {
+                        description += '\n\n';
+                    }
+                    description += '[SIZES]' + sizeSection + '[/SIZES]';
+
+                    $('#Description').val(description);
+                }
+
+                return true;
+            });
+        });
+    </script>
+}

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ElegantSuits.Api/ElegantSuits.Api.csproj" />
+    <Project Path="src/ElegantSuits.Application/ElegantSuits.Application.csproj" />
+    <Project Path="src/ElegantSuits.Domain/ElegantSuits.Domain.csproj" />
+    <Project Path="src/ElegantSuits.Infrastructure/ElegantSuits.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ElegantSuits.Api.Tests/ElegantSuits.Api.Tests.csproj" />
+    <Project Path="tests/ElegantSuits.Application.Tests/ElegantSuits.Application.Tests.csproj" />
+  </Folder>
+</Solution>

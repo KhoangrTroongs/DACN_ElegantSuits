@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-100">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Elegant Suits</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/elegant-theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/modern-ui.css" asp-append-version="true" />
+    <link rel='stylesheet' href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css'>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    @* N8N Chatbox CSS *@
+    <link href="https://cdn.jsdelivr.net/npm/@@n8n/chat/dist/style.css" rel="stylesheet" />
+
+    @* Render custom styles from individual views *@
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="d-flex flex-column h-100 @(User.IsInRole("Administrator") ? "admin-mode" : "")" style="padding-top: 70px;">
+    <!-- Back to top button -->
+    <button type="button" class="btn btn-elegant-secondary btn-floating btn-lg" id="btn-back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-elegant border-bottom box-shadow mb-3 fixed-top">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-tshirt me-2"></i>Elegant Suits
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <!-- Search form -->
+                        <li class="nav-item d-flex align-items-center mx-2">
+                            <form class="search-form" asp-controller="Product" asp-action="Search" method="get">
+                                <div class="input-group">
+                                    <input type="text" name="keyword" class="form-control form-control-sm search-input" placeholder="Tìm kiếm sản phẩm..." aria-label="Search" required>
+                                    <button class="btn btn-elegant-primary btn-sm" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="fas fa-home me-1"></i>Trang chủ
+                            </a>
+                        </li>
+                        @if (!User.IsInRole("Administrator"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Product" asp-action="Index">
+                                    <i class="fas fa-store me-1"></i>Sản phẩm
+                                </a>
+                            </li>
+                        }
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="About">
+                                <i class="fas fa-info-circle me-1"></i>Giới thiệu
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Contact">
+                                <i class="fas fa-envelope me-1"></i>Liên hệ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="CustomDesign" asp-action="Index">
+                                <i class="fas fa-palette me-1"></i>Thiết Kế Vest
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index" id="adminDashboard">
+                                    <i class="fas fa-user-shield me-1"></i>Quản lý
+                                </a>
+                            </li>
+                        }
+
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link position-relative" asp-controller="Home" asp-action="Cart">
+                                    <i class="fas fa-shopping-cart cart-icon"></i>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill cart-count">
+                                    </span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    <partial name="_LoginPartial" />
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+    @if (User.IsInRole("Administrator"))
+    {
+        <partial name="_AdminIconSidebar" />
+    }
+
+    <div class="container-fluid flex-grow-1 @(User.IsInRole("Administrator") ? "admin-mode-container" : "")">
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="admin-content">
+                <main role="main" class="pb-3" aria-label="Nội dung chính">
+                    @RenderBody()
+                </main>
+            </div>
+        }
+        else
+        {
+            <main role="main" class="pb-3" aria-label="Nội dung chính">
+                @RenderBody()
+            </main>
+        }
+    </div>
+
+    <footer class="footer mt-auto py-3 footer-elegant">
+        <div class="container-fluid">
+            <div class="d-flex flex-wrap justify-content-between align-items-center py-3 border-top">
+            <div class="col-md-4 d-flex align-items-center">
+                <a href="https://github.com/khoangrtroongs" target="_blank" class="mb-2 me-2 mb-md-0 text-decoration-none lh-1">
+                    <img src="https://github.com/khoangrtroongs.png" alt="" width="32" height="32" class="rounded-circle profile-img-elegant me-2">
+                </a>
+                <span class="mb-2 mb-md-0">© 2025, Elegant Suits</span>
+            </div>
+
+            <div class="col-md-4 text-center">
+                <h5 style="color: var(--elegant-gold);">Elegant Suits</h5>
+                <p class="small">Nơi phong cách gặp gỡ sự sang trọng</p>
+            </div>
+
+            <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
+                <li class="ms-3"><a href="https://www.facebook.com/ngohuuduc.tkc" target="_blank"><i class="fab fa-facebook fa-2x"></i></a></li>
+                <li class="ms-3"><a href="https://github.com/khoangrtroongs" target="_blank"><i class="fab fa-github fa-2x"></i></a></li>
+                <li class="ms-3"><a href="#" target="_blank"><i class="fab fa-instagram fa-2x"></i></a></li>
+            </ul>
+            </div>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/boxicons@2.1.4/dist/boxicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    @* N8N Chatbox JavaScript *@
+    <script type="module">
+        import { createChat } from 'https://cdn.jsdelivr.net/npm/@@n8n/chat/dist/chat.bundle.es.js';
+
+        createChat({
+            webhookUrl: 'http://localhost:5678/webhook/5a617ed7-65aa-4fa0-93fa-fa4781e67818/chat',
+            initialMessages: [
+                'Chào mừng Quý khách đến với **Elegant Suits**! 👔✨',
+                'Tôi là trợ lý tư vấn của cửa hàng. Tôi có thể giúp Quý khách:\n\n• Tư vấn chọn vest, áo sơ mi, quần tây\n• Hướng dẫn đo size phù hợp\n• Giới thiệu các sản phẩm mới\n• Hỗ trợ đặt hàng và thanh toán\n\nQuý khách cần hỗ trợ gì ạ?'
+            ],
+            i18n: {
+                en: {
+                    title: 'Elegant Suits',
+                    subtitle: 'Tư vấn thời trang nam cao cấp',
+                    footer: '',
+                    getStarted: 'Bắt đầu trò chuyện',
+                    inputPlaceholder: 'Nhập câu hỏi của bạn...',
+                    closeButtonTooltip: 'Đóng chat'
+                }
+            },
+            theme: {
+                primaryColor: '#1a1a1a',
+                secondaryColor: '#d4af37',
+                backgroundColor: '#ffffff',
+                messageBackgroundColor: '#f8f8f8',
+                userMessageBackgroundColor: '#1a1a1a',
+                userMessageTextColor: '#ffffff',
+                botMessageBackgroundColor: '#f0f0f0',
+                botMessageTextColor: '#1a1a1a',
+                headerBackgroundColor: '#1a1a1a',
+                headerTextColor: '#d4af37',
+                inputBackgroundColor: '#ffffff',
+                inputTextColor: '#1a1a1a',
+                inputBorderColor: '#d4af37',
+                buttonBackgroundColor: '#d4af37',
+                buttonTextColor: '#1a1a1a'
+            }
+        });
+    </script>
+
+    <style>
+        /* Elegant Suits Chatbox Custom Styles */
+        :root {
+            --chat--color-primary: #1a1a1a;
+            --chat--color-secondary: #d4af37;
+            --chat--color-white: #ffffff;
+            --chat--color-light: #f8f8f8;
+            --chat--color-dark: #1a1a1a;
+            --chat--header--background: #1a1a1a;
+            --chat--header--color: #d4af37;
+            --chat--message--bot--background: #f5f5f5;
+            --chat--message--user--background: #1a1a1a;
+            --chat--message--user--color: #ffffff;
+            --chat--toggle--background: #1a1a1a;
+            --chat--toggle--hover--background: #333333;
+            --chat--toggle--active--background: #d4af37;
+            --chat--button--background: #d4af37;
+            --chat--button--hover--background: #b38728;
+            --chat--button--color: #1a1a1a;
+        }
+
+        .n8n-chat .chat-toggle {
+            background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%) !important;
+            border: 2px solid #d4af37 !important;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+        }
+
+        .n8n-chat .chat-toggle:hover {
+            background: linear-gradient(135deg, #d4af37 0%, #b38728 100%) !important;
+            transform: scale(1.05);
+        }
+
+        .n8n-chat .chat-toggle svg {
+            fill: #d4af37 !important;
+        }
+
+        .n8n-chat .chat-toggle:hover svg {
+            fill: #1a1a1a !important;
+        }
+
+        .n8n-chat .chat-window {
+            border: 2px solid #d4af37 !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2) !important;
+        }
+
+        .n8n-chat .chat-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+            border-bottom: 2px solid #d4af37 !important;
+            padding: 16px 20px !important;
+        }
+
+        .n8n-chat .chat-header .title {
+            color: #d4af37 !important;
+            font-weight: 700 !important;
+            font-size: 1.2rem !important;
+        }
+
+        .n8n-chat .chat-header .subtitle {
+            color: #cccccc !important;
+            font-size: 0.85rem !important;
+        }
+
+        .n8n-chat .chat-message-bot .message-content {
+            background: linear-gradient(135deg, #f8f8f8 0%, #f0f0f0 100%) !important;
+            border-left: 3px solid #d4af37 !important;
+            color: #1a1a1a !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+        }
+
+        .n8n-chat .chat-message-user .message-content {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%) !important;
+            color: #ffffff !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+        }
+
+        .n8n-chat .chat-input {
+            border: 2px solid #e0e0e0 !important;
+            border-radius: 25px !important;
+            padding: 12px 20px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .n8n-chat .chat-input:focus {
+            border-color: #d4af37 !important;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2) !important;
+        }
+
+        .n8n-chat .chat-input-container button {
+            background: linear-gradient(135deg, #d4af37 0%, #b38728 100%) !important;
+            color: #1a1a1a !important;
+            border-radius: 50% !important;
+            width: 40px !important;
+            height: 40px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .n8n-chat .chat-input-container button:hover {
+            transform: scale(1.1) !important;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4) !important;
+        }
+
+        .n8n-chat .chat-footer {
+            background: #f8f8f8 !important;
+            border-top: 1px solid #e0e0e0 !important;
+            padding: 12px 16px !important;
+        }
+
+        .n8n-chat .get-started-button {
+            background: linear-gradient(135deg, #d4af37 0%, #b38728 100%) !important;
+            color: #1a1a1a !important;
+            font-weight: 600 !important;
+            border-radius: 25px !important;
+            padding: 12px 24px !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .n8n-chat .get-started-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4) !important;
+        }
+    </style>
+
+    @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        // Back to top button
+        let mybutton = document.getElementById("btn-back-to-top");
+        window.onscroll = function () {
+            scrollFunction();
+        };
+
+        function scrollFunction() {
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                mybutton.style.display = "block";
+            } else {
+                mybutton.style.display = "none";
+            }
+        }
+
+        mybutton.addEventListener("click", backToTop);
+
+        function backToTop() {
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+        }
+
+        // Cart count update
+        function updateCartCount() {
+            if (document.querySelector('.cart-count')) {
+                console.log('Updating cart count...');
+                $.get('/Home/GetCartCount')
+                    .done(function(response) {
+                        console.log('Cart count response:', response);
+                        if (response.count > 0) {
+                            $('.cart-count').html(`${response.count}<span class="visually-hidden">items in cart</span>`);
+                        } else {
+                            $('.cart-count').empty();
+                        }
+                    })
+                    .fail(function(xhr, status, error) {
+                        console.error('Cart count error:', status, error);
+                        console.error('Response:', xhr.responseText);
+                        $('.cart-count').empty();
+                    });
+            }
+        }
+
+        // Initialize tooltips
+        $(document).ready(function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
+        })
+
+        @if (User.Identity.IsAuthenticated)
+        {
+            <text>
+            $(document).ready(function() {
+                updateCartCount();
+                setInterval(updateCartCount, 2000);
+            });
+            </text>
+        }
+    </script>
+</body>
+</html>

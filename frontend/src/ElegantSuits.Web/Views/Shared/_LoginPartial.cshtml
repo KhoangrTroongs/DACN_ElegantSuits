@@ -1,0 +1,49 @@
+<ul class="navbar-nav">
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <li class="nav-item dropdown">
+            <button class="nav-link dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-user-circle me-1"></i>
+                <span class="user-badge">@(User.Identity?.Name ?? "Tài khoản")</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-elegant" aria-labelledby="userDropdown">
+                <li>
+                    <a class="dropdown-item" asp-area="" asp-controller="Account" asp-action="Details">
+                        <i class="fas fa-user me-2"></i>Thông tin cá nhân
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-controller="Home" asp-action="Cart">
+                        <i class="fas fa-shopping-cart me-2"></i>Giỏ hàng
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" asp-controller="ShoppingCart" asp-action="MyOrders">
+                        <i class="fas fa-shopping-bag me-2"></i>Đơn hàng của tôi
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form class="form-inline" asp-area="" asp-controller="Account" asp-action="Logout" method="post">
+                        <button type="submit" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt me-2"></i>Đăng xuất
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Register">
+                <i class="fas fa-user-plus me-1"></i>Đăng ký
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" asp-area="" asp-controller="Account" asp-action="Login">
+                <i class="fas fa-sign-in-alt me-1"></i>Đăng nhập
+            </a>
+        </li>
+    }
+</ul>
