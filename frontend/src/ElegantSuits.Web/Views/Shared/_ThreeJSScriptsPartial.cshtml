@@ -22,13 +22,7 @@
                 return false;
             }
 
-            // Chuyển đổi đường dẫn model sang API controller nếu là đường dẫn cũ
             let modelApiUrl = modelUrl;
-            if (modelUrl.startsWith('/models/products/')) {
-                // Lấy tên file từ đường dẫn
-                const filename = modelUrl.split('/').pop();
-                modelApiUrl = `/model/products/${filename}`;
-            }
 
             // Hiển thị loading indicator
             container.innerHTML = '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Đang tải mô hình 3D...</p></div>';
