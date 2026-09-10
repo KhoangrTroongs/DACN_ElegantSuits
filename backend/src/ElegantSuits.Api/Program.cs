@@ -135,4 +135,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Redirect root to Swagger in development
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/", () => Results.Redirect("/swagger"));
+}
+
 app.Run();

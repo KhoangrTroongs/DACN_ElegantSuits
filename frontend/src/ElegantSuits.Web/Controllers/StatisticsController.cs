@@ -45,7 +45,7 @@ public class StatisticsController : Controller
 
         try
         {
-            var baseUrl = _config["BackendApi:BaseUrl"] ?? "https://localhost:7198";
+            var baseUrl = _config["BackendApi:BaseUrl"] ?? "http://localhost:5097";
             var token = HttpContext.Session.GetString("JwtToken");
             var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/StatisticsApi/overview");
             if (!string.IsNullOrEmpty(token))

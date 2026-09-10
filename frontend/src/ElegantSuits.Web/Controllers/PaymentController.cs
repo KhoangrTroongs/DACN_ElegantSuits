@@ -23,7 +23,7 @@ public class PaymentController : Controller
     {
         try
         {
-            var baseUrl = _config["BackendApi:BaseUrl"] ?? "https://localhost:7198";
+            var baseUrl = _config["BackendApi:BaseUrl"] ?? "http://localhost:5097";
             var token = HttpContext.Session.GetString("JwtToken");
             
             var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/api/PaymentApi/vnpay/create/{orderId}");
@@ -60,7 +60,7 @@ public class PaymentController : Controller
     public async Task<IActionResult> VnPayReturn()
     {
         var queryString = Request.QueryString.Value;
-        var baseUrl = _config["BackendApi:BaseUrl"] ?? "https://localhost:7198";
+        var baseUrl = _config["BackendApi:BaseUrl"] ?? "http://localhost:5097";
 
         try
         {

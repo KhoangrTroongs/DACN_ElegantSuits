@@ -21,7 +21,7 @@ builder.Services.AddAuthentication(Microsoft.AspNetCore.Authentication.Cookies.C
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
     });
 
-var apiBaseUrl = builder.Configuration["BackendApi:BaseUrl"] ?? "https://localhost:7198";
+var apiBaseUrl = builder.Configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
 
 builder.Services.AddHttpClient<IProductApiClient, ProductApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl));
 builder.Services.AddHttpClient<ICategoryApiClient, CategoryApiClient>(c => c.BaseAddress = new Uri(apiBaseUrl));
