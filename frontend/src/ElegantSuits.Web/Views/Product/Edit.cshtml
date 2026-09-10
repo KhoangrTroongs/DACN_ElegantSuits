@@ -1,12 +1,12 @@
 @model ElegantSuits.Web.Models.ProductViewModel
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    ViewData["Title"] = "S?a s?n ph?m";
+    ViewData["Title"] = "Sửa sản phẩm";
 }
 
-<h1>S?a</h1>
+<h1>Sửa</h1>
 
-<h4>S?n ph?m</h4>
+<h4>Sản phẩm</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -29,10 +29,10 @@
                     var reviewTag = "[REVIEWS]";
                     var endReviewTag = "[/REVIEWS]";
 
-                    // Lo?i b? ph?n k? thu?t kh?i m� t?
+                    // Loại bỏ phần kỹ thuật khỏi mô tả
                     if (!string.IsNullOrEmpty(description))
                     {
-                        // Lo?i b? ph?n k�ch thu?c
+                        // Loại bỏ phần kích thước
                         if (description.Contains(sizeTag) && description.Contains(endSizeTag))
                         {
                             var startIndex = description.IndexOf(sizeTag);
@@ -43,7 +43,7 @@
                             }
                         }
 
-                        // Lo?i b? ph?n d�nh gi�
+                        // Loại bỏ phần đánh giá
                         if (description.Contains(reviewTag) && description.Contains(endReviewTag))
                         {
                             var startIndex = description.IndexOf(reviewTag);
@@ -54,13 +54,13 @@
                             }
                         }
 
-                        // Lo?i b? kho?ng tr?ng th?a
+                        // Loại bỏ khoảng trắng thừa
                         description = description.Trim();
                     }
                 }
                 <textarea asp-for="Description" class="form-control" rows="3">@description</textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
-                <small class="form-text text-muted">M� t? s?n ph?m. Th�ng tin v? k�ch thu?c s? du?c qu?n l� ri�ng.</small>
+                <small class="form-text text-muted">Mô tả sản phẩm. Thông tin về kích thước sẽ được quản lý riêng.</small>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="Price" class="control-label"></label>
@@ -72,31 +72,31 @@
                 <div class="input-group">
                     <input asp-for="Quantity" class="form-control" type="number" min="0" />
                     <a asp-action="ManageProductSizes" asp-route-id="@Model.Id" class="btn btn-outline-primary">
-                        <i class="fas fa-tshirt"></i> Qu?n l� k�ch c?
+                        <i class="fas fa-tshirt"></i> Quản lý kích cỡ
                     </a>
                 </div>
                 <span asp-validation-for="Quantity" class="text-danger"></span>
-                <small class="form-text text-muted">S? lu?ng t?ng c?a t?t c? c�c k�ch c?. S? d?ng n�t "Qu?n l� k�ch c?" d? th�m/s?a/x�a k�ch c?.</small>
+                <small class="form-text text-muted">Số lượng tổng của tất cả các kích cỡ. Sử dụng nút "Quản lý kích cỡ" để thêm/sửa/xóa kích cỡ.</small>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="LinearCode" class="control-label"></label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-barcode"></i></span>
-                    <input asp-for="LinearCode" class="form-control" placeholder="Nh?p m� 12 s?" maxlength="12" pattern="\d{12}" />
+                    <input asp-for="LinearCode" class="form-control" placeholder="Nhập mã 12 số" maxlength="12" pattern="\d{12}" />
                 </div>
                 <span asp-validation-for="LinearCode" class="text-danger"></span>
-                <small class="form-text text-muted">M� Linear (Barcode) 12 ch? s? d�ng d? qu�t m� khi nh?p/xu?t kho.</small>
+                <small class="form-text text-muted">Mã Linear (Barcode) 12 chữ số dùng để quét mã khi nhập/xuất kho.</small>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="CategoryId" class="control-label"></label>
                 <select asp-for="CategoryId" class="form-control" asp-items="@(new SelectList(Model.Categories, "Id", "Name"))">
-                    <option value="">-- Ch?n danh m?c --</option>
+                    <option value="">-- Chọn danh mục --</option>
                 </select>
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
 
             <div class="form-group mb-3">
-                <label class="control-label">V?i (kh�ng b?t bu?c)</label>
+                <label class="control-label">Vải (không bắt buộc)</label>
                 <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
                     @if (Model.Fabrics != null && Model.Fabrics.Any())
                     {
@@ -118,18 +118,18 @@
                     }
                     else
                     {
-                        <p class="text-muted">Kh�ng c� v?i n�o. Vui l�ng t?o v?i tru?c.</p>
+                        <p class="text-muted">Không có vải nào. Vui lòng tạo vải trước.</p>
                     }
                 </div>
-                <small class="form-text text-muted">Ch?n c�c v?i c� s?n cho s?n ph?m n�y. Kh�ch h�ng s? c� th? ch?n t? c�c v?i n�y khi thi?t k?.</small>
+                <small class="form-text text-muted">Chọn các vải có sẵn cho sản phẩm này. Khách hàng sẽ có thể chọn từ các vải này khi thiết kế.</small>
             </div>
 
             <div class="form-group mb-3">
                 <div class="form-check">
                     <input asp-for="IsHidden" class="form-check-input" />
-                    <label asp-for="IsHidden" class="form-check-label">?n s?n ph?m</label>
+                    <label asp-for="IsHidden" class="form-check-label">Ẩn sản phẩm</label>
                 </div>
-                <small class="form-text text-muted">Khi du?c ch?n, s?n ph?m s? kh�ng hi?n th? cho kh�ch h�ng.</small>
+                <small class="form-text text-muted">Khi được chọn, sản phẩm sẽ không hiển thị cho khách hàng.</small>
             </div>
 
             <div class="form-group mb-3">
@@ -139,34 +139,34 @@
             </div>
 
 <div class="form-group mb-3">
-    <label class="control-label">H�nh ?nh hi?n t?i</label>
+    <label class="control-label">Hình ảnh hiện tại</label>
     <div>
         @if (!string.IsNullOrEmpty(Model.ExistingImageUrl))
         {
-            <img src="@Model.ExistingImageUrl" alt="H�nh ?nh hi?n t?i" style="max-width: 200px; max-height: 200px;" />
+            <img src="@Model.ExistingImageUrl" alt="Hình ảnh hiện tại" style="max-width: 200px; max-height: 200px;" />
             <div class="d-flex justify-content-between align-items-center mt-2">
-                <span class="text-muted">T?i l�n h�nh ?nh m?i d? thay th? h�nh ?nh hi?n t?i</span>
-                <a asp-action="DeleteImageGet" asp-route-id="@Model.Id" class="btn btn-danger btn-sm" onclick="return confirm('B?n c� ch?c ch?n mu?n x�a h�nh ?nh n�y?');">
-                    <i class="fas fa-trash-alt"></i> X�a h�nh ?nh
+                <span class="text-muted">Tải lên hình ảnh mới để thay thế hình ảnh hiện tại</span>
+                <a asp-action="DeleteImageGet" asp-route-id="@Model.Id" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa hình ảnh này?');">
+                    <i class="fas fa-trash-alt"></i> Xóa hình ảnh
                 </a>
             </div>
         }
         else
         {
-            <img src="/images/no-image.svg" alt="Kh�ng c� h�nh ?nh" style="max-width: 200px; max-height: 200px;" onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'" />
+            <img src="/images/no-image.svg" alt="Không có hình ảnh" style="max-width: 200px; max-height: 200px;" onerror="this.src='https://via.placeholder.com/200x200?text=No+Image'" />
             <div class="mt-2">
-                <span class="text-muted">S?n ph?m chua c� h�nh ?nh. Vui l�ng t?i l�n h�nh ?nh.</span>
+                <span class="text-muted">Sản phẩm chưa có hình ảnh. Vui lòng tải lên hình ảnh.</span>
             </div>
         }
     </div>
 </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Model3D" class="control-label">M� h�nh 3D (kh�ng b?t bu?c)</label>
+                <label asp-for="Model3D" class="control-label">Mô hình 3D (không bắt buộc)</label>
                 <div class="input-group">
                     <input asp-for="Model3D" type="file" class="form-control" accept=".glb,.gltf,.obj" />
                     <a href="http://localhost:5678/form-test/3cf7e768-b69e-4347-9292-567ce14e32ab" target="_blank" class="btn btn-info">
-                        <i class="fas fa-cube"></i> T?o Model 3D
+                        <i class="fas fa-cube"></i> Tạo Model 3D
                     </a>
                 </div>
                 <span asp-validation-for="Model3D" class="text-danger"></span>
@@ -175,14 +175,14 @@
 @if (!string.IsNullOrEmpty(Model.ExistingModel3DUrl))
 {
     <div class="form-group mb-3">
-        <label class="control-label">M� h�nh 3D hi?n t?i</label>
+        <label class="control-label">Mô hình 3D hiện tại</label>
         <div>
             <p><i class="fas fa-cube"></i> @System.IO.Path.GetFileName(Model.ExistingModel3DUrl)</p>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-2">
-            <span class="text-muted">T?i l�n m� h�nh 3D m?i d? thay th? m� h�nh hi?n t?i</span>
-            <a asp-action="DeleteModel3DGet" asp-route-id="@Model.Id" class="btn btn-danger btn-sm" onclick="return confirm('B?n c� ch?c ch?n mu?n x�a m� h�nh 3D n�y?');">
-                <i class="fas fa-trash-alt"></i> X�a m� h�nh 3D
+            <span class="text-muted">Tải lên mô hình 3D mới để thay thế mô hình hiện tại</span>
+            <a asp-action="DeleteModel3DGet" asp-route-id="@Model.Id" class="btn btn-danger btn-sm" onclick="return confirm('Bạn có chắc chắn muốn xóa mô hình 3D này?');">
+                <i class="fas fa-trash-alt"></i> Xóa mô hình 3D
             </a>
         </div>
     </div>
@@ -190,7 +190,7 @@
 
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">Luu</button>
-                <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+                <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
             </div>
         </form>
     </div>

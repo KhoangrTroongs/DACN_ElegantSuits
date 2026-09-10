@@ -4,7 +4,7 @@
 @model ElegantSuits.Web.Models.UserDetailsViewModel
 
 @{
-    ViewData["Title"] = "Th�ng tin ngu?i d�ng";
+    ViewData["Title"] = "Thông tin người dùng";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -21,34 +21,34 @@
             <dt class="col-sm-4">Email</dt>
             <dd class="col-sm-8">@Model.Email</dd>
 
-            <dt class="col-sm-4">H? v� t�n</dt>
+            <dt class="col-sm-4">Họ và tên</dt>
             <dd class="col-sm-8">@Model.FullName</dd>
 
-            <dt class="col-sm-4">Ng�y sinh</dt>
+            <dt class="col-sm-4">Ngày sinh</dt>
             <dd class="col-sm-8">@Model.DateOfBirth.ToString("dd/MM/yyyy")</dd>
 
-            <dt class="col-sm-4">S? di?n tho?i</dt>
-            <dd class="col-sm-8">@(Model.PhoneNumber ?? "Chua c?p nh?t")</dd>
+            <dt class="col-sm-4">Số điện thoại</dt>
+            <dd class="col-sm-8">@(Model.PhoneNumber ?? "Chưa cập nhật")</dd>
 
-            <dt class="col-sm-4">�?a ch?</dt>
-            <dd class="col-sm-8">@(Model.Address ?? "Chua c?p nh?t")</dd>
+            <dt class="col-sm-4">Địa chỉ</dt>
+            <dd class="col-sm-8">@(Model.Address ?? "Chưa cập nhật")</dd>
 
-            <dt class="col-sm-4">Ng�y t?o t�i kho?n</dt>
+            <dt class="col-sm-4">Ngày tạo tài khoản</dt>
             <dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
         </dl>
 
         <div class="form-group">
             @if (User.IsInRole("Administrator") && User.Identity?.Name != Model.Email)
             {
-                <a asp-action="UpdateUser" asp-route-id="@Model.Id" class="btn btn-primary">C?p nh?t th�ng tin</a>
-                <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+                <a asp-action="UpdateUser" asp-route-id="@Model.Id" class="btn btn-primary">Cập nhật thông tin</a>
+                <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
             }
             else
             {
-                <a asp-action="Update" class="btn btn-primary">C?p nh?t th�ng tin</a>
+                <a asp-action="Update" class="btn btn-primary">Cập nhật thông tin</a>
                 @if (User.IsInRole("Administrator"))
                 {
-                    <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
                 }
             }
         </div>

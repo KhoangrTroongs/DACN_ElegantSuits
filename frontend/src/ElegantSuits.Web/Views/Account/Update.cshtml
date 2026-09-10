@@ -4,7 +4,7 @@
 @model ElegantSuits.Web.Models.UserDetailsViewModel
 
 @{
-    ViewData["Title"] = "C?p nh?t th�ng tin ngu?i d�ng";
+    ViewData["Title"] = "Cập nhật thông tin người dùng";
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -23,7 +23,7 @@
                         <img src="@Model.AvatarUrl" alt="Current Avatar" class="rounded-circle" style="width: 100px; height: 100px; object-fit: cover;" />
                     </div>
                 }
-                <label class="form-label">Thay d?i ?nh d?i di?n</label>
+                <label class="form-label">Thay đổi ảnh đại diện</label>
                 <input type="file" name="AvatarFile" class="form-control" accept="image/*" />
             </div>
 
@@ -57,14 +57,14 @@
             </div>
 
             <div class="form-group">
-                <button type="submit" class="btn btn-primary">Luu thay d?i</button>
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 @if (User.IsInRole("Administrator") && User.Identity?.Name != Model.Email)
                 {
-                    <a asp-action="UserDetails" asp-route-id="@Model.Id" class="btn btn-secondary">Quay l?i</a>
+                    <a asp-action="UserDetails" asp-route-id="@Model.Id" class="btn btn-secondary">Quay lại</a>
                 }
                 else
                 {
-                    <a asp-action="Details" class="btn btn-secondary">Quay l?i</a>
+                    <a asp-action="Details" class="btn btn-secondary">Quay lại</a>
                 }
             </div>
         </form>

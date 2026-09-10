@@ -1,27 +1,27 @@
 @model ElegantSuits.Web.Models.ProductViewModel
 @using Microsoft.AspNetCore.Mvc.Rendering
 @{
-    ViewData["Title"] = "T?o s?n ph?m";
+    ViewData["Title"] = "Tạo sản phẩm";
     if (Model.Categories == null)
     {
         Model.Categories = new List<Category>();
     }
 }
 
-<h1>T?o m?i</h1>
+<h1>Tạo mới</h1>
 
 @if (ViewBag.SelectedCategoryName != null)
 {
-    <p><strong>Danh m?c d� ch?n:</strong> @ViewBag.SelectedCategoryName</p>
+    <p><strong>Danh mục đã chọn:</strong> @ViewBag.SelectedCategoryName</p>
 }
 
-<h4>S?n ph?m</h4>
+<h4>Sản phẩm</h4>
 <hr />
 
 @if (!ViewData.ModelState.IsValid)
 {
     <div class="alert alert-danger">
-        <strong>C� l?i x?y ra:</strong>
+        <strong>Có lỗi xảy ra:</strong>
         <ul>
             @foreach (var modelState in ViewData.ModelState.Values)
             {
@@ -39,7 +39,7 @@
         <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="All" class="text-danger"></div>
             <div class="form-group mb-3">
-                <label asp-for="Name" class="control-label">T�n s?n ph?m *</label>
+                <label asp-for="Name" class="control-label">Tên sản phẩm *</label>
                 <input asp-for="Name" class="form-control" required />
                 <span asp-validation-for="Name" class="text-danger"></span>
             </div>
@@ -47,7 +47,7 @@
                 <label asp-for="Description" class="control-label"></label>
                 <textarea asp-for="Description" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="Description" class="text-danger"></span>
-                <small class="form-text text-muted">M� t? s?n ph?m. Th�ng tin v? k�ch thu?c s? du?c qu?n l� ri�ng b?ng n�t "Qu?n l� k�ch c?" ? ph?n s? lu?ng.</small>
+                <small class="form-text text-muted">Mô tả sản phẩm. Thông tin về kích thước sẽ được quản lý riêng bằng nút "Quản lý kích cỡ" ở phần số lượng.</small>
             </div>
             <div class="form-group mb-3">
                 <label asp-for="Price" class="control-label"></label>
@@ -59,16 +59,16 @@
                 <div class="input-group">
                     <input asp-for="Quantity" class="form-control" type="number" min="0" />
                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#sizesModal">
-                        <i class="fas fa-tshirt"></i> Qu?n l� k�ch c?
+                        <i class="fas fa-tshirt"></i> Quản lý kích cỡ
                     </button>
                 </div>
                 <span asp-validation-for="Quantity" class="text-danger"></span>
-                <small class="form-text text-muted">S? lu?ng t?ng c?a t?t c? c�c k�ch c?. S? d?ng n�t "Qu?n l� k�ch c?" d? th�m/s?a/x�a k�ch c?.</small>
+                <small class="form-text text-muted">Số lượng tổng của tất cả các kích cỡ. Sử dụng nút "Quản lý kích cỡ" để thêm/sửa/xóa kích cỡ.</small>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="CategoryId" class="control-label">Danh m?c *</label>
+                <label asp-for="CategoryId" class="control-label">Danh mục *</label>
                 <select asp-for="CategoryId" class="form-control">
-                    <option value="">-- Ch?n danh m?c --</option>
+                    <option value="">-- Chọn danh mục --</option>
                     @foreach (var category in Model.Categories)
                     {
                         <option value="@category.Id">@category.Name</option>
@@ -78,7 +78,7 @@
             </div>
 
             <div class="form-group mb-3">
-                <label class="control-label">V?i (kh�ng b?t bu?c)</label>
+                <label class="control-label">Vải (không bắt buộc)</label>
                 <div class="border rounded p-3" style="max-height: 300px; overflow-y: auto;">
                     @if (Model.Fabrics != null && Model.Fabrics.Any())
                     {
@@ -99,51 +99,51 @@
                     }
                     else
                     {
-                        <p class="text-muted">Kh�ng c� v?i n�o. Vui l�ng t?o v?i tru?c.</p>
+                        <p class="text-muted">Không có vải nào. Vui lòng tạo vải trước.</p>
                     }
                 </div>
-                <small class="form-text text-muted">Ch?n c�c v?i c� s?n cho s?n ph?m n�y. Kh�ch h�ng s? c� th? ch?n t? c�c v?i n�y khi thi?t k?.</small>
+                <small class="form-text text-muted">Chọn các vải có sẵn cho sản phẩm này. Khách hàng sẽ có thể chọn từ các vải này khi thiết kế.</small>
             </div>
 
             <div class="form-group mb-3">
                 <div class="form-check">
                     <input asp-for="IsHidden" class="form-check-input" />
-                    <label asp-for="IsHidden" class="form-check-label">?n s?n ph?m</label>
+                    <label asp-for="IsHidden" class="form-check-label">Ẩn sản phẩm</label>
                 </div>
-                <small class="form-text text-muted">Khi du?c ch?n, s?n ph?m s? kh�ng hi?n th? cho kh�ch h�ng.</small>
+                <small class="form-text text-muted">Khi được chọn, sản phẩm sẽ không hiển thị cho khách hàng.</small>
             </div>
 
             <div class="form-group mb-3">
-                <label asp-for="Image" class="control-label">H�nh ?nh (kh�ng b?t bu?c)</label>
+                <label asp-for="Image" class="control-label">Hình ảnh (không bắt buộc)</label>
                 <input asp-for="Image" type="file" class="form-control" accept="image/*" />
-                <small class="text-muted">�? tr?ng n?u kh�ng c� h�nh ?nh. Ch?p nh?n: .jpg, .jpeg, .png, .gif</small>
+                <small class="text-muted">Để trống nếu không có hình ảnh. Chấp nhận: .jpg, .jpeg, .png, .gif</small>
                 <span asp-validation-for="Image" class="text-danger"></span>
             </div>
             <div class="form-group mb-3">
-                <label asp-for="Model3D" class="control-label">M� h�nh 3D (kh�ng b?t bu?c)</label>
+                <label asp-for="Model3D" class="control-label">Mô hình 3D (không bắt buộc)</label>
                 <div class="input-group">
                     <input asp-for="Model3D" type="file" class="form-control" accept=".glb,.gltf,.obj" />
                     <a href="http://localhost:5678/form-test/3cf7e768-b69e-4347-9292-567ce14e32ab" target="_blank" class="btn btn-info">
-                        <i class="fas fa-cube"></i> T?o Model 3D
+                        <i class="fas fa-cube"></i> Tạo Model 3D
                     </a>
                 </div>
-                <small class="text-muted">�? tr?ng n?u kh�ng c� m� h�nh 3D. Ch?p nh?n: .glb, .gltf, .obj</small>
+                <small class="text-muted">Để trống nếu không có mô hình 3D. Chấp nhận: .glb, .gltf, .obj</small>
                 <span asp-validation-for="Model3D" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <button type="submit" class="btn btn-primary">T?o m?i</button>
-                <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+                <button type="submit" class="btn btn-primary">Tạo mới</button>
+                <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal qu?n l� k�ch c? -->
+<!-- Modal quản lý kích cỡ -->
 <div class="modal fade" id="sizesModal" tabindex="-1" aria-labelledby="sizesModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="sizesModalLabel">Qu?n l� k�ch c? s?n ph?m</h5>
+                <h5 class="modal-title" id="sizesModalLabel">Quản lý kích cỡ sản phẩm</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -151,43 +151,43 @@
                     <div class="col-md-6">
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5>Th�m k�ch c? m?i</h5>
+                                <h5>Thêm kích cỡ mới</h5>
                             </div>
                             <div class="card-body">
                                 <div class="mb-3">
-                                    <label for="sizeInput" class="form-label">K�ch c?</label>
-                                    <input type="text" class="form-control" id="sizeInput" required placeholder="V� d?: S, M, L, XL, 38, 40, 42..." />
+                                    <label for="sizeInput" class="form-label">Kích cỡ</label>
+                                    <input type="text" class="form-control" id="sizeInput" required placeholder="Ví dụ: S, M, L, XL, 38, 40, 42..." />
                                 </div>
                                 <div class="mb-3">
-                                    <label for="quantityInput" class="form-label">S? lu?ng</label>
+                                    <label for="quantityInput" class="form-label">Số lượng</label>
                                     <input type="number" class="form-control" id="quantityInput" required min="0" value="0" />
                                 </div>
-                                <button type="button" class="btn btn-primary" id="addSizeBtn">Th�m k�ch c?</button>
+                                <button type="button" class="btn btn-primary" id="addSizeBtn">Thêm kích cỡ</button>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Danh s�ch k�ch c?</h5>
+                                <h5>Danh sách kích cỡ</h5>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
                                     <table class="table table-striped" id="sizesTable">
                                         <thead>
                                             <tr>
-                                                <th>K�ch c?</th>
-                                                <th>S? lu?ng</th>
-                                                <th>Thao t�c</th>
+                                                <th>Kích cỡ</th>
+                                                <th>Số lượng</th>
+                                                <th>Thao tác</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- Danh s�ch k�ch c? s? du?c th�m v�o d�y b?ng JavaScript -->
+                                            <!-- Danh sách kích cỡ sẽ được thêm vào đây bằng JavaScript -->
                                         </tbody>
                                     </table>
                                 </div>
                                 <div id="noSizesMessage" class="alert alert-info">
-                                    Chua c� k�ch c? n�o cho s?n ph?m n�y. H�y th�m k�ch c? m?i.
+                                    Chưa có kích cỡ nào cho sản phẩm này. Hãy thêm kích cỡ mới.
                                 </div>
                             </div>
                         </div>
@@ -195,40 +195,40 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">��ng</button>
-                <button type="button" class="btn btn-primary" id="saveSizesBtn">Luu thay d?i</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="saveSizesBtn">Lưu thay đổi</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal ch?nh s?a k�ch c? -->
+<!-- Modal chỉnh sửa kích cỡ -->
 <div class="modal fade" id="editSizeModal" tabindex="-1" aria-labelledby="editSizeModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editSizeModalLabel">Ch?nh s?a k�ch c?</h5>
+                <h5 class="modal-title" id="editSizeModalLabel">Chỉnh sửa kích cỡ</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label for="editSizeInput" class="form-label">K�ch c?</label>
+                    <label for="editSizeInput" class="form-label">Kích cỡ</label>
                     <input type="text" class="form-control" id="editSizeInput" required readonly />
                 </div>
                 <div class="mb-3">
-                    <label for="editQuantityInput" class="form-label">S? lu?ng</label>
+                    <label for="editQuantityInput" class="form-label">Số lượng</label>
                     <input type="number" class="form-control" id="editQuantityInput" required min="0" />
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">H?y</button>
-                <button type="button" class="btn btn-primary" id="saveEditBtn">Luu thay d?i</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">Lưu thay đổi</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Th�m input ?n d? luu th�ng tin k�ch c? -->
+<!-- Thêm input ẩn để lưu thông tin kích cỡ -->
 <input type="hidden" id="productSizes" name="ProductSizes" />
 
 @section Scripts {
@@ -238,10 +238,10 @@
 
     <script>
         $(document).ready(function() {
-            // Kh?i t?o m?ng luu tr? k�ch c?
+            // Khởi tạo mảng lưu trữ kích cỡ
             var sizes = [];
 
-            // Hi?n th?/?n th�ng b�o kh�ng c� k�ch c?
+            // Hiển thị/ẩn thông báo không có kích cỡ
             function updateNoSizesMessage() {
                 if (sizes.length === 0) {
                     $('#noSizesMessage').show();
@@ -252,7 +252,7 @@
                 }
             }
 
-            // C?p nh?t b?ng k�ch c?
+            // Cập nhật bảng kích cỡ
             function updateSizesTable() {
                 var tbody = $('#sizesTable tbody');
                 tbody.empty();
@@ -264,14 +264,14 @@
 
                     var actionsCell = $('<td>');
 
-                    // N�t x�a
+                    // Nút xóa
                     var deleteBtn = $('<button>')
                         .addClass('btn btn-danger btn-sm me-1')
                         .attr('type', 'button')
                         .attr('data-size', item.size)
                         .html('<i class="fas fa-trash"></i>')
                         .click(function() {
-                            if (confirm('B?n c� ch?c ch?n mu?n x�a k�ch c? n�y?')) {
+                            if (confirm('Bạn có chắc chắn muốn xóa kích cỡ này?')) {
                                 var sizeToDelete = $(this).data('size');
                                 sizes = sizes.filter(function(s) {
                                     return s.size !== sizeToDelete;
@@ -282,7 +282,7 @@
                             }
                         });
 
-                    // N�t s?a
+                    // Nút sửa
                     var editBtn = $('<button>')
                         .addClass('btn btn-primary btn-sm')
                         .attr('type', 'button')
@@ -306,11 +306,11 @@
                     tbody.append(row);
                 });
 
-                // C?p nh?t input ?n
+                // Cập nhật input ẩn
                 updateSizesInput();
             }
 
-            // C?p nh?t t?ng s? lu?ng
+            // Cập nhật tổng số lượng
             function updateTotalQuantity() {
                 var total = 0;
                 sizes.forEach(function(item) {
@@ -319,66 +319,66 @@
                 $('#Quantity').val(total);
             }
 
-            // C?p nh?t input ?n
+            // Cập nhật input ẩn
             function updateSizesInput() {
                 $('#productSizes').val(JSON.stringify(sizes));
             }
 
-            // Kh?i t?o
+            // Khởi tạo
             updateNoSizesMessage();
 
-            // X? l� s? ki?n khi nh?n n�t th�m k�ch c?
+            // Xử lý sự kiện khi nhấn nút thêm kích cỡ
             $('#addSizeBtn').click(function() {
                 var size = $('#sizeInput').val().trim();
                 var quantity = parseInt($('#quantityInput').val());
 
                 if (!size) {
-                    alert('Vui l�ng nh?p k�ch c?');
+                    alert('Vui lòng nhập kích cỡ');
                     return;
                 }
 
                 if (isNaN(quantity) || quantity < 0) {
-                    alert('S? lu?ng ph?i l� s? kh�ng �m');
+                    alert('Số lượng phải là số không âm');
                     return;
                 }
 
-                // Ki?m tra xem k�ch c? d� t?n t?i chua
+                // Kiểm tra xem kích cỡ đã tồn tại chưa
                 var existingSize = sizes.find(function(item) {
                     return item.size === size;
                 });
 
                 if (existingSize) {
-                    alert('K�ch c? n�y d� t?n t?i. Vui l�ng s? d?ng ch?c nang ch?nh s?a.');
+                    alert('Kích cỡ này đã tồn tại. Vui lòng sử dụng chức năng chỉnh sửa.');
                     return;
                 }
 
-                // Th�m k�ch c? m?i
+                // Thêm kích cỡ mới
                 sizes.push({
                     size: size,
                     quantity: quantity
                 });
 
-                // C?p nh?t giao di?n
+                // Cập nhật giao diện
                 updateSizesTable();
                 updateTotalQuantity();
                 updateNoSizesMessage();
 
-                // X�a d? li?u nh?p
+                // Xóa dữ liệu nhập
                 $('#sizeInput').val('');
                 $('#quantityInput').val(0);
             });
 
-            // X? l� s? ki?n khi nh?n n�t luu ch?nh s?a
+            // Xử lý sự kiện khi nhấn nút lưu chỉnh sửa
             $('#saveEditBtn').click(function() {
                 var size = $('#editSizeInput').val();
                 var quantity = parseInt($('#editQuantityInput').val());
 
                 if (isNaN(quantity) || quantity < 0) {
-                    alert('S? lu?ng ph?i l� s? kh�ng �m');
+                    alert('Số lượng phải là số không âm');
                     return;
                 }
 
-                // C?p nh?t k�ch c?
+                // Cập nhật kích cỡ
                 var sizeIndex = sizes.findIndex(function(item) {
                     return item.size === size;
                 });
@@ -386,24 +386,24 @@
                 if (sizeIndex !== -1) {
                     sizes[sizeIndex].quantity = quantity;
 
-                    // C?p nh?t giao di?n
+                    // Cập nhật giao diện
                     updateSizesTable();
                     updateTotalQuantity();
 
-                    // ��ng modal
+                    // Đóng modal
                     $('#editSizeModal').modal('hide');
                 }
             });
 
-            // X? l� s? ki?n khi nh?n n�t luu thay d?i
+            // Xử lý sự kiện khi nhấn nút lưu thay đổi
             $('#saveSizesBtn').click(function() {
-                // ��ng modal
+                // Đóng modal
                 $('#sizesModal').modal('hide');
             });
 
-            // X? l� s? ki?n khi submit form
+            // Xử lý sự kiện khi submit form
             $('form').submit(function() {
-                // Th�m th�ng tin k�ch c? v�o m� t? s?n ph?m
+                // Thêm thông tin kích cỡ vào mô tả sản phẩm
                 if (sizes.length > 0) {
                     var sizeSection = sizes.map(function(item) {
                         return item.size + ':' + item.quantity;
@@ -411,7 +411,7 @@
 
                     var description = $('#Description').val() || '';
 
-                    // Th�m ph?n k�ch c? v�o cu?i m� t?
+                    // Thêm phần kích cỡ vào cuối mô tả
                     if (description) {
                         description += '\n\n';
                     }

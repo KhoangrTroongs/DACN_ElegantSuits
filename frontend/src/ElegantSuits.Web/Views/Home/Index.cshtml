@@ -281,9 +281,9 @@
             <img src="~/images/img/wall.jpg" alt="Wall" style="width: 100%; height: 750px; object-fit: cover;">
             <div class="container">
                 <div class="carousel-caption text-start">
-                    <h1>C?a h�ng �o Vest.</h1>
-                    <p class="opacity-75">T?ng h?p nhi?u lo?i suit ph� h?p cho t?ng m?c d�ch c?a b?n.</p>
-                    <p><a class="btn btn-lg btn-elegant-primary" asp-area="" asp-controller="Product" asp-action="Index">S?n ph?m</a></p>
+                    <h1>Cửa hàng áo Vest.</h1>
+                    <p class="opacity-75">Tổng hợp nhiều loại suit phù hợp cho từng mục đích của bạn.</p>
+                    <p><a class="btn btn-lg btn-elegant-primary" asp-area="" asp-controller="Product" asp-action="Index">Sản phẩm</a></p>
                 </div>
             </div>
         </div>
@@ -291,9 +291,9 @@
             <img src="~/images/img/wall4.jpg" alt="Wall2" style="width: 100%; height: 750px; object-fit: cover;">
             <div class="container">
                 <div class="carousel-caption">
-                    <h1>Nh?n d?t may.</h1>
-                    <p>L?a ch?n ki?u d�ng, lo?i v?i, m�u s?c ph� h?p v?i m?c d�ch c?a b?n.</p>
-                    <p><a class="btn btn-lg btn-elegant-primary" asp-area="" asp-controller="Home" asp-action="Contact">Li�n h? v?i ch�ng t�i</a></p>
+                    <h1>Nhận đặt may.</h1>
+                    <p>Lựa chọn kiểu dáng, loại vải, màu sắc phù hợp với mục đích của bạn.</p>
+                    <p><a class="btn btn-lg btn-elegant-primary" asp-area="" asp-controller="Home" asp-action="Contact">Liên hệ với chúng tôi</a></p>
                 </div>
             </div>
         </div>
@@ -301,9 +301,9 @@
             <img src="~/images/img/wall3.jpg" alt="Wall2" style="width: 100%; height: 750px; object-fit: cover;">
             <div class="container">
                 <div class="carousel-caption text-end">
-                    <h1>Cho thu�.</h1>
-                    <p>B?n mu?n ti?t ki?m chi ph�, d?n v?i ch�ng t�i.</p>
-                    <p><a class="btn btn-lg btn-elegant-primary" href="#">D?ch v? cho thu�</a></p>
+                    <h1>Cho thuê.</h1>
+                    <p>Bạn muốn tiết kiệm chi phí, đến với chúng tôi.</p>
+                    <p><a class="btn btn-lg btn-elegant-primary" href="#">Dịch vụ cho thuê</a></p>
                 </div>
             </div>
         </div>
@@ -325,13 +325,13 @@
 {
     <div class="container my-5">
         <div class="coupon-section">
-            <!-- Header v?i hi?u ?ng gradient -->
+            <!-- Header với hiệu ứng gradient -->
             <div class="coupon-header text-center mb-4">
                 <div class="coupon-banner">
                     <div class="banner-icon left">
                         <i class="bi bi-gift-fill"></i>
                     </div>
-                    <h2 class="banner-title">DEAL S?C C�NG VOUCHER</h2>
+                    <h2 class="banner-title">DEAL SỐC CÙNG VOUCHER</h2>
                     <div class="banner-icon right">
                         <i class="bi bi-gift-fill"></i>
                     </div>
@@ -354,7 +354,7 @@
                             </div>
                             <div class="coupon-right">
                                 <div class="coupon-discount">
-                                    <span class="discount-text">Gi?m @coupon.DiscountPercentage%</span>
+                                    <span class="discount-text">Giảm @coupon.DiscountPercentage%</span>
                                     @if (coupon.Quantity > 0)
                                     {
                                         <span class="coupon-quantity">x @coupon.Quantity</span>
@@ -373,17 +373,17 @@
                                 else
                                 {
                                     <div class="coupon-condition">
-                                        Gi?m t?i da @(coupon.MinimumAmount * coupon.DiscountPercentage / 100)?
+                                        Giảm tối đa @(coupon.MinimumAmount * coupon.DiscountPercentage / 100)₫
                                     </div>
                                 }
                                 <div class="coupon-min-order">
-                                    �on T?i Thi?u @(coupon.MinimumAmount.ToString("N0"))?
+                                    Đơn Tối Thiểu @(coupon.MinimumAmount.ToString("N0"))₫
                                 </div>
                                 <div class="coupon-category">
                                     <span class="badge bg-elegant-gold">Elegant Suits</span>
                                 </div>
                                 <div class="coupon-actions">
-                                    <a href="@Url.Action("Index", "Product")" class="btn btn-coupon-apply">�p D?ng M�</a>
+                                    <a href="@Url.Action("Index", "Product")" class="btn btn-coupon-apply">Áp Dụng Mã</a>
                                 </div>
                             </div>
                         </div>
@@ -434,14 +434,14 @@
 
 <div class="container marketing mt-5">
     <div class="row">
-        <!-- Ti�u d? ph?n s?n ph?m n?i b?t -->
+        <!-- Tiêu đề phần sản phẩm nổi bật -->
         <div class="col-12 text-center mb-5">
-            <h2 class="display-5 fw-bold text-elegant-gold">S?n ph?m n?i b?t</h2>
-            <p class="lead m-3">Kh�m ph� b? suu t?p m?i nh?t c?a ch�ng t�i</p>
+            <h2 class="display-5 fw-bold text-elegant-gold">Sản phẩm nổi bật</h2>
+            <p class="lead m-3">Khám phá bộ sưu tập mới nhất của chúng tôi</p>
             <div class="elegant-divider mb-4"></div>
         </div>
 
-        <!-- Hi?n th? s?n ph?m theo t?ng danh m?c -->
+        <!-- Hiển thị sản phẩm theo từng danh mục -->
         @if (productsByCategory != null)
         {
             @foreach (var category in productsByCategory)
@@ -520,7 +520,7 @@
                             var categoryId = categories?.FirstOrDefault(c => c.Name == category.Key)?.Id;
                         }
                         <a asp-controller="Product" asp-action="Index" asp-route-categoryId="@categoryId" class="btn btn-elegant-primary btn-lg">
-                            <i class="fas fa-th-list me-2"></i>Xem t?t c? s?n ph?m @category.Key
+                            <i class="fas fa-th-list me-2"></i>Xem tất cả sản phẩm @category.Key
                         </a>
                     </div>
                 </div>
@@ -529,31 +529,31 @@
             }
         }
 
-        <!-- Ph?n m� h�nh 3D v� gi?i thi?u c?a h�ng -->
+        <!-- Phần mô hình 3D và giới thiệu cửa hàng -->
         <div class="row featurette mb-5">
             <div class="col-md-6">
-                <h2 class="featurette-heading fw-normal lh-1">Tr?i nghi?m m� h�nh 3D <span class="text-body-secondary">Xem tru?c s?n ph?m ch�n th?c</span></h2>
-                <p class="lead">Elegant Suits t? h�o gi?i thi?u c�ng ngh? xem tru?c s?n ph?m 3D, gi�p b?n c� c�i nh�n ch�n th?c nh?t v? s?n ph?m tru?c khi quy?t d?nh mua h�ng.</p>
-                <p>V?i c�ng ngh? hi?n d?i, b?n c� th?:</p>
+                <h2 class="featurette-heading fw-normal lh-1">Trải nghiệm mô hình 3D <span class="text-body-secondary">Xem trước sản phẩm chân thực</span></h2>
+                <p class="lead">Elegant Suits tự hào giới thiệu công nghệ xem trước sản phẩm 3D, giúp bạn có cái nhìn chân thực nhất về sản phẩm trước khi quyết định mua hàng.</p>
+                <p>Với công nghệ hiện đại, bạn có thể:</p>
                 <ul>
-                    <li>Xoay, ph�ng to, thu nh? d? xem chi ti?t s?n ph?m</li>
-                    <li>Thay d?i m�u s?c d? l?a ch?n ph� h?p v?i s? th�ch</li>
-                    <li>Xem tru?c s?n ph?m t? m?i g�c d?</li>
+                    <li>Xoay, phóng to, thu nhỏ để xem chi tiết sản phẩm</li>
+                    <li>Thay đổi màu sắc để lựa chọn phù hợp với sở thích</li>
+                    <li>Xem trước sản phẩm từ mọi góc độ</li>
                 </ul>
-                <p><a asp-controller="Product" asp-action="Index" class="btn btn-elegant-primary mt-3">Xem t?t c? s?n ph?m</a></p>
+                <p><a asp-controller="Product" asp-action="Index" class="btn btn-elegant-primary mt-3">Xem tất cả sản phẩm</a></p>
             </div>
             <div class="col-md-6">
                 <div id="model-container" style="height: 400px; border-radius: 10px; overflow: hidden; border: 3px solid var(--elegant-gold-light);" class="shadow"></div>
                 <script>
                     document.addEventListener('DOMContentLoaded', function() {
-                        // Hi?n th? m� h�nh 3D c? d?nh t? thu m?c models/products
+                        // Hiển thị mô hình 3D cố định từ thư mục models/products
                         show3DModel('model-container', '/models/products/formal suit 3d model.glb');
                     });
                 </script>
                 <div class="model-controls mt-3 text-center">
                     <button class="btn btn-sm btn-elegant-secondary me-2" onclick="changeModel('/models/products/formal suit 3d model.glb')">Vest</button>
-                    <button class="btn btn-sm btn-elegant-secondary me-2" onclick="changeModel('/models/products/floral blazer 3d model.glb')">�o so mi</button>
-                    <button class="btn btn-sm btn-elegant-secondary me-2" onclick="changeModel('/models/products/final_trousers.glb')">Qu?n t�y</button>
+                    <button class="btn btn-sm btn-elegant-secondary me-2" onclick="changeModel('/models/products/floral blazer 3d model.glb')">Áo sơ mi</button>
+                    <button class="btn btn-sm btn-elegant-secondary me-2" onclick="changeModel('/models/products/final_trousers.glb')">Quần tây</button>
                     <button class="btn btn-sm btn-elegant-secondary" onclick="changeModel('/models/products/final_gile.glb')">Gile</button>
                 </div>
             </div>
@@ -563,8 +563,8 @@
 
         <div class="row featurette mb-5">
             <div class="col-12">
-                <h2 class="featurette-heading fw-normal lh-1 text-center mb-4">Kh�m ph� showroom Elegant Suits <span class="text-body-secondary">Tour 360�</span></h2>
-                <p class="lead text-center mb-4">Tr?i nghi?m kh�ng gian mua s?m d?ng c?p c?a ch�ng t�i qua tour ?o 360 d?</p>
+                <h2 class="featurette-heading fw-normal lh-1 text-center mb-4">Khám phá showroom Elegant Suits <span class="text-body-secondary">Tour 360°</span></h2>
+                <p class="lead text-center mb-4">Trải nghiệm không gian mua sắm đẳng cấp của chúng tôi qua tour ảo 360 độ</p>
                 <div class="position-relative rounded-4 overflow-hidden shadow-lg" style="border: 3px solid var(--elegant-gold-light);">
                     <iframe id="tour-embeded"
                             name="shopvest"
@@ -584,12 +584,12 @@
                 </div>
                 <div class="text-center mt-4">
                     <p class="text-muted mb-2">
-                        <i class="fas fa-mouse-pointer me-2"></i>K�o d? xoay �
-                        <i class="fas fa-search-plus me-2"></i>Cu?n d? zoom �
-                        <i class="fas fa-mobile-alt me-2"></i>H? tr? VR tr�n mobile
+                        <i class="fas fa-mouse-pointer me-2"></i>Kéo để xoay •
+                        <i class="fas fa-search-plus me-2"></i>Cuộn để zoom •
+                        <i class="fas fa-mobile-alt me-2"></i>Hỗ trợ VR trên mobile
                     </p>
-                    <a href="#products" class="btn btn-elegant-primary me-3">Xem s?n ph?m</a>
-                    <a href="#contact" class="btn btn-elegant-secondary">Li�n h? tu v?n</a>
+                    <a href="#products" class="btn btn-elegant-primary me-3">Xem sản phẩm</a>
+                    <a href="#contact" class="btn btn-elegant-secondary">Liên hệ tư vấn</a>
                 </div>
             </div>
         </div>
@@ -645,26 +645,26 @@
 
         <hr class="featurette-divider">
 
-        <!-- Ph?n hi?n th? th�nh vi�n -->
-        <h2 class="fw-normal text-center mb-4">�?i ngu c?a ch�ng t�i</h2>
+        <!-- Phần hiển thị thành viên -->
+        <h2 class="fw-normal text-center mb-4">Đội ngũ của chúng tôi</h2>
         <div class="row mb-5">
             <div class="col-12 col-sm-6 col-lg-4 text-center">
                 <img src="~/images/img/ha.jpg" class="bd-placeholder-img rounded-circle profile-img-elegant" width="140" height="140" alt="Peple1">
-                <h2 class="fw-normal">Ho�ng �n</h2>
+                <h2 class="fw-normal">Hoàng Ân</h2>
                 <p>MSSV: 2280600149</p>
-                <p><a class="btn btn-elegant-secondary" href="https://github.com/SushiRedpanda" target="_blank">Xem th�m �</a></p>
+                <p><a class="btn btn-elegant-secondary" href="https://github.com/SushiRedpanda" target="_blank">Xem thêm »</a></p>
             </div>
             <div class="col-12 col-sm-6 col-lg-4 text-center">
                 <img src="~/images/img/hd.jpg" class="bd-placeholder-img rounded-circle profile-img-elegant" width="140" height="140" alt="Peple2">
-                <h2 class="fw-normal">Ng� H?u �?c</h2>
+                <h2 class="fw-normal">Ngô Hữu Đức</h2>
                 <p>MSSV: 2280600725</p>
-                <p><a class="btn btn-elegant-secondary" href="https://github.com/khoangrtroongs" target="_blank">Xem th�m �</a></p>
+                <p><a class="btn btn-elegant-secondary" href="https://github.com/khoangrtroongs" target="_blank">Xem thêm »</a></p>
             </div>
             <div class="col-12 col-sm-6 col-lg-4 text-center">
                 <img src="~/images/img/qt.jpg" class="bd-placeholder-img rounded-circle profile-img-elegant" width="140" height="140" alt="Peple3">
-                <h2 class="fw-normal">Nguy?n Qu?c Trung</h2>
+                <h2 class="fw-normal">Nguyễn Quốc Trung</h2>
                 <p>MSSV: 2280600357</p>
-                <p><a class="btn btn-elegant-secondary" href="https://github.com/TrungQNdev20" target="_blank">Xem th�m �</a></p>
+                <p><a class="btn btn-elegant-secondary" href="https://github.com/TrungQNdev20" target="_blank">Xem thêm »</a></p>
             </div>
         </div>
     </div>

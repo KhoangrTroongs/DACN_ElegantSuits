@@ -1,13 +1,13 @@
 @model List<ElegantSuits.Domain.Entities.Product>
 @{
-    ViewData["Title"] = "Trang ch?";
+    ViewData["Title"] = "Trang chủ";
 }
 
 <div class="container">
     <div class="row mb-4">
         <div class="col-md-8">
-            <h1 class="display-4">Ch�o m?ng d?n v?i c?a h�ng</h1>
-            <p class="lead">Kh�m ph� c�c s?n ph?m c?a ch�ng t�i du?i d�y ho?c duy?t theo danh m?c.</p>
+            <h1 class="display-4">Chào mừng đến với cửa hàng</h1>
+            <p class="lead">Khám phá các sản phẩm của chúng tôi dưới đây hoặc duyệt theo danh mục.</p>
         </div>
     </div>
 
@@ -15,7 +15,7 @@
         <div class="col-md-3">
             <div class="list-group">
                 <a href="@Url.Action("Index", "Home")" class="list-group-item list-group-item-action @(ViewBag.SelectedCategory == null ? "active" : "")">
-                    T?t c? danh m?c
+                    Tất cả danh mục
                 </a>
 
 @foreach (var category in ViewBag.Categories)
@@ -28,11 +28,11 @@
             </div>
         </div>
         <div class="col-md-9">
-            <h2>@(ViewBag.SelectedCategory == null ? "T?t c? s?n ph?m" : ViewBag.SelectedCategory.Name)</h2>
+            <h2>@(ViewBag.SelectedCategory == null ? "Tất cả sản phẩm" : ViewBag.SelectedCategory.Name)</h2>
 
 @if (!Model.Any())
 {
-    <p>Kh�ng c� s?n ph?m n�o trong danh m?c n�y.</p>
+    <p>Không có sản phẩm nào trong danh mục này.</p>
 }
 else
 {
@@ -48,7 +48,7 @@ else
                     else
                     {
                         <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                            <span>Kh�ng c� h�nh ?nh</span>
+                            <span>Không có hình ảnh</span>
                         </div>
                     }
                     <div class="card-body">
@@ -61,10 +61,10 @@ else
                             var reviewTag = "[REVIEWS]";
                             var endReviewTag = "[/REVIEWS]";
 
-                            // Lo?i b? ph?n k? thu?t kh?i m� t?
+                            // Loại bỏ phần kỹ thuật khỏi mô tả
                             if (!string.IsNullOrEmpty(description))
                             {
-                                // Lo?i b? ph?n k�ch thu?c
+                                // Loại bỏ phần kích thước
                                 if (description.Contains(sizeTag) && description.Contains(endSizeTag))
                                 {
                                     var startIndex = description.IndexOf(sizeTag);
@@ -75,7 +75,7 @@ else
                                     }
                                 }
 
-                                // Lo?i b? ph?n d�nh gi�
+                                // Loại bỏ phần đánh giá
                                 if (description.Contains(reviewTag) && description.Contains(endReviewTag))
                                 {
                                     var startIndex = description.IndexOf(reviewTag);
@@ -86,18 +86,18 @@ else
                                     }
                                 }
 
-                                // Lo?i b? kho?ng tr?ng th?a
+                                // Loại bỏ khoảng trắng thừa
                                 description = description.Trim();
                             }
 
-                            // C?t ng?n m� t? n?u qu� d�i
+                            // Cắt ngắn mô tả nếu quá dài
                             var displayDescription = description?.Length > 100
                                 ? description.Substring(0, 100) + "..."
                                 : description;
                         }
                         <p class="card-text">@displayDescription</p>
-                        <p class="card-text"><strong>@product.Price.ToString("N0") VN�</strong></p>
-                        <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="btn btn-primary">Chi ti?t</a>
+                        <p class="card-text"><strong>@product.Price.ToString("N0") VNĐ</strong></p>
+                        <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="btn btn-primary">Chi tiết</a>
                     </div>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 @model ElegantSuits.Web.Models.RegisterViewModel
 
 @{
-    ViewData["Title"] = "�ang k�";
+    ViewData["Title"] = "Đăng ký";
     Layout = null;
 }
 
@@ -92,8 +92,8 @@
                 <div class="login-logo mx-auto mb-3">
                     <i class="fas fa-tshirt"></i>
                 </div>
-                <h1 style="color: var(--elegant-gold); font-size: 1.5rem; font-weight: 700;">T?o t�i kho?n m?i</h1>
-                <p style="color: rgba(255,255,255,0.6);">Tham gia Elegant Suits ngay h�m nay</p>
+                <h1 style="color: var(--elegant-gold); font-size: 1.5rem; font-weight: 700;">Tạo tài khoản mới</h1>
+                <p style="color: rgba(255,255,255,0.6);">Tham gia Elegant Suits ngay hôm nay</p>
             </div>
 
             <form asp-controller="Account" asp-action="Register" method="post" enctype="multipart/form-data">
@@ -104,7 +104,7 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <label for="AvatarFile" class="btn btn-outline-warning btn-sm" style="border-radius: 20px;">
-                        <i class="fas fa-camera me-1"></i> Ch?n ?nh d?i di?n
+                        <i class="fas fa-camera me-1"></i> Chọn ảnh đại diện
                     </label>
                     <input asp-for="AvatarFile" type="file" class="d-none" id="AvatarFile" accept="image/*" onchange="previewAvatar(this)" />
                 </div>
@@ -116,54 +116,54 @@
                         <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label asp-for="FullName" class="form-label-dark"><i class="fas fa-user me-2"></i>H? t�n</label>
-                        <input asp-for="FullName" class="form-control form-control-dark" placeholder="Nguy?n Van A" />
+                        <label asp-for="FullName" class="form-label-dark"><i class="fas fa-user me-2"></i>Họ tên</label>
+                        <input asp-for="FullName" class="form-control form-control-dark" placeholder="Nguyễn Văn A" />
                         <span asp-validation-for="FullName" class="text-danger small"></span>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Password" class="form-label-dark"><i class="fas fa-lock me-2"></i>M?t kh?u</label>
-                        <input asp-for="Password" class="form-control form-control-dark" placeholder="��������" />
+                        <label asp-for="Password" class="form-label-dark"><i class="fas fa-lock me-2"></i>Mật khẩu</label>
+                        <input asp-for="Password" class="form-control form-control-dark" placeholder="••••••••" />
                         <span asp-validation-for="Password" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label-dark"><i class="fas fa-lock me-2"></i>X�c nh?n</label>
-                        <input asp-for="ConfirmPassword" class="form-control form-control-dark" placeholder="��������" />
+                        <label asp-for="ConfirmPassword" class="form-label-dark"><i class="fas fa-lock me-2"></i>Xác nhận</label>
+                        <input asp-for="ConfirmPassword" class="form-control form-control-dark" placeholder="••••••••" />
                         <span asp-validation-for="ConfirmPassword" class="text-danger small" id="confirmPasswordError"></span>
                     </div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label asp-for="DateOfBirth" class="form-label-dark"><i class="fas fa-calendar me-2"></i>Ng�y sinh</label>
+                        <label asp-for="DateOfBirth" class="form-label-dark"><i class="fas fa-calendar me-2"></i>Ngày sinh</label>
                         <input asp-for="DateOfBirth" class="form-control form-control-dark" type="date" />
                         <span asp-validation-for="DateOfBirth" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label asp-for="PhoneNumber" class="form-label-dark"><i class="fas fa-phone me-2"></i>S? di?n tho?i</label>
+                        <label asp-for="PhoneNumber" class="form-label-dark"><i class="fas fa-phone me-2"></i>Số điện thoại</label>
                         <input asp-for="PhoneNumber" class="form-control form-control-dark" placeholder="0123 456 789" />
                         <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
                     </div>
                 </div>
 
                 <div class="mb-4">
-                    <label asp-for="Address" class="form-label-dark"><i class="fas fa-map-marker-alt me-2"></i>�?a ch?</label>
-                    <input asp-for="Address" class="form-control form-control-dark" placeholder="123 �u?ng ABC, Qu?n XYZ" />
+                    <label asp-for="Address" class="form-label-dark"><i class="fas fa-map-marker-alt me-2"></i>Địa chỉ</label>
+                    <input asp-for="Address" class="form-control form-control-dark" placeholder="123 Đường ABC, Quận XYZ" />
                     <span asp-validation-for="Address" class="text-danger small"></span>
                 </div>
 
                 <button type="submit" class="btn btn-gold-gradient w-100 mb-3">
-                    <i class="fas fa-user-plus me-2"></i>�ang k�
+                    <i class="fas fa-user-plus me-2"></i>Đăng ký
                 </button>
 
                 <div class="text-center">
                     <p style="color: rgba(255,255,255,0.6);">
-                        �� c� t�i kho?n? <a asp-action="Login" class="link-gold">�ang nh?p</a>
+                        Đã có tài khoản? <a asp-action="Login" class="link-gold">Đăng nhập</a>
                     </p>
                     <a asp-controller="Home" asp-action="Index" class="link-gold" style="font-size: 14px;">
-                        <i class="fas fa-arrow-left me-1"></i> Quay v? trang ch?
+                        <i class="fas fa-arrow-left me-1"></i> Quay về trang chủ
                     </a>
                 </div>
             </form>
@@ -199,7 +199,7 @@
                 var confirmPassword = $(this).val();
                 if (password !== confirmPassword) {
                     $(this).addClass("is-invalid");
-                    $("#confirmPasswordError").text("M?t kh?u x�c nh?n kh�ng kh?p.");
+                    $("#confirmPasswordError").text("Mật khẩu xác nhận không khớp.");
                 } else {
                     $(this).removeClass("is-invalid");
                     $("#confirmPasswordError").text("");
@@ -214,7 +214,7 @@
                 if (password !== confirmPassword) {
                     e.preventDefault();
                     $("#ConfirmPassword").addClass("is-invalid");
-                    $("#confirmPasswordError").text("M?t kh?u x�c nh?n kh�ng kh?p.");
+                    $("#confirmPasswordError").text("Mật khẩu xác nhận không khớp.");
                     return false;
                 }
                 return true;

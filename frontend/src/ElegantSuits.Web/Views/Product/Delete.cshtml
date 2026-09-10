@@ -4,25 +4,25 @@
 @model ElegantSuits.Domain.Entities.Product
 
 @{
-    ViewData["Title"] = "X�a s?n ph?m";
+    ViewData["Title"] = "Xóa sản phẩm";
 }
 
-<h2>X�a s?n ph?m</h2>
+<h2>Xóa sản phẩm</h2>
 
 <div class="alert alert-danger">
-    <h3>B?n c� ch?c ch?n mu?n x�a s?n ph?m n�y?</h3>
+    <h3>Bạn có chắc chắn muốn xóa sản phẩm này?</h3>
 </div>
 
 <div class="row">
     <div class="col-md-6">
         <dl class="row">
-            <dt class="col-sm-4">T�n s?n ph?m</dt>
+            <dt class="col-sm-4">Tên sản phẩm</dt>
             <dd class="col-sm-8">@Model.Name</dd>
 
-            <dt class="col-sm-4">Gi�</dt>
+            <dt class="col-sm-4">Giá</dt>
             <dd class="col-sm-8">@Model.Price.ToString("C")</dd>
 
-            <dt class="col-sm-4">M� t?</dt>
+            <dt class="col-sm-4">Mô tả</dt>
             <dd class="col-sm-8">
                 @{
                     var description = Model.Description;
@@ -31,10 +31,10 @@
                     var reviewTag = "[REVIEWS]";
                     var endReviewTag = "[/REVIEWS]";
 
-                    // Lo?i b? ph?n k? thu?t kh?i m� t?
+                    // Loại bỏ phần kỹ thuật khỏi mô tả
                     if (!string.IsNullOrEmpty(description))
                     {
-                        // Lo?i b? ph?n k�ch thu?c
+                        // Loại bỏ phần kích thước
                         if (description.Contains(sizeTag) && description.Contains(endSizeTag))
                         {
                             var startIndex = description.IndexOf(sizeTag);
@@ -45,7 +45,7 @@
                             }
                         }
 
-                        // Lo?i b? ph?n d�nh gi�
+                        // Loại bỏ phần đánh giá
                         if (description.Contains(reviewTag) && description.Contains(endReviewTag))
                         {
                             var startIndex = description.IndexOf(reviewTag);
@@ -56,19 +56,19 @@
                             }
                         }
 
-                        // Lo?i b? kho?ng tr?ng th?a
+                        // Loại bỏ khoảng trắng thừa
                         description = description.Trim();
                     }
                 }
                 @description
             </dd>
 
-            <dt class="col-sm-4">Danh m?c</dt>
+            <dt class="col-sm-4">Danh mục</dt>
             <dd class="col-sm-8">@Model.Category?.Name</dd>
 
             @if (!string.IsNullOrEmpty(Model.ImageUrl))
             {
-                <dt class="col-sm-4">H�nh ?nh</dt>
+                <dt class="col-sm-4">Hình ảnh</dt>
                 <dd class="col-sm-8">
                     <img src="@Model.ImageUrl" alt="@Model.Name" class="img-thumbnail" style="max-width: 200px;" />
                 </dd>
@@ -77,8 +77,8 @@
 
         <form asp-action="Delete" method="post">
             <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger">X�a</button>
-            <a asp-action="Index" class="btn btn-secondary">H?y</a>
+            <button type="submit" class="btn btn-danger">Xóa</button>
+            <a asp-action="Index" class="btn btn-secondary">Hủy</a>
         </form>
     </div>
 </div>

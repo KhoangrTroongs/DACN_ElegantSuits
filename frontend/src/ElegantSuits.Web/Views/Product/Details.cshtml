@@ -1,11 +1,11 @@
 @model ElegantSuits.Domain.Entities.Product
 @{
-    ViewData["Title"] = "Chi ti?t s?n ph?m";
+    ViewData["Title"] = "Chi tiết sản phẩm";
     var has3DModel = !string.IsNullOrEmpty(Model.Model3DUrl);
 }
 
 <style>
-    /* CSS cho ph?n size */
+    /* CSS cho phần size */
     .size-box {
         display: flex;
         align-items: center;
@@ -36,12 +36,12 @@
         text-decoration: line-through;
     }
 
-    /* CSS cho ph?n d�nh gi� */
+    /* CSS cho phần đánh giá */
     .stars {
         color: #ffc107;
     }
 
-    /* CSS cho d�nh gi� sao ki?u nh?p */
+    /* CSS cho đánh giá sao kiểu nhấp */
     .stars-select {
         display: flex;
         flex-direction: row;
@@ -108,8 +108,8 @@
                             {
                                 <form asp-action="DeleteImage" asp-route-id="@Model.Id" method="post" class="position-absolute" style="top: 10px; right: 10px;">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('B?n c� ch?c ch?n mu?n x�a h�nh ?nh n�y?');">
-                                        <i class="fas fa-trash"></i> X�a h�nh ?nh
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa hình ảnh này?');">
+                                        <i class="fas fa-trash"></i> Xóa hình ảnh
                                     </button>
                                 </form>
                             }
@@ -117,7 +117,7 @@
                     }
                     else
                     {
-                        <img src="/images/no-image.svg" class="img-fluid rounded-start" alt="Kh�ng c� h�nh ?nh" style="max-height: 400px; object-fit: contain;" onerror="this.src='https://via.placeholder.com/400x400?text=No+Image'" />
+                        <img src="/images/no-image.svg" class="img-fluid rounded-start" alt="Không có hình ảnh" style="max-height: 400px; object-fit: contain;" onerror="this.src='https://via.placeholder.com/400x400?text=No+Image'" />
                     }
                 </div>
 
@@ -125,14 +125,14 @@
                 {
                     <div class="view-toggle-buttons mt-2 d-flex">
                         <button id="view-3d-btn" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#model3dModal">
-                            <i class="fas fa-cube"></i> Xem m� h�nh 3D
+                            <i class="fas fa-cube"></i> Xem mô hình 3D
                         </button>
                         @if (User.IsInRole("Administrator"))
                         {
                             <form asp-action="DeleteModel3D" asp-route-id="@Model.Id" method="post" class="ms-auto">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('B?n c� ch?c ch?n mu?n x�a m� h�nh 3D n�y?');">
-                                    <i class="fas fa-trash"></i> X�a m� h�nh 3D
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa mô hình 3D này?');">
+                                    <i class="fas fa-trash"></i> Xóa mô hình 3D
                                 </button>
                             </form>
                         }
@@ -143,7 +143,7 @@
         <div class="col-md-8">
             <div class="card-body">
                 <h2 class="card-title">@Model.Name</h2>
-                <p class="card-text text-muted">Danh m?c: @Model.Category?.Name</p>
+                <p class="card-text text-muted">Danh mục: @Model.Category?.Name</p>
                 @{
                     var description = Model.Description;
                     var sizeTag = "[SIZES]";
@@ -151,7 +151,7 @@
                     var reviewTag = "[REVIEWS]";
                     var endReviewTag = "[/REVIEWS]";
 
-                    // Lo?i b? ph?n k? thu?t kh?i m� t?
+                    // Loại bỏ phần kỹ thuật khỏi mô tả
                     if (!string.IsNullOrEmpty(description))
                     {
                         if (description.Contains(sizeTag) && description.Contains(endSizeTag))
@@ -174,7 +174,7 @@
                             }
                         }
 
-                        // Lo?i b? kho?ng tr?ng th?a
+                        // Loại bỏ khoảng trắng thừa
                         description = description.Trim();
                     }
                 }
@@ -183,14 +183,14 @@
                 {
                     <p class="card-text">@description</p>
                 }
-                <p class="card-text"><strong class="fs-4">Gi�: @Model.Price.ToString("N0") VN�</strong></p>
+                <p class="card-text"><strong class="fs-4">Giá: @Model.Price.ToString("N0") VNĐ</strong></p>
 
                 <!-- Fabric Information Section -->
                 @if (Model.FabricProducts != null && Model.FabricProducts.Any())
                 {
                     <div class="fabric-section mt-4 mb-4">
                         <p class="card-text mb-2">
-                            <small class="text-muted d-block mb-2"><strong>V?i:</strong></small>
+                            <small class="text-muted d-block mb-2"><strong>Vải:</strong></small>
                             <div class="fabric-tags">
                                 @foreach (var fabricProduct in Model.FabricProducts)
                                 {
@@ -207,7 +207,7 @@
                     </div>
                 }
 
-                <!-- Hi?n th? d�nh gi� s?n ph?m -->
+                <!-- Hiển thị đánh giá sản phẩm -->
                 @{
                     var reviews = new List<ReviewViewModel>();
                     var reviewSection = "";
@@ -267,7 +267,7 @@
                                 }
                             }
                         </div>
-                        <span class="ms-2">@averageRating.ToString("0.0") (@reviewCount d�nh gi�)</span>
+                        <span class="ms-2">@averageRating.ToString("0.0") (@reviewCount đánh giá)</span>
                     </div>
                 </div>
 
@@ -282,17 +282,17 @@
                     }
                 }
 
-                <!-- Hi?n th? s? lu?ng t?ng (ch? cho admin) -->
+                <!-- Hiển thị số lượng tổng (chỉ cho admin) -->
                 @if (User.IsInRole("Administrator"))
                 {
-                    <p class="card-text">S? lu?ng: <span class="badge bg-@(Model.Quantity > 0 ? "success" : "danger")">@(Model.Quantity > 0 ? Model.Quantity.ToString() : "H?t h�ng")</span></p>
+                    <p class="card-text">Số lượng: <span class="badge bg-@(Model.Quantity > 0 ? "success" : "danger")">@(Model.Quantity > 0 ? Model.Quantity.ToString() : "Hết hàng")</span></p>
                 }
                 else
                 {
-                    <p class="card-text">T�nh tr?ng: <span class="badge bg-@(Model.Quantity > 0 ? "success" : "danger")">@(Model.Quantity > 0 ? "C�n h�ng" : "H?t h�ng")</span></p>
+                    <p class="card-text">Tình trạng: <span class="badge bg-@(Model.Quantity > 0 ? "success" : "danger")">@(Model.Quantity > 0 ? "Còn hàng" : "Hết hàng")</span></p>
                 }
 
-                <!-- Hi?n th? c�c size c� s?n -->
+                <!-- Hiển thị các size có sẵn -->
                 @{
                     var sizeQuantities = new Dictionary<string, int>();
                     var sizeSection = "";
@@ -323,14 +323,14 @@
                 @if (sizeQuantities.Any())
                 {
                     <div class="product-sizes mb-3">
-                        <p class="mb-1">K�ch c? c� s?n:</p>
+                        <p class="mb-1">Kích cỡ có sẵn:</p>
                         <div class="d-flex flex-wrap">
                             @foreach (var size in sizeQuantities.OrderBy(s => s.Key))
                             {
                                 <div class="size-box me-2 mb-2 @(size.Value > 0 ? "" : "disabled")"
                                      data-size="@size.Key"
                                      data-quantity="@size.Value"
-                                     title="@(size.Value > 0 ? (User.IsInRole("Administrator") ? $"C�n {size.Value} s?n ph?m" : "C�n h�ng") : "H?t h�ng")">
+                                     title="@(size.Value > 0 ? (User.IsInRole("Administrator") ? $"Còn {size.Value} sản phẩm" : "Còn hàng") : "Hết hàng")">
                                     @size.Key
                                 </div>
                             }
@@ -345,24 +345,24 @@
                             <input type="hidden" name="productId" value="@Model.Id" />
                             <input type="hidden" name="size" id="selectedSize" value="" />
                             <button type="submit" class="btn btn-primary" id="addToCartBtn" disabled>
-                                <i class='bx bx-cart-add'></i> Th�m v�o gi? h�ng
+                                <i class='bx bx-cart-add'></i> Thêm vào giỏ hàng
                             </button>
                         </form>
                         <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#virtualTryOnModal">
-                            <i class="fas fa-magic"></i> Th? d? ?o
+                            <i class="fas fa-magic"></i> Thử đồ ảo
                         </button>
                     }
                     else
                     {
                         <a asp-controller="Home" asp-action="Contact" asp-route-productId="@Model.Id" class="btn btn-primary">
-                            <i class='bx bx-envelope'></i> Li�n h? d?t h�ng
+                            <i class='bx bx-envelope'></i> Liên hệ đặt hàng
                         </a>
                     }
-                    <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
                     @if (User.IsInRole("Administrator"))
                     {
-                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">S?a</a>
-                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">X�a</a>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Sửa</a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Xóa</a>
                     }
                 </div>
             </div>
@@ -370,13 +370,13 @@
     </div>
 </div>
 
-<!-- Ph?n d�nh gi� s?n ph?m -->
+<!-- Phần đánh giá sản phẩm -->
 <div class="card mt-4">
     <div class="card-header">
         <ul class="nav nav-tabs card-header-tabs" id="product-tabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="true">
-                    ��nh gi� (@reviewCount)
+                    Đánh giá (@reviewCount)
                 </button>
             </li>
         </ul>
@@ -384,11 +384,11 @@
     <div class="card-body">
         <div class="tab-content" id="product-tab-content">
             <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                <!-- Hi?n th? d�nh gi� -->
+                <!-- Hiển thị đánh giá -->
                 <div class="row">
                     <div class="col-md-4">
                         <div class="review-summary p-3 border rounded">
-                            <h4 class="mb-3">��nh gi� trung b�nh</h4>
+                            <h4 class="mb-3">Đánh giá trung bình</h4>
                             <div class="d-flex align-items-center mb-3">
                                 <h2 class="me-2 mb-0">@averageRating.ToString("0.0")</h2>
                                 <div>
@@ -409,11 +409,11 @@
                                             }
                                         }
                                     </div>
-                                    <div class="text-muted">@reviewCount d�nh gi�</div>
+                                    <div class="text-muted">@reviewCount đánh giá</div>
                                 </div>
                             </div>
 
-                            <!-- Th?ng k� d�nh gi� -->
+                            <!-- Thống kê đánh giá -->
                             @for (int i = 5; i >= 1; i--)
                             {
                                 int count = reviews.Count(r => r.Rating == i);
@@ -430,27 +430,27 @@
 
                             @if (User.Identity.IsAuthenticated)
                             {
-                                <button class="btn btn-primary mt-3 w-100" id="write-review-btn">Vi?t d�nh gi�</button>
+                                <button class="btn btn-primary mt-3 w-100" id="write-review-btn">Viết đánh giá</button>
                             }
                             else
                             {
                                 <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Product", new { id = Model.Id })" class="btn btn-outline-primary mt-3 w-100">
-                                    �ang nh?p d? d�nh gi�
+                                    Đăng nhập để đánh giá
                                 </a>
                             }
                         </div>
                     </div>
                     <div class="col-md-8">
-                        <!-- Form d�nh gi� -->
+                        <!-- Form đánh giá -->
                         @if (User.Identity.IsAuthenticated)
                         {
                             <div id="review-form" class="mb-4 p-3 border rounded" style="display: none;">
-                                <h4 class="mb-3">Vi?t d�nh gi� c?a b?n</h4>
+                                <h4 class="mb-3">Viết đánh giá của bạn</h4>
                                 <form asp-controller="Product" asp-action="AddReview" method="post" id="review-form-submit" class="needs-validation" novalidate>
                                     <input type="hidden" name="ProductId" value="@Model.Id" />
 
                                     <div class="mb-3">
-                                        <label class="form-label">��nh gi�</label>
+                                        <label class="form-label">Đánh giá</label>
                                         <div class="rating-input">
                                             <div class="d-flex mb-2">
                                                 @for (int i = 1; i <= 5; i++)
@@ -462,24 +462,24 @@
                                                 }
                                             </div>
                                         </div>
-                                        <div class="rating-text mt-2">Ch?n s? sao d? d�nh gi�</div>
-                                        <div class="invalid-feedback">Vui l�ng ch?n s? sao d�nh gi�</div>
+                                        <div class="rating-text mt-2">Chọn số sao để đánh giá</div>
+                                        <div class="invalid-feedback">Vui lòng chọn số sao đánh giá</div>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="comment" class="form-label">B�nh lu?n</label>
-                                        <textarea class="form-control" id="comment" name="Comment" rows="3" placeholder="Chia s? tr?i nghi?m c?a b?n v? s?n ph?m n�y"></textarea>
+                                        <label for="comment" class="form-label">Bình luận</label>
+                                        <textarea class="form-control" id="comment" name="Comment" rows="3" placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này"></textarea>
                                     </div>
 
                                     <div class="d-flex justify-content-end">
-                                        <button type="button" class="btn btn-outline-secondary me-2" id="cancel-review-btn">H?y</button>
-                                        <button type="submit" class="btn btn-primary">G?i d�nh gi�</button>
+                                        <button type="button" class="btn btn-outline-secondary me-2" id="cancel-review-btn">Hủy</button>
+                                        <button type="submit" class="btn btn-primary">Gửi đánh giá</button>
                                     </div>
                                 </form>
                             </div>
                         }
 
-                        <!-- Danh s�ch d�nh gi� -->
+                        <!-- Danh sách đánh giá -->
                         <div class="reviews-list">
                             @if (reviews.Any())
                             {
@@ -516,7 +516,7 @@
                                                         <input type="hidden" name="productId" value="@Model.Id" />
                                                         <input type="hidden" name="userId" value="@review.UserId" />
                                                         <button type="submit" class="btn btn-sm btn-danger"
-                                                                onclick="return confirm('B?n c� ch?c ch?n mu?n x�a d�nh gi� n�y?');">
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     </form>
@@ -534,10 +534,10 @@
                             {
                                 <div class="text-center p-4">
                                     <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
-                                    <p>Chua c� d�nh gi� n�o cho s?n ph?m n�y.</p>
+                                    <p>Chưa có đánh giá nào cho sản phẩm này.</p>
                                     @if (User.Identity.IsAuthenticated)
                                     {
-                                        <button class="btn btn-outline-primary" id="be-first-review-btn">H�y l� ngu?i d?u ti�n d�nh gi�</button>
+                                        <button class="btn btn-outline-primary" id="be-first-review-btn">Hãy là người đầu tiên đánh giá</button>
                                     }
                                 </div>
                             }
@@ -556,7 +556,7 @@
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="model3dModalLabel">M� h�nh 3D - @Model.Name</h5>
+                    <h5 class="modal-title" id="model3dModalLabel">Mô hình 3D - @Model.Name</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-0">
@@ -565,9 +565,9 @@
                 <div class="modal-footer">
                     @if (User.IsInRole("Administrator"))
                     {
-                        <small class="text-muted me-auto">�u?ng d?n m� h�nh: @Model.Model3DUrl</small>
+                        <small class="text-muted me-auto">Đường dẫn mô hình: @Model.Model3DUrl</small>
                     }
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">��ng</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 </div>
             </div>
         </div>
@@ -628,7 +628,7 @@
                         const modelUrl = '@Model.Model3DUrl';
                         console.log('Model URL:', modelUrl);
 
-                        // Kh?i t?o model viewer
+                        // Khởi tạo model viewer
                         const success = show3DModel('model-container', modelUrl);
                         window.modelViewerInitialized = success;
 
@@ -638,7 +638,7 @@
                     } catch (error) {
                         console.error('Error initializing model viewer:', error);
                         $('#model-container').html(`<div class="alert alert-danger">
-                            <p>L?i khi kh?i t?o tr�nh xem 3D: ${error.message || 'Kh�ng x�c d?nh'}</p>
+                            <p>Lỗi khi khởi tạo trình xem 3D: ${error.message || 'Không xác định'}</p>
                         </div>`);
                     }
                 });
@@ -657,31 +657,31 @@
         </script>
     }
 
-    <!-- JavaScript cho ch?n size -->
+    <!-- JavaScript cho chọn size -->
     <script>
         $(document).ready(function() {
-            // X? l� ch?n size
+            // Xử lý chọn size
             $('.size-box').click(function() {
-                // B? ch?n t?t c? size kh�c
+                // Bỏ chọn tất cả size khác
                 $('.size-box').removeClass('selected');
 
-                // Ch?n size hi?n t?i
+                // Chọn size hiện tại
                 $(this).addClass('selected');
 
-                // Luu size d� ch?n
+                // Lưu size đã chọn
                 var selectedSize = $(this).data('size');
                 $('#selectedSize').val(selectedSize);
 
-                // K�ch ho?t n�t th�m v�o gi? h�ng
+                // Kích hoạt nút thêm vào giỏ hàng
                 $('#addToCartBtn').prop('disabled', false);
             });
 
-            // Ki?m tra form submit
+            // Kiểm tra form submit
             $('.add-to-cart-form').submit(function(e) {
                 var selectedSize = $('#selectedSize').val();
                 if (!selectedSize) {
                     e.preventDefault();
-                    alert('Vui l�ng ch?n k�ch c? tru?c khi th�m v�o gi? h�ng!');
+                    alert('Vui lòng chọn kích cỡ trước khi thêm vào giỏ hàng!');
                     return false;
                 }
             });
@@ -690,26 +690,26 @@
 
     <script>
         $(document).ready(function () {
-            // X? l� form th�m v�o gi? h�ng
+            // Xử lý form thêm vào giỏ hàng
             $('.add-to-cart-form').on('submit', function (e) {
                 e.preventDefault();
                 var form = $(this);
 
-                // Ki?m tra xem ngu?i d�ng d� dang nh?p chua
+                // Kiểm tra xem người dùng đã đăng nhập chưa
                 var isAuthenticated = @(User.Identity.IsAuthenticated ? "true" : "false");
                 if (!isAuthenticated) {
-                    // Chuy?n hu?ng d?n trang dang nh?p
+                    // Chuyển hướng đến trang đăng nhập
                     window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
                     return;
                 }
 
-                // Ki?m tra xem d� ch?n size chua (n?u c� size)
+                // Kiểm tra xem đã chọn size chưa (nếu có size)
                 if ($('.size-box').length > 0 && !$('.size-box.selected').length) {
-                    alert('Vui l�ng ch?n k�ch c? tru?c khi th�m v�o gi? h�ng.');
+                    alert('Vui lòng chọn kích cỡ trước khi thêm vào giỏ hàng.');
                     return;
                 }
 
-                // Th�m size v�o form n?u d� ch?n
+                // Thêm size vào form nếu đã chọn
                 if ($('.size-box.selected').length) {
                     var selectedSize = $('.size-box.selected').data('size');
                     form.append('<input type="hidden" name="size" value="' + selectedSize + '">');
@@ -724,23 +724,23 @@
                             // Update cart badge
                             $('.badge.bg-danger').text(response.cartCount);
                             // Optional: Show success message
-                            alert('�� th�m s?n ph?m v�o gi? h�ng!');
+                            alert('Đã thêm sản phẩm vào giỏ hàng!');
                         } else if (response.message) {
                             alert(response.message);
                         }
                     },
                     error: function (xhr) {
                         if (xhr.status === 401) {
-                            // Ngu?i d�ng chua dang nh?p
+                            // Người dùng chưa đăng nhập
                             window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
                         } else {
-                            alert('C� l?i x?y ra khi th�m v�o gi? h�ng.');
+                            alert('Có lỗi xảy ra khi thêm vào giỏ hàng.');
                         }
                     }
                 });
             });
 
-            // X? l� ch?n size
+            // Xử lý chọn size
             $('.size-box').on('click', function() {
                 if ($(this).hasClass('disabled')) {
                     return;
@@ -750,59 +750,59 @@
                 $(this).addClass('selected');
             });
 
-            // X? l� hi?n th? form d�nh gi�
+            // Xử lý hiển thị form đánh giá
             $('#write-review-btn, #be-first-review-btn').on('click', function() {
                 $('#review-form').slideDown();
             });
 
-            // X? l� ?n form d�nh gi�
+            // Xử lý ẩn form đánh giá
             $('#cancel-review-btn').on('click', function() {
                 $('#review-form').slideUp();
             });
 
-            // X? l� d�nh gi� sao khi nh?p
+            // Xử lý đánh giá sao khi nhấp
             $('.form-check-input[name="Rating"]').on('change', function() {
                 var rating = $(this).val();
 
-                // C?p nh?t hi?n th? m� t? d�nh gi�
+                // Cập nhật hiển thị mô tả đánh giá
                 $('.rating-text').text(rating + ' sao: ' + getRatingText(rating));
 
-                console.log('�� ch?n ' + rating + ' sao');
+                console.log('Đã chọn ' + rating + ' sao');
             });
 
-            // H�m l?y m� t? cho s? sao
+            // Hàm lấy mô tả cho số sao
             function getRatingText(rating) {
                 switch(parseInt(rating)) {
-                    case 1: return 'R?t t?';
-                    case 2: return 'T?';
-                    case 3: return 'B�nh thu?ng';
-                    case 4: return 'T?t';
-                    case 5: return 'R?t t?t';
-                    default: return 'Ch?n s? sao d? d�nh gi�';
+                    case 1: return 'Rất tệ';
+                    case 2: return 'Tệ';
+                    case 3: return 'Bình thường';
+                    case 4: return 'Tốt';
+                    case 5: return 'Rất tốt';
+                    default: return 'Chọn số sao để đánh giá';
                 }
             }
 
-            // X? l� ki?m tra form tru?c khi g?i
+            // Xử lý kiểm tra form trước khi gửi
             $('#review-form-submit').on('submit', function(event) {
                 var form = $(this);
                 var selectedRating = $('input[name="Rating"]:checked').val();
 
-                // Ki?m tra xem d� ch?n s? sao chua
+                // Kiểm tra xem đã chọn số sao chưa
                 if (!selectedRating) {
                     event.preventDefault();
                     event.stopPropagation();
-                    $('.rating-text').addClass('text-danger').text('Vui l�ng ch?n s? sao d�nh gi�');
+                    $('.rating-text').addClass('text-danger').text('Vui lòng chọn số sao đánh giá');
                     return false;
                 }
 
-                // Hi?n th? th�ng b�o dang g?i
+                // Hiển thị thông báo đang gửi
                 if (form[0].checkValidity() !== false) {
                     $('.rating-text').removeClass('text-danger');
 
-                    // Log th�ng tin d�nh gi� d? ki?m tra
-                    console.log('G?i d�nh gi�:');
-                    console.log('- S? sao: ' + selectedRating);
-                    console.log('- B�nh lu?n: ' + $('#comment').val());
+                    // Log thông tin đánh giá để kiểm tra
+                    console.log('Gửi đánh giá:');
+                    console.log('- Số sao: ' + selectedRating);
+                    console.log('- Bình luận: ' + $('#comment').val());
                 }
 
                 form.addClass('was-validated');

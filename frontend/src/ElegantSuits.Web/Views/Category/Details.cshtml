@@ -1,12 +1,12 @@
 @model ElegantSuits.Domain.Entities.Category
 @{
-    ViewData["Title"] = "Chi ti?t danh m?c";
+    ViewData["Title"] = "Chi tiết danh mục";
 }
 
-<h1>Chi ti?t</h1>
+<h1>Chi tiết</h1>
 
 <div>
-    <h4>Danh m?c</h4>
+    <h4>Danh mục</h4>
     <hr />
     <dl class="row">
         <dt class="col-sm-2">
@@ -24,6 +24,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">S?a</a> |
-    <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Sửa</a> |
+    <a asp-action="Index" class="btn btn-secondary">Quay lại danh sách</a>
 </div>
