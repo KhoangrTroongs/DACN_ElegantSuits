@@ -1,0 +1,272 @@
+@using ElegantSuits.Web.Models
+@model IEnumerable<ElegantSuits.Web.Models.UserDetailsViewModel>
+
+@{
+    ViewData["Title"] = "Qu?n l� ngu?i d�ng & vai tr�";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Message"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="dashboard-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-users me-2"></i>@ViewData["Title"]</span>
+        <button id="saveRolesBtn" class="btn btn-elegant-primary btn-sm" style="display: none;">
+            <i class="fas fa-save me-1"></i> Luu thay d?i vai tr�
+        </button>
+    </div>
+    <div class="card-body">
+
+<div class="table-responsive">
+    <table class="dashboard-table">
+    <thead>
+        <tr>
+            <th>?nh</th>
+            <th>H? v� t�n</th>
+            <th>Email</th>
+            <th>S? di?n tho?i</th>
+            <th>Tr?ng th�i</th>
+            <th>Vai tr�</th>
+            <th>Thao t�c</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(user.AvatarUrl))
+                    {
+                        <img src="@user.AvatarUrl" alt="Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;" />
+                    }
+                </td>
+                <td>@user.FullName</td>
+                <td>@user.Email</td>
+                <td>@(user.PhoneNumber ?? "Chua c?p nh?t")</td>
+                <td>
+                    <span class="badge @(user.IsActive ? "bg-success" : "bg-danger")">
+                        @(user.IsActive ? "Ho?t d?ng" : "�� kh�a")
+                    </span>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm role-select" data-user-id="@user.Id" @(user.Email == User.Identity.Name ? "disabled" : "")>
+                        <option value="loading">Loading...</option>
+                    </select>
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <a asp-action="UserDetails" asp-route-id="@user.Id" class="btn btn-sm btn-elegant-secondary">
+                            <i class="fas fa-info-circle me-1"></i> Chi ti?t
+                        </a>
+                        @if (User.IsInRole("Administrator") && user.Email != User.Identity.Name)
+                        {
+                            @if (user.IsActive)
+                            {
+                                <form asp-action="LockUser" method="post" style="display: inline;">
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('B?n c� ch?c ch?n mu?n kh�a ngu?i d�ng n�y?')">
+                                        <i class="fas fa-lock me-1"></i> Kh�a
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="UnlockUser" method="post" style="display: inline;">
+                                    <input type="hidden" name="id" value="@user.Id" />
+                                    <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('B?n c� ch?c ch?n mu?n m? kh�a ngu?i d�ng n�y?')">
+                                        <i class="fas fa-unlock me-1"></i> M? kh�a
+                                    </button>
+                                </form>
+                            }
+
+                        }
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+    </table>
+</div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Luu tr? vai tr� ban d?u v� vai tr� d� thay d?i
+            var originalRoles = {};
+            var changedRoles = {};
+            var allRoles = [];
+
+            // L?y danh s�ch t?t c? vai tr�
+            $.ajax({
+                url: '/Account/GetAllRoles',
+                type: 'GET',
+                success: function(roles) {
+                    allRoles = roles;
+
+                    // L?y vai tr� cho t?ng ngu?i d�ng
+                    $('.role-select').each(function() {
+                        var userId = $(this).data('user-id');
+                        var select = $(this);
+
+                        $.ajax({
+                            url: '/Account/GetUserRoles',
+                            type: 'GET',
+                            data: { userId: userId },
+                            success: function(userRoles) {
+                                // Luu vai tr� ban d?u
+                                originalRoles[userId] = userRoles;
+
+                                // X�a option loading
+                                select.empty();
+
+                                // Th�m c�c option vai tr�
+                                $.each(allRoles, function(i, role) {
+                                    var isSelected = userRoles.includes(role);
+                                    select.append($('<option>', {
+                                        value: role,
+                                        text: role,
+                                        selected: isSelected
+                                    }));
+                                });
+
+                                // Chuy?n select th�nh multiple select v?i Select2
+                                select.select2({
+                                    placeholder: 'Ch?n vai tr�',
+                                    allowClear: true,
+                                    width: '100%'
+                                });
+
+                                // X? l� s? ki?n thay d?i
+                                select.on('change', function() {
+                                    var userId = $(this).data('user-id');
+                                    var selectedRoles = $(this).val();
+
+                                    // Ki?m tra n?u ngu?i d�ng hi?n t?i l� admin v� dang c? g?ng x�a vai tr� admin
+                                    if ($(this).is(':disabled')) {
+                                        return;
+                                    }
+
+                                    // �?m b?o selectedRoles l� m?t m?ng
+                                    if (selectedRoles === null) {
+                                        selectedRoles = [];
+                                    }
+
+                                    // Luu vai tr� d� thay d?i
+                                    changedRoles[userId] = selectedRoles;
+                                    console.log('Changed roles for user ' + userId + ':', selectedRoles);
+
+                                    // Hi?n th? n�t luu
+                                    $('#saveRolesBtn').show();
+                                });
+                            }
+                        });
+                    });
+                }
+            });
+
+            // X? l� s? ki?n luu vai tr�
+            $('#saveRolesBtn').click(function() {
+                // Ki?m tra xem c� vai tr� n�o d� thay d?i kh�ng
+                if (Object.keys(changedRoles).length === 0) {
+                    alert('Kh�ng c� thay d?i n�o d? luu');
+                    return;
+                }
+
+                // Hi?n th? th�ng b�o dang x? l�
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i> �ang luu...');
+
+                console.log('Sending data:', changedRoles);
+
+                // Chuy?n d?i changedRoles th�nh d?nh d?ng ph� h?p
+                var dataToSend = {};
+                $.each(changedRoles, function(userId, roles) {
+                    // �?m b?o roles l� m?t m?ng
+                    if (roles === null) {
+                        roles = [];
+                    } else if (!Array.isArray(roles)) {
+                        roles = [roles];
+                    }
+                    dataToSend[userId] = roles;
+                });
+
+                console.log('Data to send:', dataToSend);
+
+                // G?i d? li?u vai tr� d� thay d?i l�n server
+                $.ajax({
+                    url: '/Account/UpdateRoles',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dataToSend),
+                    success: function(response) {
+                        if (response.success) {
+                            // Hi?n th? th�ng b�o th�nh c�ng
+                            $('<div class="alert alert-success alert-dismissible fade show">' +
+                              'C?p nh?t vai tr� th�nh c�ng' +
+                              '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                              '</div>').insertAfter('.mb-4').alert();
+
+                            // C?p nh?t vai tr� ban d?u
+                            $.each(changedRoles, function(userId, roles) {
+                                originalRoles[userId] = roles;
+                            });
+
+                            // X�a vai tr� d� thay d?i
+                            changedRoles = {};
+
+                            // ?n n�t luu
+                            $('#saveRolesBtn').hide();
+                        } else {
+                            // Hi?n th? th�ng b�o l?i
+                            $('<div class="alert alert-danger alert-dismissible fade show">' +
+                              'L?i: ' + response.message +
+                              '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                              '</div>').insertAfter('.mb-4').alert();
+                        }
+                    },
+                    error: function() {
+                        // Hi?n th? th�ng b�o l?i
+                        $('<div class="alert alert-danger alert-dismissible fade show">' +
+                          '�� x?y ra l?i khi c?p nh?t vai tr�' +
+                          '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                          '</div>').insertAfter('.mb-4').alert();
+                    },
+                    complete: function() {
+                        // Kh�i ph?c n�t luu
+                        $('#saveRolesBtn').prop('disabled', false).html('<i class="fas fa-save me-1"></i> Luu thay d?i vai tr�');
+                    }
+                });
+            });
+        });
+    </script>
+}

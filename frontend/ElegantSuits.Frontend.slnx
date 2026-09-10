@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ElegantSuits.Web/ElegantSuits.Web.csproj" />
+  </Folder>
+</Solution>

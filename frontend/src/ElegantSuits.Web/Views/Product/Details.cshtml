@@ -1,0 +1,813 @@
+@model ElegantSuits.Domain.Entities.Product
+@{
+    ViewData["Title"] = "Chi ti?t s?n ph?m";
+    var has3DModel = !string.IsNullOrEmpty(Model.Model3DUrl);
+}
+
+<style>
+    /* CSS cho ph?n size */
+    .size-box {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .size-box:hover {
+        border-color: #0d6efd;
+        background-color: #f8f9fa;
+    }
+
+    .size-box.selected {
+        border-color: #0d6efd;
+        background-color: #0d6efd;
+        color: white;
+    }
+
+    .size-box.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        text-decoration: line-through;
+    }
+
+    /* CSS cho ph?n d�nh gi� */
+    .stars {
+        color: #ffc107;
+    }
+
+    /* CSS cho d�nh gi� sao ki?u nh?p */
+    .stars-select {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    .star-icon {
+        cursor: pointer;
+        font-size: 1.8rem;
+        padding: 0 0.1rem;
+        color: #ddd;
+    }
+
+    .star-icon i {
+        transition: all 0.2s;
+    }
+
+    .star-icon.active i {
+        color: #ffc107;
+    }
+
+    .star-icon:hover i {
+        color: #ffc107;
+    }
+
+    .rating-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .rating-text {
+        color: #666;
+        font-size: 0.9rem;
+    }
+</style>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card mb-3">
+    <div class="row g-0">
+        <div class="col-md-4">
+            <div class="product-view-container">
+                <div id="product-image-view" class="product-view active">
+                    @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                    {
+                        <div class="position-relative">
+                            <img src="@Model.ImageUrl" class="img-fluid rounded-start" alt="@Model.Name" style="max-height: 400px; object-fit: cover;">
+                            @if (User.IsInRole("Administrator"))
+                            {
+                                <form asp-action="DeleteImage" asp-route-id="@Model.Id" method="post" class="position-absolute" style="top: 10px; right: 10px;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('B?n c� ch?c ch?n mu?n x�a h�nh ?nh n�y?');">
+                                        <i class="fas fa-trash"></i> X�a h�nh ?nh
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <img src="/images/no-image.svg" class="img-fluid rounded-start" alt="Kh�ng c� h�nh ?nh" style="max-height: 400px; object-fit: contain;" onerror="this.src='https://via.placeholder.com/400x400?text=No+Image'" />
+                    }
+                </div>
+
+                @if (has3DModel)
+                {
+                    <div class="view-toggle-buttons mt-2 d-flex">
+                        <button id="view-3d-btn" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#model3dModal">
+                            <i class="fas fa-cube"></i> Xem m� h�nh 3D
+                        </button>
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <form asp-action="DeleteModel3D" asp-route-id="@Model.Id" method="post" class="ms-auto">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('B?n c� ch?c ch?n mu?n x�a m� h�nh 3D n�y?');">
+                                    <i class="fas fa-trash"></i> X�a m� h�nh 3D
+                                </button>
+                            </form>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card-body">
+                <h2 class="card-title">@Model.Name</h2>
+                <p class="card-text text-muted">Danh m?c: @Model.Category?.Name</p>
+                @{
+                    var description = Model.Description;
+                    var sizeTag = "[SIZES]";
+                    var endSizeTag = "[/SIZES]";
+                    var reviewTag = "[REVIEWS]";
+                    var endReviewTag = "[/REVIEWS]";
+
+                    // Lo?i b? ph?n k? thu?t kh?i m� t?
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        if (description.Contains(sizeTag) && description.Contains(endSizeTag))
+                        {
+                            var startIndex = description.IndexOf(sizeTag);
+                            var endIndex = description.IndexOf(endSizeTag) + endSizeTag.Length;
+                            if (startIndex < endIndex)
+                            {
+                                description = description.Remove(startIndex, endIndex - startIndex);
+                            }
+                        }
+
+                        if (description.Contains(reviewTag) && description.Contains(endReviewTag))
+                        {
+                            var startIndex = description.IndexOf(reviewTag);
+                            var endIndex = description.IndexOf(endReviewTag) + endReviewTag.Length;
+                            if (startIndex < endIndex)
+                            {
+                                description = description.Remove(startIndex, endIndex - startIndex);
+                            }
+                        }
+
+                        // Lo?i b? kho?ng tr?ng th?a
+                        description = description.Trim();
+                    }
+                }
+
+                @if (!string.IsNullOrEmpty(description))
+                {
+                    <p class="card-text">@description</p>
+                }
+                <p class="card-text"><strong class="fs-4">Gi�: @Model.Price.ToString("N0") VN�</strong></p>
+
+                <!-- Fabric Information Section -->
+                @if (Model.FabricProducts != null && Model.FabricProducts.Any())
+                {
+                    <div class="fabric-section mt-4 mb-4">
+                        <p class="card-text mb-2">
+                            <small class="text-muted d-block mb-2"><strong>V?i:</strong></small>
+                            <div class="fabric-tags">
+                                @foreach (var fabricProduct in Model.FabricProducts)
+                                {
+                                    var fabric = fabricProduct.Fabric;
+                                    if (fabric != null)
+                                    {
+                                        <span class="badge bg-info me-1 mb-1" title="@(fabric.FabricGroup?.Name ?? "")">
+                                            @fabric.Name
+                                        </span>
+                                    }
+                                }
+                            </div>
+                        </p>
+                    </div>
+                }
+
+                <!-- Hi?n th? d�nh gi� s?n ph?m -->
+                @{
+                    var reviews = new List<ReviewViewModel>();
+                    var reviewSection = "";
+
+                    if (!string.IsNullOrEmpty(Model.Description) &&
+                        Model.Description.Contains(reviewTag) &&
+                        Model.Description.Contains(endReviewTag))
+                    {
+                        var startIndex = Model.Description.IndexOf(reviewTag) + reviewTag.Length;
+                        var endIndex = Model.Description.IndexOf(endReviewTag);
+                        if (startIndex < endIndex)
+                        {
+                            reviewSection = Model.Description.Substring(startIndex, endIndex - startIndex);
+
+                            var reviewPairs = reviewSection.Split('|');
+                            foreach (var pair in reviewPairs)
+                            {
+                                if (!string.IsNullOrEmpty(pair))
+                                {
+                                    var parts = pair.Split(new[] { "~~" }, StringSplitOptions.None);
+                                    if (parts.Length >= 5)
+                                    {
+                                        reviews.Add(new ReviewViewModel
+                                        {
+                                            UserId = parts[0],
+                                            UserName = parts[1],
+                                            Rating = int.TryParse(parts[2], out int r) ? r : 5,
+                                            Date = DateTime.TryParse(parts[3], out DateTime d) ? d : DateTime.Now,
+                                            Comment = parts[4]
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    double averageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                    int reviewCount = reviews.Count;
+                }
+
+                <div class="product-rating mb-2">
+                    <div class="d-flex align-items-center">
+                        <div class="stars">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Round(averageRating))
+                                {
+                                    <i class="fas fa-star text-warning"></i>
+                                }
+                                else if (i - 0.5 <= averageRating)
+                                {
+                                    <i class="fas fa-star-half-alt text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star text-secondary"></i>
+                                }
+                            }
+                        </div>
+                        <span class="ms-2">@averageRating.ToString("0.0") (@reviewCount d�nh gi�)</span>
+                    </div>
+                </div>
+
+                @functions {
+                    public class ReviewViewModel
+                    {
+                        public string UserId { get; set; } = "";
+                        public string UserName { get; set; } = "";
+                        public int Rating { get; set; }
+                        public DateTime Date { get; set; }
+                        public string Comment { get; set; } = "";
+                    }
+                }
+
+                <!-- Hi?n th? s? lu?ng t?ng (ch? cho admin) -->
+                @if (User.IsInRole("Administrator"))
+                {
+                    <p class="card-text">S? lu?ng: <span class="badge bg-@(Model.Quantity > 0 ? "success" : "danger")">@(Model.Quantity > 0 ? Model.Quantity.ToString() : "H?t h�ng")</span></p>
+                }
+                else
+                {
+                    <p class="card-text">T�nh tr?ng: <span class="badge bg-@(Model.Quantity > 0 ? "success" : "danger")">@(Model.Quantity > 0 ? "C�n h�ng" : "H?t h�ng")</span></p>
+                }
+
+                <!-- Hi?n th? c�c size c� s?n -->
+                @{
+                    var sizeQuantities = new Dictionary<string, int>();
+                    var sizeSection = "";
+
+                    if (!string.IsNullOrEmpty(Model.Description) &&
+                        Model.Description.Contains(sizeTag) &&
+                        Model.Description.Contains(endSizeTag))
+                    {
+                        var startIndex = Model.Description.IndexOf(sizeTag) + sizeTag.Length;
+                        var endIndex = Model.Description.IndexOf(endSizeTag);
+                        if (startIndex < endIndex)
+                        {
+                            sizeSection = Model.Description.Substring(startIndex, endIndex - startIndex);
+
+                            var sizePairs = sizeSection.Split(',');
+                            foreach (var pair in sizePairs)
+                            {
+                                var parts = pair.Split(':');
+                                if (parts.Length == 2 && int.TryParse(parts[1], out int qty))
+                                {
+                                    sizeQuantities[parts[0].Trim()] = qty;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                @if (sizeQuantities.Any())
+                {
+                    <div class="product-sizes mb-3">
+                        <p class="mb-1">K�ch c? c� s?n:</p>
+                        <div class="d-flex flex-wrap">
+                            @foreach (var size in sizeQuantities.OrderBy(s => s.Key))
+                            {
+                                <div class="size-box me-2 mb-2 @(size.Value > 0 ? "" : "disabled")"
+                                     data-size="@size.Key"
+                                     data-quantity="@size.Value"
+                                     title="@(size.Value > 0 ? (User.IsInRole("Administrator") ? $"C�n {size.Value} s?n ph?m" : "C�n h�ng") : "H?t h�ng")">
+                                    @size.Key
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="mt-4">
+                    @if (Model.Quantity > 0)
+                    {
+                        <form asp-controller="Home" asp-action="AddToCart" method="post" class="d-inline add-to-cart-form">
+                            <input type="hidden" name="productId" value="@Model.Id" />
+                            <input type="hidden" name="size" id="selectedSize" value="" />
+                            <button type="submit" class="btn btn-primary" id="addToCartBtn" disabled>
+                                <i class='bx bx-cart-add'></i> Th�m v�o gi? h�ng
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-success ms-2" data-bs-toggle="modal" data-bs-target="#virtualTryOnModal">
+                            <i class="fas fa-magic"></i> Th? d? ?o
+                        </button>
+                    }
+                    else
+                    {
+                        <a asp-controller="Home" asp-action="Contact" asp-route-productId="@Model.Id" class="btn btn-primary">
+                            <i class='bx bx-envelope'></i> Li�n h? d?t h�ng
+                        </a>
+                    }
+                    <a asp-action="Index" class="btn btn-secondary">Quay l?i danh s�ch</a>
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">S?a</a>
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">X�a</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ph?n d�nh gi� s?n ph?m -->
+<div class="card mt-4">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="product-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="true">
+                    ��nh gi� (@reviewCount)
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="product-tab-content">
+            <div class="tab-pane fade show active" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                <!-- Hi?n th? d�nh gi� -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="review-summary p-3 border rounded">
+                            <h4 class="mb-3">��nh gi� trung b�nh</h4>
+                            <div class="d-flex align-items-center mb-3">
+                                <h2 class="me-2 mb-0">@averageRating.ToString("0.0")</h2>
+                                <div>
+                                    <div class="stars">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            if (i <= Math.Round(averageRating))
+                                            {
+                                                <i class="fas fa-star text-warning"></i>
+                                            }
+                                            else if (i - 0.5 <= averageRating)
+                                            {
+                                                <i class="fas fa-star-half-alt text-warning"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="far fa-star text-secondary"></i>
+                                            }
+                                        }
+                                    </div>
+                                    <div class="text-muted">@reviewCount d�nh gi�</div>
+                                </div>
+                            </div>
+
+                            <!-- Th?ng k� d�nh gi� -->
+                            @for (int i = 5; i >= 1; i--)
+                            {
+                                int count = reviews.Count(r => r.Rating == i);
+                                double percent = reviewCount > 0 ? (double)count / reviewCount * 100 : 0;
+
+                                <div class="d-flex align-items-center mb-1">
+                                    <div class="me-2">@i <i class="fas fa-star text-warning"></i></div>
+                                    <div class="progress flex-grow-1" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: @percent%;" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="ms-2">@count</div>
+                                </div>
+                            }
+
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <button class="btn btn-primary mt-3 w-100" id="write-review-btn">Vi?t d�nh gi�</button>
+                            }
+                            else
+                            {
+                                <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Details", "Product", new { id = Model.Id })" class="btn btn-outline-primary mt-3 w-100">
+                                    �ang nh?p d? d�nh gi�
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <!-- Form d�nh gi� -->
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <div id="review-form" class="mb-4 p-3 border rounded" style="display: none;">
+                                <h4 class="mb-3">Vi?t d�nh gi� c?a b?n</h4>
+                                <form asp-controller="Product" asp-action="AddReview" method="post" id="review-form-submit" class="needs-validation" novalidate>
+                                    <input type="hidden" name="ProductId" value="@Model.Id" />
+
+                                    <div class="mb-3">
+                                        <label class="form-label">��nh gi�</label>
+                                        <div class="rating-input">
+                                            <div class="d-flex mb-2">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    <div class="form-check form-check-inline">
+                                                        <input class="form-check-input" type="radio" name="Rating" id="rating@i" value="@i" required>
+                                                        <label class="form-check-label" for="rating@i">@i <i class="fas fa-star text-warning"></i></label>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="rating-text mt-2">Ch?n s? sao d? d�nh gi�</div>
+                                        <div class="invalid-feedback">Vui l�ng ch?n s? sao d�nh gi�</div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="comment" class="form-label">B�nh lu?n</label>
+                                        <textarea class="form-control" id="comment" name="Comment" rows="3" placeholder="Chia s? tr?i nghi?m c?a b?n v? s?n ph?m n�y"></textarea>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-outline-secondary me-2" id="cancel-review-btn">H?y</button>
+                                        <button type="submit" class="btn btn-primary">G?i d�nh gi�</button>
+                                    </div>
+                                </form>
+                            </div>
+                        }
+
+                        <!-- Danh s�ch d�nh gi� -->
+                        <div class="reviews-list">
+                            @if (reviews.Any())
+                            {
+                                foreach (var review in reviews.OrderByDescending(r => r.Date))
+                                {
+                                    <div class="review-item mb-3 p-3 border rounded">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar me-2">
+                                                    <i class="fas fa-user-circle fa-2x text-secondary"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold">@review.UserName</div>
+                                                    <div class="text-muted small">@review.Date.ToString("dd/MM/yyyy")</div>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="stars me-3">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        if (i <= review.Rating)
+                                                        {
+                                                            <i class="fas fa-star text-warning"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="far fa-star text-secondary"></i>
+                                                        }
+                                                    }
+                                                </div>
+                                                @if (User.IsInRole("Administrator"))
+                                                {
+                                                    <form asp-action="DeleteReview" method="post" class="d-inline">
+                                                        <input type="hidden" name="productId" value="@Model.Id" />
+                                                        <input type="hidden" name="userId" value="@review.UserId" />
+                                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                                onclick="return confirm('B?n c� ch?c ch?n mu?n x�a d�nh gi� n�y?');">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(review.Comment))
+                                        {
+                                            <p class="mb-0">@review.Comment</p>
+                                        }
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="text-center p-4">
+                                    <i class="fas fa-comment-slash fa-3x text-muted mb-3"></i>
+                                    <p>Chua c� d�nh gi� n�o cho s?n ph?m n�y.</p>
+                                    @if (User.Identity.IsAuthenticated)
+                                    {
+                                        <button class="btn btn-outline-primary" id="be-first-review-btn">H�y l� ngu?i d?u ti�n d�nh gi�</button>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3D Model Modal -->
+@if (has3DModel)
+{
+    <div class="modal fade" id="model3dModal" tabindex="-1" aria-labelledby="model3dModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="model3dModalLabel">M� h�nh 3D - @Model.Name</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="model-container" style="width: 100%; height: 600px;"></div>
+                </div>
+                <div class="modal-footer">
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <small class="text-muted me-auto">�u?ng d?n m� h�nh: @Model.Model3DUrl</small>
+                    }
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">��ng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .size-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            background-color: #fff;
+        }
+
+        .size-box:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+
+        .size-box.selected {
+            border-color: #007bff;
+            background-color: #007bff;
+            color: white;
+        }
+
+        .size-box.disabled {
+            border-color: #e9ecef;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+}
+
+@section Scripts {
+    @if (has3DModel)
+    {
+        await Html.RenderPartialAsync("_ThreeJSScriptsPartial");
+
+        <script>
+            // 3D Model Viewer
+            $(document).ready(function() {
+                // Initialize 3D model when modal is shown
+                $('#model3dModal').on('shown.bs.modal', function () {
+                    // Always reinitialize the 3D viewer when the modal is opened
+                    window.modelViewerInitialized = false;
+                    console.log('Initializing model viewer in modal...');
+
+                    try {
+                        const modelUrl = '@Model.Model3DUrl';
+                        console.log('Model URL:', modelUrl);
+
+                        // Kh?i t?o model viewer
+                        const success = show3DModel('model-container', modelUrl);
+                        window.modelViewerInitialized = success;
+
+                        if (!window.modelViewerInitialized) {
+                            console.error('Failed to initialize model viewer');
+                        }
+                    } catch (error) {
+                        console.error('Error initializing model viewer:', error);
+                        $('#model-container').html(`<div class="alert alert-danger">
+                            <p>L?i khi kh?i t?o tr�nh xem 3D: ${error.message || 'Kh�ng x�c d?nh'}</p>
+                        </div>`);
+                    }
+                });
+
+                // Clean up when modal is hidden
+                $('#model3dModal').on('hidden.bs.modal', function () {
+                    // Clear the container to free up resources
+                    $('#model-container').empty();
+
+                    // Dispose of ThreeJS resources if needed
+                    if (window.renderer) {
+                        window.renderer.dispose();
+                    }
+                });
+            });
+        </script>
+    }
+
+    <!-- JavaScript cho ch?n size -->
+    <script>
+        $(document).ready(function() {
+            // X? l� ch?n size
+            $('.size-box').click(function() {
+                // B? ch?n t?t c? size kh�c
+                $('.size-box').removeClass('selected');
+
+                // Ch?n size hi?n t?i
+                $(this).addClass('selected');
+
+                // Luu size d� ch?n
+                var selectedSize = $(this).data('size');
+                $('#selectedSize').val(selectedSize);
+
+                // K�ch ho?t n�t th�m v�o gi? h�ng
+                $('#addToCartBtn').prop('disabled', false);
+            });
+
+            // Ki?m tra form submit
+            $('.add-to-cart-form').submit(function(e) {
+                var selectedSize = $('#selectedSize').val();
+                if (!selectedSize) {
+                    e.preventDefault();
+                    alert('Vui l�ng ch?n k�ch c? tru?c khi th�m v�o gi? h�ng!');
+                    return false;
+                }
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            // X? l� form th�m v�o gi? h�ng
+            $('.add-to-cart-form').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+
+                // Ki?m tra xem ngu?i d�ng d� dang nh?p chua
+                var isAuthenticated = @(User.Identity.IsAuthenticated ? "true" : "false");
+                if (!isAuthenticated) {
+                    // Chuy?n hu?ng d?n trang dang nh?p
+                    window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                    return;
+                }
+
+                // Ki?m tra xem d� ch?n size chua (n?u c� size)
+                if ($('.size-box').length > 0 && !$('.size-box.selected').length) {
+                    alert('Vui l�ng ch?n k�ch c? tru?c khi th�m v�o gi? h�ng.');
+                    return;
+                }
+
+                // Th�m size v�o form n?u d� ch?n
+                if ($('.size-box.selected').length) {
+                    var selectedSize = $('.size-box.selected').data('size');
+                    form.append('<input type="hidden" name="size" value="' + selectedSize + '">');
+                }
+
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            // Update cart badge
+                            $('.badge.bg-danger').text(response.cartCount);
+                            // Optional: Show success message
+                            alert('�� th�m s?n ph?m v�o gi? h�ng!');
+                        } else if (response.message) {
+                            alert(response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 401) {
+                            // Ngu?i d�ng chua dang nh?p
+                            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                        } else {
+                            alert('C� l?i x?y ra khi th�m v�o gi? h�ng.');
+                        }
+                    }
+                });
+            });
+
+            // X? l� ch?n size
+            $('.size-box').on('click', function() {
+                if ($(this).hasClass('disabled')) {
+                    return;
+                }
+
+                $('.size-box').removeClass('selected');
+                $(this).addClass('selected');
+            });
+
+            // X? l� hi?n th? form d�nh gi�
+            $('#write-review-btn, #be-first-review-btn').on('click', function() {
+                $('#review-form').slideDown();
+            });
+
+            // X? l� ?n form d�nh gi�
+            $('#cancel-review-btn').on('click', function() {
+                $('#review-form').slideUp();
+            });
+
+            // X? l� d�nh gi� sao khi nh?p
+            $('.form-check-input[name="Rating"]').on('change', function() {
+                var rating = $(this).val();
+
+                // C?p nh?t hi?n th? m� t? d�nh gi�
+                $('.rating-text').text(rating + ' sao: ' + getRatingText(rating));
+
+                console.log('�� ch?n ' + rating + ' sao');
+            });
+
+            // H�m l?y m� t? cho s? sao
+            function getRatingText(rating) {
+                switch(parseInt(rating)) {
+                    case 1: return 'R?t t?';
+                    case 2: return 'T?';
+                    case 3: return 'B�nh thu?ng';
+                    case 4: return 'T?t';
+                    case 5: return 'R?t t?t';
+                    default: return 'Ch?n s? sao d? d�nh gi�';
+                }
+            }
+
+            // X? l� ki?m tra form tru?c khi g?i
+            $('#review-form-submit').on('submit', function(event) {
+                var form = $(this);
+                var selectedRating = $('input[name="Rating"]:checked').val();
+
+                // Ki?m tra xem d� ch?n s? sao chua
+                if (!selectedRating) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    $('.rating-text').addClass('text-danger').text('Vui l�ng ch?n s? sao d�nh gi�');
+                    return false;
+                }
+
+                // Hi?n th? th�ng b�o dang g?i
+                if (form[0].checkValidity() !== false) {
+                    $('.rating-text').removeClass('text-danger');
+
+                    // Log th�ng tin d�nh gi� d? ki?m tra
+                    console.log('G?i d�nh gi�:');
+                    console.log('- S? sao: ' + selectedRating);
+                    console.log('- B�nh lu?n: ' + $('#comment').val());
+                }
+
+                form.addClass('was-validated');
+            });
+        });
+    </script>
+}
+@await Html.PartialAsync("_VirtualTryOnModal")

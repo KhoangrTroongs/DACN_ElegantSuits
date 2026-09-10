@@ -1,0 +1,84 @@
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model ElegantSuits.Domain.Entities.Product
+
+@{
+    ViewData["Title"] = "X�a s?n ph?m";
+}
+
+<h2>X�a s?n ph?m</h2>
+
+<div class="alert alert-danger">
+    <h3>B?n c� ch?c ch?n mu?n x�a s?n ph?m n�y?</h3>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <dl class="row">
+            <dt class="col-sm-4">T�n s?n ph?m</dt>
+            <dd class="col-sm-8">@Model.Name</dd>
+
+            <dt class="col-sm-4">Gi�</dt>
+            <dd class="col-sm-8">@Model.Price.ToString("C")</dd>
+
+            <dt class="col-sm-4">M� t?</dt>
+            <dd class="col-sm-8">
+                @{
+                    var description = Model.Description;
+                    var sizeTag = "[SIZES]";
+                    var endSizeTag = "[/SIZES]";
+                    var reviewTag = "[REVIEWS]";
+                    var endReviewTag = "[/REVIEWS]";
+
+                    // Lo?i b? ph?n k? thu?t kh?i m� t?
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        // Lo?i b? ph?n k�ch thu?c
+                        if (description.Contains(sizeTag) && description.Contains(endSizeTag))
+                        {
+                            var startIndex = description.IndexOf(sizeTag);
+                            var endIndex = description.IndexOf(endSizeTag) + endSizeTag.Length;
+                            if (startIndex < endIndex)
+                            {
+                                description = description.Remove(startIndex, endIndex - startIndex);
+                            }
+                        }
+
+                        // Lo?i b? ph?n d�nh gi�
+                        if (description.Contains(reviewTag) && description.Contains(endReviewTag))
+                        {
+                            var startIndex = description.IndexOf(reviewTag);
+                            var endIndex = description.IndexOf(endReviewTag) + endReviewTag.Length;
+                            if (startIndex < endIndex)
+                            {
+                                description = description.Remove(startIndex, endIndex - startIndex);
+                            }
+                        }
+
+                        // Lo?i b? kho?ng tr?ng th?a
+                        description = description.Trim();
+                    }
+                }
+                @description
+            </dd>
+
+            <dt class="col-sm-4">Danh m?c</dt>
+            <dd class="col-sm-8">@Model.Category?.Name</dd>
+
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <dt class="col-sm-4">H�nh ?nh</dt>
+                <dd class="col-sm-8">
+                    <img src="@Model.ImageUrl" alt="@Model.Name" class="img-thumbnail" style="max-width: 200px;" />
+                </dd>
+            }
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">X�a</button>
+            <a asp-action="Index" class="btn btn-secondary">H?y</a>
+        </form>
+    </div>
+</div>
