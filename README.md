@@ -193,17 +193,6 @@ Hệ thống đã chuẩn bị sẵn tài khoản quản trị để kiểm th�
 
 ---
 
-## 👨‍💻 8. Thông Tin Tác Giả & Bản Quyền
-
-- **Họ và tên:** Ngô Hữu Đức
-- **Mã số sinh viên:** 2280600725
-- **Trường:** Đại học Công Nghệ TP.HCM (HUTECH)
-- **Đồ án:** Đồ Án Chuyên Ngành (ĐACN)
-- **Email:** `ngohuuduc.it@gmail.com` / `khoangrtroongs@gmail.com`
-- **GitHub:** [@KhoangrTroongs](https://github.com/KhoangrTroongs)
-
----
-
 <div align="center">
   <i>Được xây dựng với niềm đam mê dành cho công nghệ và thời trang cao cấp. © 2025 - 2026 Elegant Suits.</i>
 </div>
