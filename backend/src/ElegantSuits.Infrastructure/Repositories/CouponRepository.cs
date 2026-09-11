@@ -125,13 +125,20 @@ public class CouponRepository : ICouponRepository
 
     public async Task<CouponDTO> AddCouponAsync(CreateCouponDTO dto, CancellationToken cancellationToken = default)
     {
+        var code = dto.Code.Trim().ToUpper();
+        var exists = await _context.Coupons.AnyAsync(c => c.Code.ToUpper() == code, cancellationToken);
+        if (exists)
+        {
+            throw new InvalidOperationException($"Mã giảm giá '{code}' đã tồn tại trong hệ thống.");
+        }
+
         var coupon = new Coupon
         {
-            Code = dto.Code.Trim().ToUpper(),
+            Code = code,
             Description = dto.Description,
             Quantity = dto.Quantity,
             DiscountPercentage = dto.DiscountPercentage,
-            ExpiryDate = dto.ExpiryDate,
+            ExpiryDate = dto.ExpiryDate == default ? DateTime.Now.AddDays(30) : dto.ExpiryDate,
             IsActive = dto.IsActive,
             MinimumAmount = dto.MinimumAmount,
             CreatedAt = DateTime.Now
@@ -148,11 +155,24 @@ public class CouponRepository : ICouponRepository
         var coupon = await _context.Coupons.FindAsync(new object[] { id }, cancellationToken);
         if (coupon == null) return null;
 
-        coupon.Code = dto.Code.Trim().ToUpper();
+        if (!string.IsNullOrWhiteSpace(dto.Code))
+        {
+            var code = dto.Code.Trim().ToUpper();
+            var exists = await _context.Coupons.AnyAsync(c => c.Id != id && c.Code.ToUpper() == code, cancellationToken);
+            if (exists)
+            {
+                throw new InvalidOperationException($"Mã giảm giá '{code}' đã tồn tại trong hệ thống.");
+            }
+            coupon.Code = code;
+        }
+
         coupon.Description = dto.Description;
         coupon.Quantity = dto.Quantity;
         coupon.DiscountPercentage = dto.DiscountPercentage;
-        coupon.ExpiryDate = dto.ExpiryDate;
+        if (dto.ExpiryDate != default)
+        {
+            coupon.ExpiryDate = dto.ExpiryDate;
+        }
         coupon.IsActive = dto.IsActive;
         coupon.MinimumAmount = dto.MinimumAmount;
         coupon.UpdatedAt = DateTime.Now;

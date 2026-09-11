@@ -1,7 +1,8 @@
 @model IEnumerable<ElegantSuits.Web.Models.FabricDTO>
 @{
     ViewData["Title"] = "Quản lý vải";
-    var fabricGroups = ViewBag.FabricGroups as IEnumerable<ElegantSuits.Web.Models.FabricGroupDTO>;
+    var fabricGroups = (ViewBag.FabricGroups as IEnumerable<ElegantSuits.Web.Models.FabricGroupDTO>)
+                       ?? Enumerable.Empty<ElegantSuits.Web.Models.FabricGroupDTO>();
     var selectedGroupId = ViewBag.SelectedGroupId as int?;
 }
 

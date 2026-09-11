@@ -21,24 +21,32 @@ public class FabricAdminController : Controller
 
     public IActionResult Index() => RedirectToAction(nameof(FabricGroups));
 
-    public async Task<IActionResult> FabricGroups()
+    private List<FabricGroupDTO> MapToGroupDTOs(List<FabricGroupViewModel>? groups)
     {
-        var res = await _fabricApiClient.GetFabricGroupsAsync();
-        var groups = (res.Data ?? new List<FabricGroupViewModel>()).Select(g => new FabricGroupDTO
+        return (groups ?? new List<FabricGroupViewModel>()).Select(g => new FabricGroupDTO
         {
             Id = g.Id,
             Name = g.Name,
             Description = g.Description ?? "",
-            Fabrics = g.Fabrics.Select(f => new FabricDTO
+            DisplayOrder = g.DisplayOrder,
+            Fabrics = g.Fabrics?.Select(f => new FabricDTO
             {
                 Id = f.Id,
                 Name = f.Name,
-                Composition = f.Material ?? "",
-                Price = f.PricePerMeter,
-                ImageUrl = f.ImageUrl ?? ""
-            })
+                Composition = f.Composition ?? f.Material ?? "",
+                Price = f.Price > 0 ? f.Price : f.PricePerMeter,
+                ImageUrl = f.ImageUrl ?? "",
+                FabricGroupId = g.Id,
+                FabricGroupName = g.Name,
+                IsAvailable = f.IsAvailable
+            }) ?? new List<FabricDTO>()
         }).ToList();
+    }
 
+    public async Task<IActionResult> FabricGroups()
+    {
+        var res = await _fabricApiClient.GetFabricGroupsAsync();
+        var groups = MapToGroupDTOs(res.Data);
         return View(groups);
     }
 
@@ -65,7 +73,8 @@ public class FabricAdminController : Controller
         var dto = new UpdateFabricGroupDTO
         {
             Name = g.Name,
-            Description = g.Description ?? ""
+            Description = g.Description ?? "",
+            DisplayOrder = g.DisplayOrder
         };
         return View(dto);
     }
@@ -85,30 +94,21 @@ public class FabricAdminController : Controller
     public async Task<IActionResult> Fabrics(int? groupId)
     {
         var res = await _fabricApiClient.GetFabricGroupsAsync();
+        var groups = MapToGroupDTOs(res.Data);
         var list = new List<FabricDTO>();
 
-        if (res.Data != null)
+        foreach (var g in groups)
         {
-            foreach (var g in res.Data)
+            if (!groupId.HasValue || g.Id == groupId.Value)
             {
-                if (!groupId.HasValue || g.Id == groupId.Value)
+                if (g.Fabrics != null)
                 {
-                    list.AddRange(g.Fabrics.Select(f => new FabricDTO
-                    {
-                        Id = f.Id,
-                        Name = f.Name,
-                        Composition = f.Material ?? "",
-                        Price = f.PricePerMeter,
-                        ImageUrl = f.ImageUrl ?? "",
-                        FabricGroupId = g.Id,
-                        FabricGroupName = g.Name,
-                        IsAvailable = true
-                    }));
+                    list.AddRange(g.Fabrics);
                 }
             }
         }
 
-        ViewBag.FabricGroups = res.Data ?? new List<FabricGroupViewModel>();
+        ViewBag.FabricGroups = groups;
         ViewBag.SelectedGroupId = groupId;
         return View(list);
     }
@@ -116,7 +116,7 @@ public class FabricAdminController : Controller
     public async Task<IActionResult> CreateFabric(int? groupId)
     {
         var res = await _fabricApiClient.GetFabricGroupsAsync();
-        ViewBag.FabricGroups = res.Data ?? new List<FabricGroupViewModel>();
+        ViewBag.FabricGroups = MapToGroupDTOs(res.Data);
         return View(new CreateFabricDTO { FabricGroupId = groupId ?? 0 });
     }
 
@@ -139,16 +139,17 @@ public class FabricAdminController : Controller
 
         var f = res.Data;
         var groupsRes = await _fabricApiClient.GetFabricGroupsAsync();
-        ViewBag.FabricGroups = groupsRes.Data ?? new List<FabricGroupViewModel>();
+        ViewBag.FabricGroups = MapToGroupDTOs(groupsRes.Data);
+        ViewBag.FabricId = id;
 
         var dto = new UpdateFabricDTO
         {
             Name = f.Name,
-            Composition = f.Material ?? "",
-            Price = f.PricePerMeter,
+            Composition = f.Composition ?? f.Material ?? "",
+            Price = f.Price > 0 ? f.Price : f.PricePerMeter,
             ImageUrl = f.ImageUrl ?? "",
             FabricGroupId = f.FabricGroupId,
-            IsAvailable = true
+            IsAvailable = f.IsAvailable
         };
         return View(dto);
     }

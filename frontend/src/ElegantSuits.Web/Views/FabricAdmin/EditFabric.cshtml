@@ -1,7 +1,8 @@
 @model ElegantSuits.Web.Models.UpdateFabricDTO
 @{
     ViewData["Title"] = "Chỉnh sửa vải";
-    var fabricGroups = ViewBag.FabricGroups as IEnumerable<ElegantSuits.Web.Models.FabricGroupDTO>;
+    var fabricGroups = (ViewBag.FabricGroups as IEnumerable<ElegantSuits.Web.Models.FabricGroupDTO>)
+                       ?? Enumerable.Empty<ElegantSuits.Web.Models.FabricGroupDTO>();
     var fabricId = ViewBag.FabricId;
 }
 

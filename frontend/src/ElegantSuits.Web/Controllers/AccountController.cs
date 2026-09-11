@@ -12,19 +12,32 @@ public class AccountController : Controller
 {
     private readonly IAuthApiClient _authApiClient;
     private readonly ICartApiClient _cartApiClient;
+    private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AccountController> _logger;
 
     public AccountController(
         IAuthApiClient authApiClient,
         ICartApiClient cartApiClient,
+        HttpClient httpClient,
         IConfiguration configuration,
         ILogger<AccountController> logger)
     {
         _authApiClient = authApiClient;
         _cartApiClient = cartApiClient;
+        _httpClient = httpClient;
         _configuration = configuration;
         _logger = logger;
+    }
+
+    private string? GetToken()
+    {
+        var token = HttpContext.Session.GetString("JwtToken") ?? User.FindFirst("JwtToken")?.Value;
+        if (!string.IsNullOrEmpty(token) && string.IsNullOrEmpty(HttpContext.Session.GetString("JwtToken")))
+        {
+            HttpContext.Session.SetString("JwtToken", token);
+        }
+        return token;
     }
 
     [HttpGet]
@@ -147,10 +160,190 @@ public class AccountController : Controller
     }
 
     [Authorize(Roles = "Administrator")]
-    public IActionResult Index()
+    public async Task<IActionResult> Index()
     {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/Users");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
         var list = new List<UserDetailsViewModel>();
+        if (res.IsSuccessStatusCode)
+        {
+            var apiRes = await res.Content.ReadFromJsonAsync<ResponseDTO<List<UserDTO>>>();
+            if (apiRes?.Data != null)
+            {
+                list = apiRes.Data.Select(u => new UserDetailsViewModel
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FullName = !string.IsNullOrWhiteSpace(u.FullName) ? u.FullName : u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    Address = u.Address,
+                    AvatarUrl = !string.IsNullOrEmpty(u.AvatarUrl) ? u.AvatarUrl : "/images/users/default-avatar.png",
+                    IsActive = u.IsActive,
+                    DateOfBirth = u.DateOfBirth,
+                    CreatedAt = u.CreatedAt
+                }).ToList();
+            }
+        }
         return View(list);
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> GetAllRoles()
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/Users/roles");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            var apiRes = await res.Content.ReadFromJsonAsync<ResponseDTO<List<string>>>();
+            if (apiRes?.Data != null) return Json(apiRes.Data);
+        }
+
+        return Json(new List<string> { "Administrator", "User" });
+    }
+
+    [HttpGet]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> GetUserRoles(string userId)
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/Users/{userId}/roles");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            var apiRes = await res.Content.ReadFromJsonAsync<ResponseDTO<List<string>>>();
+            if (apiRes?.Data != null) return Json(apiRes.Data);
+        }
+
+        return Json(new List<string> { "User" });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> UpdateRoles([FromBody] Dictionary<string, List<string>> changedRoles)
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Put, $"{baseUrl}/api/Users/roles")
+        {
+            Content = JsonContent.Create(changedRoles)
+        };
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            return Json(new { success = true, message = "Cập nhật vai trò thành công." });
+        }
+
+        return Json(new { success = false, message = "Không thể cập nhật vai trò." });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> LockUser(string id)
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/api/Users/{id}/lock");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            TempData["SuccessMessage"] = "Khóa người dùng thành công.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể khóa người dùng.";
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> UnlockUser(string id)
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/api/Users/{id}/unlock");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            TempData["SuccessMessage"] = "Mở khóa người dùng thành công.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Không thể mở khóa người dùng.";
+        }
+        return RedirectToAction(nameof(Index));
+    }
+
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> UserDetails(string id)
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/Users/{id}");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            var apiRes = await res.Content.ReadFromJsonAsync<ResponseDTO<UserDTO>>();
+            if (apiRes?.Data != null)
+            {
+                var u = apiRes.Data;
+                var vm = new UserDetailsViewModel
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FullName = !string.IsNullOrWhiteSpace(u.FullName) ? u.FullName : u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    Address = u.Address,
+                    AvatarUrl = !string.IsNullOrEmpty(u.AvatarUrl) ? u.AvatarUrl : "/images/users/default-avatar.png",
+                    IsActive = u.IsActive,
+                    DateOfBirth = u.DateOfBirth,
+                    CreatedAt = u.CreatedAt
+                };
+                return View("Details", vm);
+            }
+        }
+        return NotFound();
     }
 
     public IActionResult Lockout()

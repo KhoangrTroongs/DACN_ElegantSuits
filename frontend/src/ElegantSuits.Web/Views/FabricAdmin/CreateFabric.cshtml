@@ -1,7 +1,8 @@
 @model ElegantSuits.Web.Models.CreateFabricDTO
 @{
     ViewData["Title"] = "Thêm vải mới";
-    var fabricGroups = ViewBag.FabricGroups as IEnumerable<ElegantSuits.Web.Models.FabricGroupDTO>;
+    var fabricGroups = (ViewBag.FabricGroups as IEnumerable<ElegantSuits.Web.Models.FabricGroupDTO>)
+                       ?? Enumerable.Empty<ElegantSuits.Web.Models.FabricGroupDTO>();
 }
 
 <div class="dashboard-card">

@@ -78,7 +78,7 @@
                     </span>
                 </td>
                 <td>
-                    <select class="form-select form-select-sm role-select" data-user-id="@user.Id" @(user.Email == User.Identity.Name ? "disabled" : "")>
+                    <select class="form-select form-select-sm role-select" data-user-id="@user.Id" @(user.Email == User.Identity?.Name ? "disabled" : "")>
                         <option value="loading">Loading...</option>
                     </select>
                 </td>
@@ -87,7 +87,7 @@
                         <a asp-action="UserDetails" asp-route-id="@user.Id" class="btn btn-sm btn-elegant-secondary">
                             <i class="fas fa-info-circle me-1"></i> Chi tiết
                         </a>
-                        @if (User.IsInRole("Administrator") && user.Email != User.Identity.Name)
+                        @if (User.IsInRole("Administrator") && user.Email != User.Identity?.Name)
                         {
                             @if (user.IsActive)
                             {

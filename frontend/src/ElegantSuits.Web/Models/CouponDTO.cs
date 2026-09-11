@@ -73,6 +73,9 @@ public class CreateCouponDTO
 
 public class UpdateCouponDTO
 {
+    [Display(Name = "Mã giảm giá")]
+    public string Code { get; set; } = "";
+
     [StringLength(500, ErrorMessage = "Chú thích không được vượt quá 500 ký tự")]
     [Display(Name = "Chú thích")]
     public string? Description { get; set; }
