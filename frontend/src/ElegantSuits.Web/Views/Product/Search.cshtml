@@ -74,7 +74,7 @@
                                             @product.Name
                                         </h5>
                                         <p class="card-text product-category">
-                                            <span class="badge bg-elegant-secondary">@product.Category.Name</span>
+                                            <span class="badge bg-elegant-secondary">@(product.Category?.Name ?? "Sản phẩm")</span>
                                         </p>
                                         <p class="card-text product-price mt-auto">@product.Price.ToString("N0") VNĐ</p>
                                         <div class="d-flex justify-content-between mt-2">

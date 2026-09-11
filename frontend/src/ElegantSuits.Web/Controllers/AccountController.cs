@@ -134,29 +134,187 @@ public class AccountController : Controller
     }
 
     [Authorize]
-    public IActionResult Details()
+    public async Task<IActionResult> Details()
     {
-        var vm = new UserDetailsViewModel
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/Users/profile");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            var apiRes = await res.Content.ReadFromJsonAsync<ResponseDTO<UserDTO>>();
+            if (apiRes?.Data != null)
+            {
+                var u = apiRes.Data;
+                var vm = new UserDetailsViewModel
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FullName = !string.IsNullOrWhiteSpace(u.FullName) ? u.FullName : u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    Address = u.Address,
+                    AvatarUrl = !string.IsNullOrEmpty(u.AvatarUrl) ? u.AvatarUrl : "/images/users/default-avatar.png",
+                    IsActive = u.IsActive,
+                    DateOfBirth = u.DateOfBirth,
+                    CreatedAt = u.CreatedAt
+                };
+                return View(vm);
+            }
+        }
+
+        var fallback = new UserDetailsViewModel
         {
             UserName = User.Identity?.Name ?? "",
             Email = User.FindFirstValue(ClaimTypes.Email) ?? "",
             FullName = User.Identity?.Name ?? ""
         };
-        return View(vm);
+        return View(fallback);
     }
 
     [Authorize]
     public IActionResult Profile() => RedirectToAction(nameof(Details));
 
     [Authorize]
-    public IActionResult Update()
+    public async Task<IActionResult> Update()
     {
-        var vm = new UserDetailsViewModel
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/Users/profile");
+        if (!string.IsNullOrEmpty(token))
         {
-            UserName = User.Identity?.Name ?? "",
-            Email = User.FindFirstValue(ClaimTypes.Email) ?? ""
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            var apiRes = await res.Content.ReadFromJsonAsync<ResponseDTO<UserDTO>>();
+            if (apiRes?.Data != null)
+            {
+                var u = apiRes.Data;
+                var vm = new UserDetailsViewModel
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FullName = u.FullName,
+                    PhoneNumber = u.PhoneNumber,
+                    Address = u.Address,
+                    AvatarUrl = u.AvatarUrl,
+                    DateOfBirth = u.DateOfBirth
+                };
+                return View(vm);
+            }
+        }
+
+        var fallback = new UserDetailsViewModel
+        {
+            Email = User.FindFirstValue(ClaimTypes.Email) ?? "",
+            FullName = User.Identity?.Name ?? ""
         };
-        return View(vm);
+        return View(fallback);
+    }
+
+    [Authorize(Roles = "Administrator")]
+    public async Task<IActionResult> UpdateUser(string id)
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/api/Users/{id}");
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            var apiRes = await res.Content.ReadFromJsonAsync<ResponseDTO<UserDTO>>();
+            if (apiRes?.Data != null)
+            {
+                var u = apiRes.Data;
+                var vm = new UserDetailsViewModel
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FullName = u.FullName,
+                    PhoneNumber = u.PhoneNumber,
+                    Address = u.Address,
+                    AvatarUrl = u.AvatarUrl,
+                    DateOfBirth = u.DateOfBirth
+                };
+                return View("Update", vm);
+            }
+        }
+
+        TempData["ErrorMessage"] = "Không tìm thấy người dùng.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize]
+    public async Task<IActionResult> Update(UserDetailsViewModel model, IFormFile? AvatarFile)
+    {
+        var token = GetToken();
+        var baseUrl = _configuration["BackendApi:BaseUrl"] ?? "http://localhost:5097";
+
+        string? avatarUrl = model.AvatarUrl;
+        if (AvatarFile != null && AvatarFile.Length > 0)
+        {
+            var webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "users");
+            Directory.CreateDirectory(webRoot);
+            var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(AvatarFile.FileName)}";
+            var filePath = Path.Combine(webRoot, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await AvatarFile.CopyToAsync(stream);
+            }
+            avatarUrl = $"/images/users/{fileName}";
+        }
+
+        var updateDto = new
+        {
+            FullName = model.FullName,
+            DateOfBirth = model.DateOfBirth,
+            PhoneNumber = model.PhoneNumber,
+            Address = model.Address,
+            AvatarUrl = avatarUrl
+        };
+
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        bool isAdminUpdatingOther = User.IsInRole("Administrator") && !string.IsNullOrEmpty(model.Id) && model.Id != currentUserId;
+
+        var targetUrl = isAdminUpdatingOther 
+            ? $"{baseUrl}/api/Users/{model.Id}" 
+            : $"{baseUrl}/api/Users/profile";
+
+        var request = new HttpRequestMessage(HttpMethod.Put, targetUrl)
+        {
+            Content = JsonContent.Create(updateDto)
+        };
+        if (!string.IsNullOrEmpty(token))
+        {
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+        }
+
+        var res = await _httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            TempData["SuccessMessage"] = "Cập nhật thông tin thành công!";
+            if (isAdminUpdatingOther)
+            {
+                return RedirectToAction(nameof(UserDetails), new { id = model.Id });
+            }
+            return RedirectToAction(nameof(Details));
+        }
+
+        TempData["ErrorMessage"] = "Cập nhật thông tin thất bại.";
+        return View("Update", model);
     }
 
     [Authorize(Roles = "Administrator")]

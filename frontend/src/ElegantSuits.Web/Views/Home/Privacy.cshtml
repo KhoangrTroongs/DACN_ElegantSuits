@@ -53,7 +53,7 @@ else
                     }
                     <div class="card-body">
                         <h5 class="card-title">@product.Name</h5>
-                        <p class="card-text text-muted">@product.Category.Name</p>
+                        <p class="card-text text-muted">@(product.Category?.Name ?? "")</p>
                         @{
                             var description = product.Description;
                             var sizeTag = "[SIZES]";

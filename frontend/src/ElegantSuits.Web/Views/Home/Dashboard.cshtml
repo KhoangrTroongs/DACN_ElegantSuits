@@ -67,7 +67,7 @@
                                 {
                                     <tr>
                                         <td>@product.Name</td>
-                                        <td>@product.Category.Name</td>
+                                        <td>@(product.Category?.Name ?? "Sản phẩm")</td>
                                         <td>@product.Price.ToString("N0") VNĐ</td>
                                     </tr>
                                 }

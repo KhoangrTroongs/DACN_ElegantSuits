@@ -93,6 +93,23 @@ public class UsersController : ControllerBase
         return Ok(ResponseDTO<UserDTO>.Success(user));
     }
 
+    // PUT: api/Users/{id}
+    [HttpPut("{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
+    public async Task<ActionResult<ResponseDTO<UserDTO>>> UpdateUser(
+        string id,
+        [FromBody] UpdateUserDTO dto,
+        CancellationToken cancellationToken)
+    {
+        var updated = await _userRepository.UpdateUserAsync(id, dto, cancellationToken);
+        if (updated == null)
+        {
+            return NotFound(ResponseDTO<UserDTO>.Fail("Không tìm thấy người dùng."));
+        }
+
+        return Ok(ResponseDTO<UserDTO>.Success(updated, "Cập nhật thông tin người dùng thành công."));
+    }
+
     // GET: api/Users/roles
     [HttpGet("roles")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]

@@ -37,6 +37,10 @@ public class UserRepository : IUserRepository
         user.PhoneNumber = dto.PhoneNumber;
         user.Address = dto.Address;
         user.Gender = dto.Gender;
+        if (!string.IsNullOrEmpty(dto.AvatarUrl))
+        {
+            user.AvatarUrl = dto.AvatarUrl;
+        }
 
         await _userManager.UpdateAsync(user);
         return MapToDTO(user);

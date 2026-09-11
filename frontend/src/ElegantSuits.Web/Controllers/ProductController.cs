@@ -132,6 +132,9 @@ public class ProductController : Controller
         ViewBag.HasPreviousPage = products.HasPreviousPage;
         ViewBag.HasNextPage = products.HasNextPage;
 
+        var catDict = (catRes.Data ?? new List<CategoryViewModel>())
+            .ToDictionary(c => c.Id, c => c.Name);
+
         var mapped = products.Select(p => new Product
         {
             Id = p.Id,
@@ -143,7 +146,14 @@ public class ProductController : Controller
             Quantity = p.Quantity,
             IsHidden = p.IsHidden,
             CategoryId = p.CategoryId,
-            LinearCode = p.LinearCode
+            LinearCode = p.LinearCode,
+            Category = new Category
+            {
+                Id = p.CategoryId,
+                Name = !string.IsNullOrWhiteSpace(p.CategoryName)
+                    ? p.CategoryName
+                    : (catDict.TryGetValue(p.CategoryId, out var cName) ? cName : "Sản phẩm")
+            }
         }).ToList();
 
         var paginated = new PaginatedList<Product>(mapped, products.TotalItems, products.PageIndex, products.PageSize);
