@@ -29,29 +29,89 @@ public class ShoppingCartController : Controller
         _logger = logger;
     }
 
-    private string? GetToken() => HttpContext.Session.GetString("JwtToken");
+    private string? GetToken()
+    {
+        var token = HttpContext.Session.GetString("JwtToken") ?? User.FindFirst("JwtToken")?.Value;
+        if (!string.IsNullOrEmpty(token) && string.IsNullOrEmpty(HttpContext.Session.GetString("JwtToken")))
+        {
+            HttpContext.Session.SetString("JwtToken", token);
+        }
+        return token;
+    }
 
     public async Task<IActionResult> Index()
     {
         var token = GetToken();
-        var res = await _cartApiClient.GetCartAsync(token);
-        var cart = res.Data ?? new CartViewModel();
+        CartViewModel cart;
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            var res = await _cartApiClient.GetCartAsync(token);
+            cart = res.Data ?? new CartViewModel();
+        }
+        else
+        {
+            cart = SessionCartService.GetSessionCart(HttpContext.Session);
+        }
+
+        // Heal any items that have missing details
+        bool sessionUpdated = false;
+        var validItems = new List<CartItemViewModel>();
+        foreach (var item in cart.Items)
+        {
+            if (string.IsNullOrEmpty(item.ProductName) || item.Price <= 0 || string.IsNullOrEmpty(item.ImageUrl))
+            {
+                try
+                {
+                    var p = await _productApiClient.GetProductByIdAsync(item.ProductId);
+                    if (p != null)
+                    {
+                        item.ProductName = p.Name;
+                        item.Price = p.Price;
+                        item.ImageUrl = !string.IsNullOrEmpty(p.ImageUrl) ? p.ImageUrl : "/images/no-image.svg";
+                        sessionUpdated = true;
+                    }
+                }
+                catch { }
+            }
+
+            // Only keep items that have a valid name and price
+            if (!string.IsNullOrEmpty(item.ProductName) && item.Price > 0)
+            {
+                validItems.Add(item);
+            }
+            else
+            {
+                sessionUpdated = true;
+            }
+        }
+
+        cart.Items = validItems;
+
+        if (sessionUpdated && string.IsNullOrEmpty(token))
+        {
+            SessionCartService.SaveSessionCart(HttpContext.Session, cart);
+        }
 
         var cartItems = cart.Items.Select(i => new CartItem
         {
             Id = i.Id,
             ProductId = i.ProductId,
             Quantity = i.Quantity,
+            Size = i.Size,
+            ProductName = !string.IsNullOrEmpty(i.ProductName) ? i.ProductName : "Sản phẩm",
+            Price = i.Price,
+            ImageUrl = !string.IsNullOrEmpty(i.ImageUrl) ? i.ImageUrl : "/images/no-image.svg",
             Product = new Product
             {
                 Id = i.ProductId,
-                Name = i.ProductName,
+                Name = !string.IsNullOrEmpty(i.ProductName) ? i.ProductName : "Sản phẩm",
                 Price = i.Price,
-                ImageUrl = i.ImageUrl
+                ImageUrl = !string.IsNullOrEmpty(i.ImageUrl) ? i.ImageUrl : "/images/no-image.svg"
             }
         }).ToList();
 
-        ViewBag.TotalPrice = cart.TotalPrice;
+        ViewBag.TotalPrice = cart.TotalPrice > 0 ? cart.TotalPrice : cartItems.Sum(x => x.Price * x.Quantity);
         ViewBag.Discount = cart.Discount;
         return View(cartItems);
     }
@@ -60,48 +120,152 @@ public class ShoppingCartController : Controller
     public async Task<IActionResult> AddToCart(int productId, int quantity = 1, string? size = null)
     {
         var token = GetToken();
-        var req = new AddToCartRequest
-        {
-            ProductId = productId,
-            Quantity = quantity,
-            Size = size
-        };
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
+                      Request.ContentType?.Contains("application/json") == true;
 
-        var res = await _cartApiClient.AddToCartAsync(req, token);
-        if (res.IsSuccess)
+        if (!string.IsNullOrEmpty(token))
         {
-            TempData["SuccessMessage"] = "Đã thêm sản phẩm vào giỏ hàng!";
+            var req = new AddToCartRequest
+            {
+                ProductId = productId,
+                Quantity = quantity,
+                Size = size
+            };
+            var res = await _cartApiClient.AddToCartAsync(req, token);
+            if (isAjax)
+            {
+                int count = res.Data?.Items.Sum(x => x.Quantity) ?? 1;
+                return Json(new { success = res.IsSuccess, count, message = res.IsSuccess ? "Đã thêm vào giỏ hàng thành công!" : (res.Message ?? "Không thể thêm vào giỏ hàng.") });
+            }
+
+            if (res.IsSuccess)
+                TempData["SuccessMessage"] = "Đã thêm sản phẩm vào giỏ hàng!";
+            else
+                TempData["ErrorMessage"] = res.Message ?? "Lỗi thêm giỏ hàng";
         }
         else
         {
-            TempData["ErrorMessage"] = res.Message ?? "Lỗi thêm giỏ hàng";
+            var product = await _productApiClient.GetProductByIdAsync(productId);
+            if (product != null)
+            {
+                SessionCartService.AddToCart(HttpContext.Session, product, quantity, size);
+                int count = SessionCartService.GetCount(HttpContext.Session);
+                if (isAjax)
+                {
+                    return Json(new { success = true, count, message = "Đã thêm vào giỏ hàng thành công!" });
+                }
+                TempData["SuccessMessage"] = "Đã thêm sản phẩm vào giỏ hàng!";
+            }
+            else
+            {
+                if (isAjax)
+                {
+                    return Json(new { success = false, message = "Sản phẩm không tồn tại." });
+                }
+                TempData["ErrorMessage"] = "Sản phẩm không tồn tại.";
+            }
         }
 
         return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
-    public async Task<IActionResult> UpdateCart(int id, int quantity)
+    public async Task<IActionResult> UpdateCart(int id, int quantity, int? productId = null)
     {
         var token = GetToken();
-        var res = await _cartApiClient.UpdateCartItemAsync(id, quantity, token);
-        return Json(new { success = res.IsSuccess, message = res.Message });
+        int cartCount = 0;
+        if (!string.IsNullOrEmpty(token))
+        {
+            var res = await _cartApiClient.UpdateCartItemAsync(id, quantity, token);
+            var fresh = await _cartApiClient.GetCartAsync(token);
+            cartCount = fresh.Data?.Items.Sum(x => x.Quantity) ?? 0;
+            return Json(new { success = res.IsSuccess, cartCount, message = res.Message });
+        }
+        else
+        {
+            var cart = SessionCartService.GetSessionCart(HttpContext.Session);
+            var item = cart.Items.FirstOrDefault(x => x.Id == id || (productId.HasValue && x.ProductId == productId.Value));
+            if (item != null)
+            {
+                SessionCartService.UpdateQuantity(HttpContext.Session, item.Id, quantity);
+            }
+            cartCount = SessionCartService.GetCount(HttpContext.Session);
+            return Json(new { success = true, cartCount, message = "Đã cập nhật số lượng thành công!" });
+        }
     }
 
     [HttpPost]
-    public async Task<IActionResult> RemoveFromCart(int id)
+    public async Task<IActionResult> UpdateQuantity(int productId, int quantity, int? id = null)
+    {
+        return await UpdateCart(id ?? 0, quantity, productId);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> RemoveFromCart(int id, int? productId = null)
     {
         var token = GetToken();
-        var res = await _cartApiClient.RemoveCartItemAsync(id, token);
-        return Json(new { success = res.IsSuccess, message = res.Message });
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+        int cartCount = 0;
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            var res = await _cartApiClient.RemoveCartItemAsync(id, token);
+            if (!res.IsSuccess && productId.HasValue)
+            {
+                var cartRes = await _cartApiClient.GetCartAsync(token);
+                var item = cartRes.Data?.Items.FirstOrDefault(x => x.ProductId == productId.Value);
+                if (item != null)
+                {
+                    res = await _cartApiClient.RemoveCartItemAsync(item.Id, token);
+                }
+            }
+            var fresh = await _cartApiClient.GetCartAsync(token);
+            cartCount = fresh.Data?.Items.Sum(x => x.Quantity) ?? 0;
+            if (isAjax) return Json(new { success = res.IsSuccess, cartCount, message = res.Message });
+        }
+        else
+        {
+            var cart = SessionCartService.GetSessionCart(HttpContext.Session);
+            var item = cart.Items.FirstOrDefault(x => x.Id == id || (productId.HasValue && x.ProductId == productId.Value));
+            if (item != null)
+            {
+                SessionCartService.RemoveItem(HttpContext.Session, item.Id);
+            }
+            cartCount = SessionCartService.GetCount(HttpContext.Session);
+            if (isAjax) return Json(new { success = true, cartCount, message = "Đã xóa sản phẩm khỏi giỏ hàng!" });
+        }
+
+        return RedirectToAction(nameof(Index));
     }
 
     [HttpPost]
     public async Task<IActionResult> ClearCart()
     {
         var token = GetToken();
-        var res = await _cartApiClient.ClearCartAsync(token);
+        if (!string.IsNullOrEmpty(token))
+        {
+            await _cartApiClient.ClearCartAsync(token);
+        }
+        else
+        {
+            SessionCartService.Clear(HttpContext.Session);
+        }
         return RedirectToAction(nameof(Index));
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetCartCount()
+    {
+        var token = GetToken();
+        if (!string.IsNullOrEmpty(token))
+        {
+            var res = await _cartApiClient.GetCartAsync(token);
+            int count = res.Data?.Items.Sum(i => i.Quantity) ?? 0;
+            return Json(new { count });
+        }
+
+        int sessionCount = SessionCartService.GetCount(HttpContext.Session);
+        return Json(new { count = sessionCount });
     }
 
     [Authorize]
@@ -170,16 +334,25 @@ public class ShoppingCartController : Controller
         var res = await _orderApiClient.GetUserOrdersAsync(token);
         var orders = res.Data ?? new List<OrderViewModel>();
 
-        var mapped = orders.Select(o => new Order
+        var mapped = orders.Select(o =>
         {
-            Id = o.Id,
-            OrderDate = o.OrderDate,
-            TotalPrice = o.TotalPrice,
-            PaymentMethod = o.PaymentMethod,
-            PaymentStatus = Enum.TryParse<PaymentStatus>(o.PaymentStatus, out var ps) ? ps : PaymentStatus.Pending,
-            OrderStatus = Enum.TryParse<OrderStatus>(o.OrderStatus, out var os) ? os : OrderStatus.Pending,
-            ShippingAddress = o.ShippingAddress,
-            Notes = o.Notes
+            var orderStatus = Enum.TryParse<OrderStatus>(o.OrderStatus, out var os) ? os
+                : (Enum.TryParse<OrderStatus>(o.Status, out var s) ? s : OrderStatus.Pending);
+            var paymentStatus = Enum.TryParse<PaymentStatus>(o.PaymentStatus, out var ps) ? ps : PaymentStatus.Pending;
+
+            return new Order
+            {
+                Id = o.Id,
+                OrderDate = o.OrderDate,
+                TotalPrice = o.TotalPrice,
+                TotalAmount = o.TotalPrice,
+                PaymentMethod = o.PaymentMethod,
+                PaymentStatus = paymentStatus,
+                OrderStatus = orderStatus,
+                Status = orderStatus,
+                ShippingAddress = o.ShippingAddress,
+                Notes = o.Notes
+            };
         }).ToList();
 
         return View(mapped);
@@ -193,23 +366,36 @@ public class ShoppingCartController : Controller
         if (!res.IsSuccess || res.Data == null) return NotFound();
 
         var o = res.Data;
+        var orderStatus = Enum.TryParse<OrderStatus>(o.OrderStatus, out var os) ? os
+            : (Enum.TryParse<OrderStatus>(o.Status, out var s) ? s : OrderStatus.Pending);
+        var paymentStatus = Enum.TryParse<PaymentStatus>(o.PaymentStatus, out var ps) ? ps : PaymentStatus.Pending;
+
         var order = new Order
         {
             Id = o.Id,
             OrderDate = o.OrderDate,
             TotalPrice = o.TotalPrice,
+            TotalAmount = o.TotalPrice,
             PaymentMethod = o.PaymentMethod,
-            PaymentStatus = Enum.TryParse<PaymentStatus>(o.PaymentStatus, out var ps) ? ps : PaymentStatus.Pending,
-            OrderStatus = Enum.TryParse<OrderStatus>(o.OrderStatus, out var os) ? os : OrderStatus.Pending,
+            PaymentStatus = paymentStatus,
+            OrderStatus = orderStatus,
+            Status = orderStatus,
             ShippingAddress = o.ShippingAddress,
             Notes = o.Notes,
             OrderDetails = o.Details.Select(d => new OrderDetail
             {
                 Id = d.Id,
+                OrderId = o.Id,
                 ProductId = d.ProductId,
                 Quantity = d.Quantity,
                 Price = d.UnitPrice,
-                Product = new Product { Id = d.ProductId, Name = d.ProductName, ImageUrl = d.ImageUrl ?? "" }
+                Size = d.Size,
+                Product = new Product
+                {
+                    Id = d.ProductId,
+                    Name = !string.IsNullOrEmpty(d.ProductName) ? d.ProductName : "Sản phẩm",
+                    ImageUrl = d.ImageUrl ?? "/images/no-image.svg"
+                }
             }).ToList()
         };
 

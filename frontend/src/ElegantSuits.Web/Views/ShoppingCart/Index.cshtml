@@ -1,82 +1,112 @@
 @model List<CartItem>
 
 <div class="container mt-4">
-    <h2 class="mb-4">Giỏ Hàng</h2>
+    <h2 class="mb-4 fw-bold"><i class="fas fa-shopping-cart text-warning me-2"></i>Giỏ Hàng</h2>
 
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            @TempData["ErrorMessage"]
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     }
 
-    @if (Model.Any())
+    @if (Model != null && Model.Any())
     {
-        <div class="card">
-            <div class="card-body">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
                 <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
                             <tr>
-                                <th>Sản Phẩm</th>
-                                <th>Giá</th>
+                                <th style="min-width: 250px;">Sản Phẩm</th>
+                                <th>Đơn Giá</th>
                                 <th>Số Lượng</th>
-                                <th>Tổng</th>
-                                <th>Thao Tác</th>
+                                <th>Thành Tiền</th>
+                                <th class="text-center" style="width: 100px;">Thao Tác</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var item in Model)
                             {
+                                var img = !string.IsNullOrEmpty(item.ImageUrl) ? item.ImageUrl : (!string.IsNullOrEmpty(item.Product?.ImageUrl) ? item.Product.ImageUrl : "/images/no-image.svg");
+                                var name = !string.IsNullOrEmpty(item.ProductName) ? item.ProductName : (!string.IsNullOrEmpty(item.Product?.Name) ? item.Product.Name : "Sản phẩm");
+                                var price = item.Price > 0 ? item.Price : (item.Product?.Price ?? 0);
+                                var itemTotal = price * item.Quantity;
+
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            <img src="@item.ImageUrl" alt="@item.ProductName" style="width:50px; height:50px; object-fit:cover" class="me-2" />
-                                            <span>@item.ProductName</span>
+                                            <img src="@img" alt="@name" style="width:65px; height:65px; object-fit:cover; border-radius: 8px;" class="me-3 border shadow-sm" onerror="this.src='/images/no-image.svg'" />
+                                            <div>
+                                                <h6 class="mb-1 fw-bold text-dark">@name</h6>
+                                                @if (!string.IsNullOrEmpty(item.Size))
+                                                {
+                                                    <span class="badge bg-secondary">Kích cỡ: @item.Size</span>
+                                                }
+                                            </div>
                                         </div>
                                     </td>
-                                    <td>@item.Price.ToString("C")</td>
+                                    <td class="fw-semibold text-primary">@price.ToString("N0") ₫</td>
                                     <td>
-                                        <div class="input-group" style="width: 120px;">
-                                            <button class="btn btn-outline-secondary btn-sm quantity-btn" data-action="decrease" data-product-id="@item.ProductId">-</button>
+                                        <div class="input-group" style="width: 130px;">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm quantity-btn" data-action="decrease" data-item-id="@item.Id" data-product-id="@item.ProductId">-</button>
                                             <input type="number" class="form-control form-control-sm text-center quantity-input" value="@item.Quantity" min="1" readonly>
-                                            <button class="btn btn-outline-secondary btn-sm quantity-btn" data-action="increase" data-product-id="@item.ProductId">+</button>
+                                            <button type="button" class="btn btn-outline-secondary btn-sm quantity-btn" data-action="increase" data-item-id="@item.Id" data-product-id="@item.ProductId">+</button>
                                         </div>
                                     </td>
-                                    <td class="item-total">@((item.Price * item.Quantity).ToString("C"))</td>
-                                    <td>
-                                        <form asp-controller="Home" asp-action="RemoveFromCart" method="post" class="d-inline remove-from-cart-form">
+                                    <td class="item-total fw-bold text-danger" data-unit-price="@price">@itemTotal.ToString("N0") ₫</td>
+                                    <td class="text-center">
+                                        <form asp-controller="ShoppingCart" asp-action="RemoveFromCart" method="post" class="d-inline remove-from-cart-form">
+                                            <input type="hidden" name="id" value="@item.Id" />
                                             <input type="hidden" name="productId" value="@item.ProductId" />
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class='bx bx-trash'></i>
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa khỏi giỏ hàng">
+                                                <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>
                                     </td>
                                 </tr>
                             }
                         </tbody>
-                        <tfoot>
+                        <tfoot class="border-top">
+                            @{
+                                var grandTotal = Model.Sum(i => (i.Price > 0 ? i.Price : (i.Product?.Price ?? 0)) * i.Quantity);
+                            }
                             <tr>
-                                <td colspan="3" class="text-end"><strong>Tổng Cộng:</strong></td>
-                                <td><strong>@Model.Sum(i => i.Price * i.Quantity).ToString("C")</strong></td>
-                                <td></td>
+                                <td colspan="3" class="text-end py-3"><strong>Tổng Cộng:</strong></td>
+                                <td colspan="2" class="py-3"><strong id="cartTotalDisplay" class="fs-5 text-danger">@grandTotal.ToString("N0") ₫</strong></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
-                <div class="text-end mt-3">
-                    <a asp-controller="Product" asp-action="Index" class="btn btn-secondary">Tiếp Tục Mua Sắm</a>
-                    <a asp-controller="ShoppingCart" asp-action="Checkout" class="btn btn-success">Tiến Hành Thanh Toán</a>
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i> Tiếp Tục Mua Sắm
+                    </a>
+                    <a asp-controller="ShoppingCart" asp-action="Checkout" class="btn btn-success px-4 py-2 fw-semibold">
+                        <i class="fas fa-credit-card me-1"></i> Tiến Hành Thanh Toán
+                    </a>
                 </div>
             </div>
         </div>
     }
     else
     {
-        <div class="text-center">
-            <p class="lead">Giỏ hàng của bạn đang trống</p>
-            <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Bắt Đầu Mua Sắm</a>
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-shopping-bag fa-4x text-muted opacity-50"></i>
+            </div>
+            <p class="lead text-muted">Giỏ hàng của bạn đang trống.</p>
+            <a asp-controller="Product" asp-action="Index" class="btn btn-primary mt-2">
+                <i class="fas fa-store me-1"></i> Bắt Đầu Mua Sắm
+            </a>
         </div>
     }
 </div>
@@ -84,6 +114,7 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Remove item from cart
             $('.remove-from-cart-form').on('submit', function (e) {
                 e.preventDefault();
                 var form = $(this);
@@ -92,58 +123,67 @@
                     url: form.attr('action'),
                     method: 'POST',
                     data: form.serialize(),
-                    success: function () {
-                        location.reload(); // Tải lại trang sau khi xóa sản phẩm
-                        updateCartCount(); // Cập nhật số lượng giỏ hàng
+                    success: function (res) {
+                        location.reload();
                     },
                     error: function () {
-                        alert('Có lỗi xảy ra khi xóa sản phẩm.');
+                        // Fallback normal submit
+                        form.off('submit').submit();
                     }
                 });
             });
 
+            // Update quantity with +/- buttons
             $('.quantity-btn').on('click', function () {
                 const button = $(this);
+                const itemId = button.data('item-id');
                 const productId = button.data('product-id');
                 const action = button.data('action');
                 const inputGroup = button.closest('.input-group');
                 const quantityInput = inputGroup.find('.quantity-input');
-                let currentQuantity = parseInt(quantityInput.val());
+                let currentQuantity = parseInt(quantityInput.val()) || 1;
 
                 if (action === 'increase') {
                     currentQuantity++;
                 } else if (action === 'decrease' && currentQuantity > 1) {
                     currentQuantity--;
+                } else {
+                    return;
                 }
 
                 $.ajax({
-                    url: '/Home/UpdateQuantity',
+                    url: '/ShoppingCart/UpdateCart',
                     method: 'POST',
                     data: {
+                        id: itemId,
                         productId: productId,
                         quantity: currentQuantity
                     },
                     success: function (response) {
                         if (response.success) {
                             quantityInput.val(currentQuantity);
-                            // Update item total
-                            const price = parseFloat(button.closest('tr').find('td:eq(1)').text().replace('$', '').replace(',', ''));
-                            const newTotal = (price * currentQuantity).toFixed(2);
-                            button.closest('tr').find('.item-total').text('$' + newTotal);
+                            const row = button.closest('tr');
+                            const unitPrice = parseFloat(row.find('.item-total').data('unit-price')) || 0;
+                            const newTotal = unitPrice * currentQuantity;
+                            row.find('.item-total').text(newTotal.toLocaleString('vi-VN') + ' ₫');
 
-                            // Update cart total
-                            let cartTotal = 0;
-                            $('.item-total').each(function() {
-                                cartTotal += parseFloat($(this).text().replace('$', '').replace(',', ''));
+                            // Recalculate grand total
+                            let grandTotal = 0;
+                            $('tbody tr').each(function () {
+                                const up = parseFloat($(this).find('.item-total').data('unit-price')) || 0;
+                                const qty = parseInt($(this).find('.quantity-input').val()) || 0;
+                                grandTotal += up * qty;
                             });
-                            $('tfoot strong').text('$' + cartTotal.toFixed(2));
+                            $('#cartTotalDisplay').text(grandTotal.toLocaleString('vi-VN') + ' ₫');
 
-                            // Update cart badge
-                            $('.cart-count').text(response.cartCount);
+                            // Update badge count
+                            if (response.cartCount !== undefined) {
+                                $('.cart-badge, .cart-count').text(response.cartCount);
+                            }
                         }
                     },
                     error: function () {
-                        alert('Có lỗi xảy ra khi cập nhật số lượng.');
+                        alert('Không thể cập nhật số lượng. Vui lòng thử lại.');
                     }
                 });
             });

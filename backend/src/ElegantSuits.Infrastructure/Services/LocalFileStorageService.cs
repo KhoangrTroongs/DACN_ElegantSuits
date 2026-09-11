@@ -32,6 +32,23 @@ public class LocalFileStorageService : IFileStorageService
             await fileStream.CopyToAsync(output, cancellationToken);
         }
 
+        // Tự động đồng bộ file sang thư mục wwwroot của Frontend Web
+        try
+        {
+            var frontendWwwroot = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\frontend\src\ElegantSuits.Web\wwwroot"));
+            if (Directory.Exists(frontendWwwroot))
+            {
+                var frontendFolder = Path.Combine(frontendWwwroot, folder.Replace('/', Path.DirectorySeparatorChar));
+                if (!Directory.Exists(frontendFolder)) Directory.CreateDirectory(frontendFolder);
+                var frontendPath = Path.Combine(frontendFolder, uniqueFileName);
+                File.Copy(fullPath, frontendPath, true);
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi đồng bộ phụ
+        }
+
         return $"/{folder.Trim('/')}/{uniqueFileName}";
     }
 
@@ -45,12 +62,25 @@ public class LocalFileStorageService : IFileStorageService
         var cleanRelPath = relativePath.TrimStart('/', '\\').Replace('/', Path.DirectorySeparatorChar);
         var fullPath = Path.Combine(_basePath, cleanRelPath);
 
+        bool deleted = false;
         if (File.Exists(fullPath))
         {
             File.Delete(fullPath);
-            return Task.FromResult(true);
+            deleted = true;
         }
 
-        return Task.FromResult(false);
+        try
+        {
+            var frontendWwwroot = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\frontend\src\ElegantSuits.Web\wwwroot"));
+            var frontendPath = Path.Combine(frontendWwwroot, cleanRelPath);
+            if (File.Exists(frontendPath))
+            {
+                File.Delete(frontendPath);
+                deleted = true;
+            }
+        }
+        catch { }
+
+        return Task.FromResult(deleted);
     }
 }

@@ -1,3 +1,6 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 namespace ElegantSuits.Web.Models;
 
 public class ResponseDTO<T>
@@ -13,6 +16,7 @@ public class ResponseDTO<T>
         new() { IsSuccess = false, Message = message, Errors = errors };
 }
 
+[JsonConverter(typeof(PaginatedListJsonConverterFactory))]
 public class PaginatedList<T> : List<T>
 {
     public int PageIndex { get; set; }
@@ -34,6 +38,90 @@ public class PaginatedList<T> : List<T>
         TotalItems = count;
         TotalPages = pageSize > 0 ? (int)Math.Ceiling(count / (double)pageSize) : 0;
         AddRange(items);
+    }
+}
+
+public class PaginatedListJsonConverterFactory : JsonConverterFactory
+{
+    public override bool CanConvert(Type typeToConvert)
+    {
+        if (!typeToConvert.IsGenericType) return false;
+        return typeToConvert.GetGenericTypeDefinition() == typeof(PaginatedList<>);
+    }
+
+    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+    {
+        var itemType = typeToConvert.GetGenericArguments()[0];
+        var converterType = typeof(PaginatedListJsonConverter<>).MakeGenericType(itemType);
+        return (JsonConverter?)Activator.CreateInstance(converterType);
+    }
+}
+
+public class PaginatedListJsonConverter<T> : JsonConverter<PaginatedList<T>>
+{
+    public override PaginatedList<T>? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            var list = JsonSerializer.Deserialize<List<T>>(ref reader, options) ?? new List<T>();
+            return new PaginatedList<T>(list, list.Count, 1, Math.Max(1, list.Count));
+        }
+
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            throw new JsonException("Expected StartObject or StartArray for PaginatedList.");
+        }
+
+        var items = new List<T>();
+        int pageIndex = 1;
+        int pageSize = 10;
+        int totalItems = 0;
+        int totalPages = 0;
+
+        using var doc = JsonDocument.ParseValue(ref reader);
+        var root = doc.RootElement;
+
+        foreach (var prop in root.EnumerateObject())
+        {
+            if (prop.NameEquals("items") || prop.NameEquals("Items"))
+            {
+                items = JsonSerializer.Deserialize<List<T>>(prop.Value.GetRawText(), options) ?? new List<T>();
+            }
+            else if (prop.NameEquals("pageIndex") || prop.NameEquals("PageIndex"))
+            {
+                pageIndex = prop.Value.GetInt32();
+            }
+            else if (prop.NameEquals("pageSize") || prop.NameEquals("PageSize"))
+            {
+                pageSize = prop.Value.GetInt32();
+            }
+            else if (prop.NameEquals("totalItems") || prop.NameEquals("TotalItems"))
+            {
+                totalItems = prop.Value.GetInt32();
+            }
+            else if (prop.NameEquals("totalPages") || prop.NameEquals("TotalPages"))
+            {
+                totalPages = prop.Value.GetInt32();
+            }
+        }
+
+        var result = new PaginatedList<T>(items, totalItems > 0 ? totalItems : items.Count, pageIndex, pageSize);
+        if (totalPages > 0) result.TotalPages = totalPages;
+        return result;
+    }
+
+    public override void Write(Utf8JsonWriter writer, PaginatedList<T> value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        writer.WriteNumber("PageIndex", value.PageIndex);
+        writer.WriteNumber("PageSize", value.PageSize);
+        writer.WriteNumber("TotalItems", value.TotalItems);
+        writer.WriteNumber("TotalPages", value.TotalPages);
+        writer.WriteBoolean("HasPreviousPage", value.HasPreviousPage);
+        writer.WriteBoolean("HasNextPage", value.HasNextPage);
+        writer.WritePropertyName("Items");
+        JsonSerializer.Serialize(writer, (List<T>)value, options);
+        writer.WriteEndObject();
     }
 }
 
@@ -76,6 +164,7 @@ public class CreateProductViewModel
     public decimal ProfitMargin { get; set; } = 0.45m;
     public string? LinearCode { get; set; }
     public IFormFile? Image { get; set; }
+    public IFormFile? Model3D { get; set; }
 }
 
 public class UpdateProductViewModel
@@ -92,6 +181,7 @@ public class UpdateProductViewModel
     public decimal ProfitMargin { get; set; } = 0.45m;
     public string? LinearCode { get; set; }
     public IFormFile? Image { get; set; }
+    public IFormFile? Model3D { get; set; }
 }
 
 // ---------------- Category ViewModels ----------------
@@ -138,30 +228,57 @@ public class AddToCartRequest
 // ---------------- Order ViewModels ----------------
 public class OrderDetailViewModel
 {
+    private decimal _unitPrice;
+    private string? _imageUrl;
+
     public int Id { get; set; }
     public int ProductId { get; set; }
     public string ProductName { get; set; } = "";
-    public string? ImageUrl { get; set; }
+    public string? ProductImageUrl { get; set; }
+    public string? ImageUrl
+    {
+        get => !string.IsNullOrEmpty(_imageUrl) ? _imageUrl : ProductImageUrl;
+        set => _imageUrl = value;
+    }
     public int Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
+    public decimal Price { get; set; }
+    public decimal UnitPrice
+    {
+        get => _unitPrice > 0 ? _unitPrice : Price;
+        set => _unitPrice = value;
+    }
     public decimal TotalPrice => UnitPrice * Quantity;
     public string? Size { get; set; }
 }
 
 public class OrderViewModel
 {
+    private string _orderStatus = "Pending";
+    private List<OrderDetailViewModel> _details = new();
+
     public int Id { get; set; }
     public string UserId { get; set; } = "";
     public string CustomerName { get; set; } = "";
+    public string? UserName { get; set; }
     public string PhoneNumber { get; set; } = "";
     public string ShippingAddress { get; set; } = "";
     public string? Notes { get; set; }
     public DateTime OrderDate { get; set; }
     public decimal TotalPrice { get; set; }
-    public string OrderStatus { get; set; } = "Pending";
+    public string? Status { get; set; }
+    public string OrderStatus
+    {
+        get => !string.IsNullOrEmpty(Status) ? Status : _orderStatus;
+        set => _orderStatus = value;
+    }
     public string PaymentStatus { get; set; } = "Pending";
     public string PaymentMethod { get; set; } = "COD";
-    public List<OrderDetailViewModel> Details { get; set; } = new();
+    public List<OrderDetailViewModel> OrderDetails { get; set; } = new();
+    public List<OrderDetailViewModel> Details
+    {
+        get => _details.Any() ? _details : OrderDetails;
+        set => _details = value;
+    }
 }
 
 public class CreateOrderRequest
@@ -204,6 +321,14 @@ public class AuthResponseViewModel
     public string? UserId { get; set; }
     public string? UserName { get; set; }
     public List<string>? Roles { get; set; }
+}
+
+public class ExternalLoginRequest
+{
+    public string Provider { get; set; } = "";
+    public string ProviderKey { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string? FullName { get; set; }
 }
 
 // ---------------- Coupon ViewModels ----------------

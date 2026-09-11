@@ -446,29 +446,33 @@
         {
             @foreach (var category in productsByCategory)
             {
+                if (category.Value == null || !category.Value.Any()) continue;
+
+                var totalProducts = category.Value.Count;
+                var displayedProducts = Math.Min(totalProducts, 10);
+                var hasMultipleSlides = displayedProducts > 4;
+
                 <div class="col-12 mb-5">
                     <h2 class="fw-normal text-center mb-4">@category.Key</h2>
                     <div class="product-carousel-container">
                         <div class="product-carousel">
-                            @{
-                                var totalProducts = category.Value.Count;
-                                var displayedProducts = Math.Min(totalProducts, 10);
-                            }
-
                             <!-- Carousel wrapper -->
                             <div id="carousel-@category.Key.Replace(" ", "")" class="carousel slide" data-bs-interval="false">
-                                <!-- Indicators -->
-                                <div class="carousel-indicators p-3">
-                                    @for (int i = 0; i < (displayedProducts + 3) / 4; i++)
-                                    {
-                                        <button type="button"
-                                                data-bs-target="#carousel-@category.Key.Replace(" ", "")"
-                                                data-bs-slide-to="@i"
-                                                class="@(i == 0 ? "active" : "")"
-                                                aria-current="@(i == 0 ? "true" : "false")"
-                                                aria-label="Slide @(i+1)"></button>
-                                    }
-                                </div>
+                                @if (hasMultipleSlides)
+                                {
+                                    <!-- Indicators -->
+                                    <div class="carousel-indicators p-3">
+                                        @for (int i = 0; i < (displayedProducts + 3) / 4; i++)
+                                        {
+                                            <button type="button"
+                                                    data-bs-target="#carousel-@category.Key.Replace(" ", "")"
+                                                    data-bs-slide-to="@i"
+                                                    class="@(i == 0 ? "active" : "")"
+                                                    aria-current="@(i == 0 ? "true" : "false")"
+                                                    aria-label="Slide @(i+1)"></button>
+                                        }
+                                    </div>
+                                }
 
                                 <!-- Carousel items -->
                                 <div class="carousel-inner">
@@ -492,7 +496,7 @@
                                                                 }
                                                                 <div class="card-body text-center">
                                                                     <h5 class="card-title">@product.Name</h5>
-                                                                    <p class="card-text text-danger fw-bold">@product.Price.ToString("N0") d</p>
+                                                                    <p class="card-text text-danger fw-bold">@product.Price.ToString("N0") ₫</p>
                                                                 </div>
                                                             </a>
                                                         </div>
@@ -503,15 +507,18 @@
                                     }
                                 </div>
 
-                                <!-- Controls -->
-                                <button class="carousel-control-prev" type="button" data-bs-target="#carousel-@category.Key.Replace(" ", "")" data-bs-slide="prev">
-                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Previous</span>
-                                </button>
-                                <button class="carousel-control-next" type="button" data-bs-target="#carousel-@category.Key.Replace(" ", "")" data-bs-slide="next">
-                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                    <span class="visually-hidden">Next</span>
-                                </button>
+                                @if (hasMultipleSlides)
+                                {
+                                    <!-- Controls -->
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carousel-@category.Key.Replace(" ", "")" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carousel-@category.Key.Replace(" ", "")" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                }
                             </div>
                         </div>
                     </div>

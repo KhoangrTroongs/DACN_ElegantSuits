@@ -9,7 +9,9 @@ public record UpdateProductCommand(
     int Id,
     UpdateProductRequest Request,
     Stream? ImageStream = null,
-    string? ImageFileName = null) : IRequest<ProductResponse?>;
+    string? ImageFileName = null,
+    Stream? Model3DStream = null,
+    string? Model3DFileName = null) : IRequest<ProductResponse?>;
 
 public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
 {
@@ -80,13 +82,25 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             product.ImageUrl = req.ImageUrl;
         }
 
+        if (command.Model3DStream != null && !string.IsNullOrEmpty(command.Model3DFileName))
+        {
+            if (!string.IsNullOrEmpty(product.Model3DUrl))
+            {
+                await _fileStorage.DeleteFileAsync(product.Model3DUrl, cancellationToken);
+            }
+            product.Model3DUrl = await _fileStorage.SaveFileAsync(command.Model3DStream, command.Model3DFileName, "models/products", cancellationToken);
+        }
+        else if (!string.IsNullOrEmpty(req.Model3DUrl))
+        {
+            product.Model3DUrl = req.Model3DUrl;
+        }
+
         product.Name = req.Name;
         product.Description = req.Description;
         product.Price = req.Price;
         product.Quantity = req.Quantity;
         product.CategoryId = req.CategoryId;
         product.IsHidden = req.IsHidden;
-        product.Model3DUrl = req.Model3DUrl;
         product.ProfitMargin = req.ProfitMargin;
         product.LinearCode = req.LinearCode;
 

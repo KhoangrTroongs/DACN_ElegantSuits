@@ -65,7 +65,7 @@
                         <i class="fas fa-tshirt me-2"></i>
                         @(ViewBag.SelectedCategory == null ? "Tất cả sản phẩm" : ViewBag.SelectedCategory?.Name ?? "Danh mục không xác định")
                     </span>
-                    <span class="badge bg-primary">@(ViewBag.TotalItems ?? 0) sản phẩm</span>
+                    <span class="badge bg-primary">@(Model?.TotalItems ?? ViewBag.TotalItems ?? 0) sản phẩm</span>
                 </div>
 
                 <!-- Sorting Controls for All Users -->

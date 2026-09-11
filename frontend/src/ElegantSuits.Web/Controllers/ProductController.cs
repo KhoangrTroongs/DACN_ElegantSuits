@@ -30,8 +30,10 @@ public class ProductController : Controller
         const int pageSize = 12;
 
         var catRes = await _categoryApiClient.GetAllCategoriesAsync();
-        ViewBag.Categories = catRes.Data ?? new List<CategoryViewModel>();
+        var categories = catRes.Data ?? new List<CategoryViewModel>();
+        ViewBag.Categories = categories;
         ViewBag.CategoryId = categoryId;
+        ViewBag.SelectedCategory = categoryId.HasValue ? categories.FirstOrDefault(c => c.Id == categoryId.Value) : null;
         ViewBag.CurrentPage = pageNumber;
         ViewBag.PageSize = pageSize;
         ViewBag.SortBy = sortBy;
@@ -41,6 +43,11 @@ public class ProductController : Controller
 
         var result = await _productApiClient.GetPagedProductsAsync(categoryId, pageNumber, pageSize);
         var products = result ?? new PaginatedList<ProductViewModel>(new List<ProductViewModel>(), 0, 1, pageSize);
+
+        ViewBag.TotalItems = products.TotalItems;
+        ViewBag.TotalPages = products.TotalPages;
+        ViewBag.HasPreviousPage = products.HasPreviousPage;
+        ViewBag.HasNextPage = products.HasNextPage;
 
         var mapped = products.Select(p => new Product
         {
@@ -56,6 +63,22 @@ public class ProductController : Controller
             LinearCode = p.LinearCode,
             Category = p.CategoryName != null ? new Category { Id = p.CategoryId, Name = p.CategoryName } : null
         }).ToList();
+
+        if (!string.IsNullOrEmpty(sortBy))
+        {
+            if (sortBy.Equals("price", StringComparison.OrdinalIgnoreCase))
+            {
+                mapped = (order?.ToLower() == "desc") 
+                    ? mapped.OrderByDescending(p => p.Price).ToList() 
+                    : mapped.OrderBy(p => p.Price).ToList();
+            }
+            else if (sortBy.Equals("name", StringComparison.OrdinalIgnoreCase))
+            {
+                mapped = (order?.ToLower() == "desc") 
+                    ? mapped.OrderByDescending(p => p.Name).ToList() 
+                    : mapped.OrderBy(p => p.Name).ToList();
+            }
+        }
 
         var paginated = new PaginatedList<Product>(mapped, products.TotalItems, products.PageIndex, products.PageSize);
         return View(paginated);
@@ -96,9 +119,18 @@ public class ProductController : Controller
         var catRes = await _categoryApiClient.GetAllCategoriesAsync();
         ViewBag.Categories = catRes.Data ?? new List<CategoryViewModel>();
         ViewBag.Keyword = keyword;
+        ViewBag.SearchKeyword = keyword;
 
         var result = await _productApiClient.SearchProductsAsync(keyword, pageNumber, pageSize);
         var products = result ?? new PaginatedList<ProductViewModel>(new List<ProductViewModel>(), 0, 1, pageSize);
+
+        ViewBag.ResultCount = products.TotalItems;
+        ViewBag.TotalItems = products.TotalItems;
+        ViewBag.TotalPages = products.TotalPages;
+        ViewBag.CurrentPage = pageNumber;
+        ViewBag.PageSize = pageSize;
+        ViewBag.HasPreviousPage = products.HasPreviousPage;
+        ViewBag.HasNextPage = products.HasNextPage;
 
         var mapped = products.Select(p => new Product
         {
@@ -147,6 +179,7 @@ public class ProductController : Controller
                 IsHidden = model.IsHidden,
                 LinearCode = model.LinearCode,
                 Image = model.Image,
+                Model3D = model.Model3D,
                 ProfitMargin = model.ProfitMargin
             };
             var res = await _productApiClient.CreateProductAsync(createDto);
@@ -212,6 +245,7 @@ public class ProductController : Controller
                 ImageUrl = model.ExistingImageUrl,
                 LinearCode = model.LinearCode,
                 Image = model.Image,
+                Model3D = model.Model3D,
                 ProfitMargin = model.ProfitMargin
             };
             var res = await _productApiClient.UpdateProductAsync(id, updateDto);

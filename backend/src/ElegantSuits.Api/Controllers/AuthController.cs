@@ -50,4 +50,20 @@ public class AuthController : ControllerBase
 
         return Ok(ResponseDTO<AuthResponseDTO>.Success(result));
     }
+
+    // POST: api/Auth/external-login
+    [HttpPost("external-login")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ResponseDTO<AuthResponseDTO>>> ExternalLogin(
+        [FromBody] ExternalLoginDTO dto,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new ElegantSuits.Application.Features.Auth.Commands.ExternalLogin.ExternalLoginCommand(dto), cancellationToken);
+        if (!result.IsSuccess)
+        {
+            return Unauthorized(ResponseDTO<AuthResponseDTO>.Fail(result.Message ?? "External login failed."));
+        }
+
+        return Ok(ResponseDTO<AuthResponseDTO>.Success(result));
+    }
 }

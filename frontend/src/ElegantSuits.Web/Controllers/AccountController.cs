@@ -11,11 +11,19 @@ namespace ElegantSuits.Web.Controllers;
 public class AccountController : Controller
 {
     private readonly IAuthApiClient _authApiClient;
+    private readonly ICartApiClient _cartApiClient;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AccountController> _logger;
 
-    public AccountController(IAuthApiClient authApiClient, ILogger<AccountController> logger)
+    public AccountController(
+        IAuthApiClient authApiClient,
+        ICartApiClient cartApiClient,
+        IConfiguration configuration,
+        ILogger<AccountController> logger)
     {
         _authApiClient = authApiClient;
+        _cartApiClient = cartApiClient;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -40,11 +48,15 @@ public class AccountController : Controller
             // Store token in session for API clients
             HttpContext.Session.SetString("JwtToken", data.Token);
 
+            // Sync guest session cart to user account in database
+            await SessionCartService.SyncSessionCartToApiAsync(HttpContext.Session, _cartApiClient, data.Token);
+
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, data.UserId ?? ""),
                 new Claim(ClaimTypes.Name, data.UserName ?? model.Email),
-                new Claim(ClaimTypes.Email, model.Email)
+                new Claim(ClaimTypes.Email, model.Email),
+                new Claim("JwtToken", data.Token)
             };
 
             if (data.Roles != null)
@@ -144,5 +156,107 @@ public class AccountController : Controller
     public IActionResult Lockout()
     {
         return View();
+    }
+
+    [HttpPost]
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+    {
+        var googleClientId = _configuration["Authentication:Google:ClientId"];
+        var googleClientSecret = _configuration["Authentication:Google:ClientSecret"];
+        if (string.IsNullOrWhiteSpace(googleClientId) || string.IsNullOrWhiteSpace(googleClientSecret) || googleClientId == "YOUR_GOOGLE_CLIENT_ID")
+        {
+            TempData["ErrorMessage"] = "Chức năng đăng nhập Google chưa được cấu hình ClientId/ClientSecret trong appsettings.json. Vui lòng cấu hình để sử dụng.";
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        var redirectUrl = Url.Action(nameof(ExternalLoginCallback), "Account", new { returnUrl });
+        var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+        return Challenge(properties, provider);
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null)
+    {
+        if (remoteError != null)
+        {
+            TempData["ErrorMessage"] = $"Lỗi từ dịch vụ bên ngoài: {remoteError}";
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        var authResult = await HttpContext.AuthenticateAsync("ExternalCookie");
+        if (!authResult.Succeeded || authResult.Principal == null)
+        {
+            TempData["ErrorMessage"] = "Không thể xác thực thông tin tài khoản từ Google.";
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        var claims = authResult.Principal.Claims.ToList();
+        var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+        var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        var providerKey = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        // Clean up the temporary external cookie
+        await HttpContext.SignOutAsync("ExternalCookie");
+
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(providerKey))
+        {
+            TempData["ErrorMessage"] = "Không thể lấy thông tin email từ Google.";
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        var res = await _authApiClient.ExternalLoginAsync(new ExternalLoginRequest
+        {
+            Provider = "Google",
+            ProviderKey = providerKey,
+            Email = email,
+            FullName = name
+        });
+
+        if (!res.IsSuccess || res.Data == null || string.IsNullOrEmpty(res.Data.Token))
+        {
+            TempData["ErrorMessage"] = res.Message ?? "Đăng nhập Google thất bại.";
+            return RedirectToAction(nameof(Login), new { returnUrl });
+        }
+
+        var data = res.Data;
+        HttpContext.Session.SetString("JwtToken", data.Token);
+
+        var identityClaims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, data.UserId ?? providerKey),
+            new Claim(ClaimTypes.Name, data.UserName ?? name ?? email),
+            new Claim(ClaimTypes.Email, email),
+            new Claim("JwtToken", data.Token)
+        };
+
+        if (data.Roles != null)
+        {
+            foreach (var role in data.Roles)
+            {
+                identityClaims.Add(new Claim(ClaimTypes.Role, role));
+            }
+        }
+
+        var identity = new ClaimsIdentity(identityClaims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = data.Expiration ?? DateTimeOffset.UtcNow.AddDays(7)
+        };
+
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+
+        // Sync session cart to API
+        await SessionCartService.SyncSessionCartToApiAsync(HttpContext.Session, _cartApiClient, data.Token);
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
+        return RedirectToAction("Index", "Home");
     }
 }

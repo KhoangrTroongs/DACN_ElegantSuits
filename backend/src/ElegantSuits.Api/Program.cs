@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using ElegantSuits.Api.Middlewares;
 using ElegantSuits.Application;
 using ElegantSuits.Infrastructure;
@@ -74,6 +75,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = null;
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
 // 5. Add Swagger / OpenAPI

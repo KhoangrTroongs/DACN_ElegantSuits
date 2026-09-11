@@ -4,6 +4,7 @@ using System.Text;
 using ElegantSuits.Application.Common.Interfaces;
 using ElegantSuits.Application.Features.Auth.Contracts;
 using ElegantSuits.Domain.Entities;
+using ElegantSuits.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -94,8 +95,8 @@ public class AuthService : IAuthService
             Email = registerDto.Email,
             FullName = registerDto.FullName,
             DateOfBirth = registerDto.DateOfBirth,
-            PhoneNumber = registerDto.PhoneNumber,
-            Address = registerDto.Address,
+            PhoneNumber = string.IsNullOrWhiteSpace(registerDto.PhoneNumber) ? null : registerDto.PhoneNumber,
+            Address = registerDto.Address ?? "",
             Gender = registerDto.Gender,
             CreatedAt = DateTime.Now,
             IsActive = true
@@ -120,6 +121,79 @@ public class AuthService : IAuthService
         {
             IsSuccess = true,
             Message = "Đăng ký tài khoản thành công.",
+            Token = token,
+            Expiration = DateTime.Now.AddDays(7),
+            UserId = user.Id,
+            UserName = user.UserName,
+            Roles = roles.ToList()
+        };
+    }
+
+    public async Task<AuthResponseDTO> ExternalLoginAsync(ExternalLoginDTO externalLoginDto)
+    {
+        var user = await _userManager.FindByLoginAsync(externalLoginDto.Provider, externalLoginDto.ProviderKey);
+        if (user == null)
+        {
+            user = await _userManager.FindByEmailAsync(externalLoginDto.Email);
+            if (user == null)
+            {
+                user = new ApplicationUser
+                {
+                    UserName = externalLoginDto.Email,
+                    Email = externalLoginDto.Email,
+                    FullName = !string.IsNullOrWhiteSpace(externalLoginDto.FullName) ? externalLoginDto.FullName : externalLoginDto.Email,
+                    EmailConfirmed = true,
+                    IsOAuthUser = true,
+                    LoginProvider = externalLoginDto.Provider,
+                    ProviderKey = externalLoginDto.ProviderKey,
+                    DateOfBirth = DateTime.Now,
+                    Gender = Gender.Male,
+                    IsActive = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                {
+                    return new AuthResponseDTO
+                    {
+                        IsSuccess = false,
+                        Message = string.Join("; ", createResult.Errors.Select(e => e.Description))
+                    };
+                }
+
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+
+            var logins = await _userManager.GetLoginsAsync(user);
+            if (!logins.Any(l => l.LoginProvider == externalLoginDto.Provider && l.ProviderKey == externalLoginDto.ProviderKey))
+            {
+                await _userManager.AddLoginAsync(user, new UserLoginInfo(externalLoginDto.Provider, externalLoginDto.ProviderKey, externalLoginDto.Provider));
+            }
+        }
+
+        if (!user.IsActive)
+        {
+            return new AuthResponseDTO
+            {
+                IsSuccess = false,
+                Message = "Tài khoản của bạn đã bị vô hiệu hóa."
+            };
+        }
+
+        var roles = await _userManager.GetRolesAsync(user);
+        if (!roles.Any())
+        {
+            await _userManager.AddToRoleAsync(user, "User");
+            roles = await _userManager.GetRolesAsync(user);
+        }
+
+        var token = GenerateJwtToken(user, roles);
+
+        return new AuthResponseDTO
+        {
+            IsSuccess = true,
+            Message = "Đăng nhập thành công.",
             Token = token,
             Expiration = DateTime.Now.AddDays(7),
             UserId = user.Id,

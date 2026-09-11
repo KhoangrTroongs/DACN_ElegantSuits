@@ -172,10 +172,10 @@ public class CartRepository : ICartRepository
             {
                 Id = i.Id,
                 ProductId = i.ProductId,
-                ProductName = i.ProductName,
-                Price = i.Price,
+                ProductName = !string.IsNullOrEmpty(i.ProductName) ? i.ProductName : (i.Product != null ? i.Product.Name : ""),
+                Price = i.Price > 0 ? i.Price : (i.Product != null ? i.Product.Price : 0),
                 Quantity = i.Quantity,
-                ImageUrl = i.ImageUrl,
+                ImageUrl = !string.IsNullOrEmpty(i.ImageUrl) ? i.ImageUrl : (i.Product != null ? (i.Product.ImageUrl ?? "") : ""),
                 Size = i.Size
             }).ToList(),
             CreatedAt = cart.CreatedAt,

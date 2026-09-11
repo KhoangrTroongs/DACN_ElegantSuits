@@ -43,7 +43,7 @@
                                 <td>@order.Id</td>
                                 <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>@(order.User?.FullName ?? "Khách hàng không xác định")</td>
-                                <td>@order.TotalPrice.ToString("C0")</td>
+                                <td>@order.TotalPrice.ToString("N0") ₫</td>
                                 <td>@order.ShippingAddress</td>
                                 <td>
                                     @{

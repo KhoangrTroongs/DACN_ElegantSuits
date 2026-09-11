@@ -6,4 +6,5 @@ public interface IAuthService
 {
     Task<AuthResponseDTO> LoginAsync(LoginUserDTO loginDto);
     Task<AuthResponseDTO> RegisterAsync(RegisterUserDTO registerDto);
+    Task<AuthResponseDTO> ExternalLoginAsync(ExternalLoginDTO externalLoginDto);
 }

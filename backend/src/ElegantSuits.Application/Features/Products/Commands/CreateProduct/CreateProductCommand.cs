@@ -9,7 +9,9 @@ namespace ElegantSuits.Application.Features.Products.Commands.CreateProduct;
 public record CreateProductCommand(
     CreateProductRequest Request,
     Stream? ImageStream = null,
-    string? ImageFileName = null) : IRequest<ProductResponse>;
+    string? ImageFileName = null,
+    Stream? Model3DStream = null,
+    string? Model3DFileName = null) : IRequest<ProductResponse>;
 
 public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
 {
@@ -65,6 +67,12 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             imageUrl = await _fileStorage.SaveFileAsync(command.ImageStream, command.ImageFileName, "images/products", cancellationToken);
         }
 
+        string? model3DUrl = req.Model3DUrl;
+        if (command.Model3DStream != null && !string.IsNullOrEmpty(command.Model3DFileName))
+        {
+            model3DUrl = await _fileStorage.SaveFileAsync(command.Model3DStream, command.Model3DFileName, "models/products", cancellationToken);
+        }
+
         var product = new Product
         {
             Name = req.Name,
@@ -73,7 +81,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             Quantity = req.Quantity,
             CategoryId = req.CategoryId,
             IsHidden = req.IsHidden,
-            Model3DUrl = req.Model3DUrl,
+            Model3DUrl = model3DUrl,
             ProfitMargin = req.ProfitMargin,
             LinearCode = req.LinearCode,
             ImageUrl = imageUrl

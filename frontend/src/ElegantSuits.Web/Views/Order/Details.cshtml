@@ -36,9 +36,9 @@
                     @if (!string.IsNullOrEmpty(Model.CouponCode))
                     {
                         <p><strong>Mã giảm giá:</strong> <span class="badge bg-success">@Model.CouponCode</span></p>
-                        <p><strong>Số tiền giảm:</strong> <span class="text-success">-@Model.DiscountAmount.ToString("C0")</span></p>
+                        <p><strong>Số tiền giảm:</strong> <span class="text-success">-@Model.DiscountAmount.ToString("N0") ₫</span></p>
                     }
-                    <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("C0")</p>
+                    <p><strong>Tổng tiền:</strong> @Model.TotalPrice.ToString("N0") ₫</p>
                     <p>
                         <strong>Trạng thái:</strong>
                         @{
@@ -149,9 +149,9 @@
                                             <span class="text-muted">-</span>
                                         }
                                     </td>
-                                    <td>@item.Price.ToString("C0")</td>
+                                    <td>@item.Price.ToString("N0") ₫</td>
                                     <td>@item.Quantity</td>
-                                    <td>@((item.Price * item.Quantity).ToString("C0"))</td>
+                                    <td>@((item.Price * item.Quantity).ToString("N0")) ₫</td>
                                 </tr>
                             }
                         }
@@ -164,16 +164,16 @@
                         {
                             <tr>
                                 <td colspan="4" class="text-end"><strong>Tổng tiền hàng:</strong></td>
-                                <td><strong>@subtotal.ToString("C0")</strong></td>
+                                <td><strong>@subtotal.ToString("N0") ₫</strong></td>
                             </tr>
                             <tr>
                                 <td colspan="4" class="text-end"><strong>Giảm giá (@Model.CouponCode):</strong></td>
-                                <td><strong class="text-success">-@Model.DiscountAmount.ToString("C0")</strong></td>
+                                <td><strong class="text-success">-@Model.DiscountAmount.ToString("N0") ₫</strong></td>
                             </tr>
                         }
                         <tr>
                             <td colspan="4" class="text-end"><strong>Tổng thanh toán:</strong></td>
-                            <td><strong>@Model.TotalPrice.ToString("C0")</strong></td>
+                            <td><strong>@Model.TotalPrice.ToString("N0") ₫</strong></td>
                         </tr>
                     </tfoot>
                 </table>

@@ -80,20 +80,25 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<ResponseDTO<ProductResponse>>> CreateProduct(
         [FromForm] CreateProductRequest request,
         IFormFile? image,
+        IFormFile? model3D,
         CancellationToken cancellationToken)
     {
         Stream? imageStream = image != null ? image.OpenReadStream() : null;
         string? imageFileName = image?.FileName;
 
+        Stream? model3DStream = model3D != null ? model3D.OpenReadStream() : null;
+        string? model3DFileName = model3D?.FileName;
+
         try
         {
-            var command = new CreateProductCommand(request, imageStream, imageFileName);
+            var command = new CreateProductCommand(request, imageStream, imageFileName, model3DStream, model3DFileName);
             var product = await _sender.Send(command, cancellationToken);
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, ResponseDTO<ProductResponse>.Success(product));
         }
         finally
         {
             imageStream?.Dispose();
+            model3DStream?.Dispose();
         }
     }
 
@@ -104,14 +109,18 @@ public class ProductsController : ControllerBase
         int id,
         [FromForm] UpdateProductRequest request,
         IFormFile? image,
+        IFormFile? model3D,
         CancellationToken cancellationToken)
     {
         Stream? imageStream = image != null ? image.OpenReadStream() : null;
         string? imageFileName = image?.FileName;
 
+        Stream? model3DStream = model3D != null ? model3D.OpenReadStream() : null;
+        string? model3DFileName = model3D?.FileName;
+
         try
         {
-            var command = new UpdateProductCommand(id, request, imageStream, imageFileName);
+            var command = new UpdateProductCommand(id, request, imageStream, imageFileName, model3DStream, model3DFileName);
             var product = await _sender.Send(command, cancellationToken);
             if (product == null)
             {
@@ -123,6 +132,7 @@ public class ProductsController : ControllerBase
         finally
         {
             imageStream?.Dispose();
+            model3DStream?.Dispose();
         }
     }
 

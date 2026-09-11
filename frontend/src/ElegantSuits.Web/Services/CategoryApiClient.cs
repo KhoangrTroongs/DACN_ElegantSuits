@@ -1,3 +1,4 @@
+using System.Text.Json;
 using ElegantSuits.Web.Models;
 
 namespace ElegantSuits.Web.Services;
@@ -55,8 +56,28 @@ public class CategoryApiClient : ICategoryApiClient
         try
         {
             var res = await _httpClient.PostAsJsonAsync("/api/categories", model);
-            return await res.Content.ReadFromJsonAsync<ResponseDTO<int>>()
-                ?? new ResponseDTO<int> { IsSuccess = false };
+            var json = await res.Content.ReadAsStringAsync();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return new ResponseDTO<int> { IsSuccess = res.IsSuccessStatusCode };
+            }
+
+            using var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+            bool isSuccess = (root.TryGetProperty("isSuccess", out var s1) || root.TryGetProperty("IsSuccess", out s1)) ? s1.GetBoolean() : res.IsSuccessStatusCode;
+            string? message = (root.TryGetProperty("message", out var m1) || root.TryGetProperty("Message", out m1)) && m1.ValueKind == JsonValueKind.String ? m1.GetString() : null;
+
+            int catId = 0;
+            if (root.TryGetProperty("data", out var d1) || root.TryGetProperty("Data", out d1))
+            {
+                if (d1.ValueKind == JsonValueKind.Number) catId = d1.GetInt32();
+                else if (d1.ValueKind == JsonValueKind.Object && (d1.TryGetProperty("id", out var idProp) || d1.TryGetProperty("Id", out idProp)) && idProp.ValueKind == JsonValueKind.Number)
+                {
+                    catId = idProp.GetInt32();
+                }
+            }
+
+            return new ResponseDTO<int> { IsSuccess = isSuccess, Message = message, Data = catId };
         }
         catch (Exception ex)
         {

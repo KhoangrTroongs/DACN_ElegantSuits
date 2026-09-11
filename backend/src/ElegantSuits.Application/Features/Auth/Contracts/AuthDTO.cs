@@ -54,3 +54,18 @@ public class RegisterUserDTO
 
     public string Address { get; set; } = "";
 }
+
+public class ExternalLoginDTO
+{
+    [Required(ErrorMessage = "Provider không được để trống")]
+    public string Provider { get; set; } = "";
+
+    [Required(ErrorMessage = "ProviderKey không được để trống")]
+    public string ProviderKey { get; set; } = "";
+
+    [Required(ErrorMessage = "Email không được để trống")]
+    [EmailAddress(ErrorMessage = "Email không hợp lệ")]
+    public string Email { get; set; } = "";
+
+    public string? FullName { get; set; }
+}
