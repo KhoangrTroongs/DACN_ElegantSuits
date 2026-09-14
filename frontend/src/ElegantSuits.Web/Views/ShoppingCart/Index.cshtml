@@ -65,6 +65,7 @@
                                     <td class="item-total fw-bold text-danger" data-unit-price="@price">@itemTotal.ToString("N0") ₫</td>
                                     <td class="text-center">
                                         <form asp-controller="ShoppingCart" asp-action="RemoveFromCart" method="post" class="d-inline remove-from-cart-form">
+                                            @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@item.Id" />
                                             <input type="hidden" name="productId" value="@item.ProductId" />
                                             <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa khỏi giỏ hàng">
@@ -114,25 +115,6 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Remove item from cart
-            $('.remove-from-cart-form').on('submit', function (e) {
-                e.preventDefault();
-                var form = $(this);
-
-                $.ajax({
-                    url: form.attr('action'),
-                    method: 'POST',
-                    data: form.serialize(),
-                    success: function (res) {
-                        location.reload();
-                    },
-                    error: function () {
-                        // Fallback normal submit
-                        form.off('submit').submit();
-                    }
-                });
-            });
-
             // Update quantity with +/- buttons
             $('.quantity-btn').on('click', function () {
                 const button = $(this);
@@ -184,6 +166,56 @@
                     },
                     error: function () {
                         alert('Không thể cập nhật số lượng. Vui lòng thử lại.');
+                    }
+                });
+            });
+
+            // Remove item from cart with smooth animation & fallback
+            $('.remove-from-cart-form').on('submit', function (e) {
+                e.preventDefault();
+                const form = $(this);
+                const row = form.closest('tr');
+                const btn = form.find('button[type="submit"]');
+
+                if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+                    return;
+                }
+
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+
+                $.ajax({
+                    url: form.attr('action') || '/ShoppingCart/RemoveFromCart',
+                    method: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            row.fadeOut(300, function () {
+                                $(this).remove();
+                                if ($('tbody tr').length === 0) {
+                                    window.location.reload();
+                                    return;
+                                }
+                                let grandTotal = 0;
+                                $('tbody tr').each(function () {
+                                    const up = parseFloat($(this).find('.item-total').data('unit-price')) || 0;
+                                    const qty = parseInt($(this).find('.quantity-input').val()) || 0;
+                                    grandTotal += up * qty;
+                                });
+                                $('#cartTotalDisplay').text(grandTotal.toLocaleString('vi-VN') + ' ₫');
+
+                                if (response.cartCount !== undefined) {
+                                    $('.cart-badge, .cart-count').text(response.cartCount);
+                                }
+                            });
+                        } else {
+                            form.off('submit').submit();
+                        }
+                    },
+                    error: function () {
+                        form.off('submit').submit();
                     }
                 });
             });

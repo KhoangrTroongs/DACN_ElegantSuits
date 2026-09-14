@@ -57,10 +57,10 @@ public static class SessionCartService
         SaveSessionCart(session, cart);
     }
 
-    public static void UpdateQuantity(ISession session, int itemId, int quantity)
+    public static void UpdateQuantity(ISession session, int itemId, int quantity, int? productId = null)
     {
         var cart = GetSessionCart(session);
-        var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
+        var item = cart.Items.FirstOrDefault(i => (itemId > 0 && i.Id == itemId) || (productId.HasValue && i.ProductId == productId.Value));
         if (item != null)
         {
             if (quantity <= 0)
@@ -75,10 +75,10 @@ public static class SessionCartService
         }
     }
 
-    public static void RemoveItem(ISession session, int itemId)
+    public static void RemoveItem(ISession session, int itemId, int? productId = null)
     {
         var cart = GetSessionCart(session);
-        var item = cart.Items.FirstOrDefault(i => i.Id == itemId);
+        var item = cart.Items.FirstOrDefault(i => (itemId > 0 && i.Id == itemId) || (productId.HasValue && i.ProductId == productId.Value));
         if (item != null)
         {
             cart.Items.Remove(item);

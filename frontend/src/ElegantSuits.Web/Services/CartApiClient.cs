@@ -67,9 +67,23 @@ public class CartApiClient : ICartApiClient
         try
         {
             AttachToken(token);
-            var res = await _httpClient.PutAsJsonAsync($"/api/cart/items/{cartItemId}", new { quantity });
-            return await res.Content.ReadFromJsonAsync<ResponseDTO<CartViewModel>>()
-                ?? new ResponseDTO<CartViewModel> { IsSuccess = false };
+            var res = await _httpClient.PutAsJsonAsync("/api/cart", new { cartItemId, quantity });
+            if (!res.IsSuccessStatusCode)
+            {
+                res = await _httpClient.PutAsJsonAsync($"/api/cart/item/{cartItemId}", new { cartItemId, quantity });
+            }
+            if (!res.IsSuccessStatusCode)
+            {
+                res = await _httpClient.PutAsJsonAsync($"/api/cart/items/{cartItemId}", new { cartItemId, quantity });
+            }
+
+            if (res.IsSuccessStatusCode)
+            {
+                var data = await res.Content.ReadFromJsonAsync<ResponseDTO<CartViewModel>>();
+                return data ?? new ResponseDTO<CartViewModel> { IsSuccess = true, Message = "Đã cập nhật số lượng thành công!" };
+            }
+
+            return new ResponseDTO<CartViewModel> { IsSuccess = false, Message = $"Lỗi cập nhật: {res.StatusCode}" };
         }
         catch (Exception ex)
         {
@@ -83,9 +97,18 @@ public class CartApiClient : ICartApiClient
         try
         {
             AttachToken(token);
-            var res = await _httpClient.DeleteAsync($"/api/cart/items/{cartItemId}");
-            return await res.Content.ReadFromJsonAsync<ResponseDTO<CartViewModel>>()
-                ?? new ResponseDTO<CartViewModel> { IsSuccess = false };
+            var res = await _httpClient.DeleteAsync($"/api/cart/item/{cartItemId}");
+            if (!res.IsSuccessStatusCode)
+            {
+                res = await _httpClient.DeleteAsync($"/api/cart/items/{cartItemId}");
+            }
+
+            if (res.IsSuccessStatusCode)
+            {
+                return new ResponseDTO<CartViewModel> { IsSuccess = true, Message = "Đã xóa sản phẩm khỏi giỏ hàng!" };
+            }
+
+            return new ResponseDTO<CartViewModel> { IsSuccess = false, Message = $"Không thể xóa: {res.StatusCode}" };
         }
         catch (Exception ex)
         {
@@ -99,9 +122,18 @@ public class CartApiClient : ICartApiClient
         try
         {
             AttachToken(token);
-            var res = await _httpClient.DeleteAsync("/api/cart");
-            return await res.Content.ReadFromJsonAsync<ResponseDTO<bool>>()
-                ?? new ResponseDTO<bool> { IsSuccess = false };
+            var res = await _httpClient.DeleteAsync("/api/cart/clear");
+            if (!res.IsSuccessStatusCode)
+            {
+                res = await _httpClient.DeleteAsync("/api/cart");
+            }
+
+            if (res.IsSuccessStatusCode)
+            {
+                return new ResponseDTO<bool> { IsSuccess = true, Data = true, Message = "Đã xóa toàn bộ giỏ hàng!" };
+            }
+
+            return new ResponseDTO<bool> { IsSuccess = false, Message = $"Lỗi xóa giỏ hàng: {res.StatusCode}" };
         }
         catch (Exception ex)
         {

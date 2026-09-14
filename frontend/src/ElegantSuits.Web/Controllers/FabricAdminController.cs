@@ -19,7 +19,15 @@ public class FabricAdminController : Controller
         _logger = logger;
     }
 
-    public IActionResult Index() => RedirectToAction(nameof(FabricGroups));
+    private string? GetToken()
+    {
+        var token = HttpContext.Session.GetString("JwtToken") ?? User.FindFirst("JwtToken")?.Value;
+        if (!string.IsNullOrEmpty(token) && string.IsNullOrEmpty(HttpContext.Session.GetString("JwtToken")))
+        {
+            HttpContext.Session.SetString("JwtToken", token);
+        }
+        return token;
+    }
 
     private List<FabricGroupDTO> MapToGroupDTOs(List<FabricGroupViewModel>? groups)
     {
@@ -43,6 +51,8 @@ public class FabricAdminController : Controller
         }).ToList();
     }
 
+    public IActionResult Index() => RedirectToAction(nameof(FabricGroups));
+
     public async Task<IActionResult> FabricGroups()
     {
         var res = await _fabricApiClient.GetFabricGroupsAsync();
@@ -50,16 +60,22 @@ public class FabricAdminController : Controller
         return View(groups);
     }
 
-    public IActionResult CreateFabricGroup() => View();
+    public IActionResult CreateFabricGroup() => View(new CreateFabricGroupDTO());
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult CreateFabricGroup(CreateFabricGroupDTO dto)
+    public async Task<IActionResult> CreateFabricGroup(CreateFabricGroupDTO dto)
     {
         if (ModelState.IsValid)
         {
-            TempData["Success"] = "Thêm nhóm vải thành công";
-            return RedirectToAction(nameof(FabricGroups));
+            var token = GetToken();
+            var res = await _fabricApiClient.CreateFabricGroupAsync(dto, token);
+            if (res.IsSuccess)
+            {
+                TempData["Success"] = "Thêm nhóm vải thành công";
+                return RedirectToAction(nameof(FabricGroups));
+            }
+            TempData["Error"] = res.Message ?? "Không thể thêm nhóm vải.";
         }
         return View(dto);
     }
@@ -81,14 +97,37 @@ public class FabricAdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult EditFabricGroup(int id, UpdateFabricGroupDTO dto)
+    public async Task<IActionResult> EditFabricGroup(int id, UpdateFabricGroupDTO dto)
     {
         if (ModelState.IsValid)
         {
-            TempData["Success"] = "Cập nhật nhóm vải thành công";
-            return RedirectToAction(nameof(FabricGroups));
+            var token = GetToken();
+            var res = await _fabricApiClient.UpdateFabricGroupAsync(id, dto, token);
+            if (res.IsSuccess)
+            {
+                TempData["Success"] = "Cập nhật nhóm vải thành công";
+                return RedirectToAction(nameof(FabricGroups));
+            }
+            TempData["Error"] = res.Message ?? "Không thể cập nhật nhóm vải.";
         }
         return View(dto);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFabricGroup(int id)
+    {
+        var token = GetToken();
+        var res = await _fabricApiClient.DeleteFabricGroupAsync(id, token);
+        if (res.IsSuccess)
+        {
+            TempData["Success"] = "Xóa nhóm vải thành công";
+        }
+        else
+        {
+            TempData["Error"] = res.Message ?? "Không thể xóa nhóm vải.";
+        }
+        return RedirectToAction(nameof(FabricGroups));
     }
 
     public async Task<IActionResult> Fabrics(int? groupId)
@@ -122,13 +161,22 @@ public class FabricAdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult CreateFabric(CreateFabricDTO dto)
+    public async Task<IActionResult> CreateFabric(CreateFabricDTO dto)
     {
         if (ModelState.IsValid)
         {
-            TempData["Success"] = "Thêm vải thành công";
-            return RedirectToAction(nameof(Fabrics));
+            var token = GetToken();
+            var res = await _fabricApiClient.CreateFabricAsync(dto, token);
+            if (res.IsSuccess)
+            {
+                TempData["Success"] = "Thêm vải thành công";
+                return RedirectToAction(nameof(Fabrics));
+            }
+            TempData["Error"] = res.Message ?? "Không thể thêm vải.";
         }
+
+        var groupsRes = await _fabricApiClient.GetFabricGroupsAsync();
+        ViewBag.FabricGroups = MapToGroupDTOs(groupsRes.Data);
         return View(dto);
     }
 
@@ -156,13 +204,40 @@ public class FabricAdminController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult EditFabric(int id, UpdateFabricDTO dto)
+    public async Task<IActionResult> EditFabric(int id, UpdateFabricDTO dto)
     {
         if (ModelState.IsValid)
         {
-            TempData["Success"] = "Cập nhật vải thành công";
-            return RedirectToAction(nameof(Fabrics));
+            var token = GetToken();
+            var res = await _fabricApiClient.UpdateFabricAsync(id, dto, token);
+            if (res.IsSuccess)
+            {
+                TempData["Success"] = "Cập nhật vải thành công";
+                return RedirectToAction(nameof(Fabrics));
+            }
+            TempData["Error"] = res.Message ?? "Không thể cập nhật vải.";
         }
+
+        var groupsRes = await _fabricApiClient.GetFabricGroupsAsync();
+        ViewBag.FabricGroups = MapToGroupDTOs(groupsRes.Data);
+        ViewBag.FabricId = id;
         return View(dto);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFabric(int id)
+    {
+        var token = GetToken();
+        var res = await _fabricApiClient.DeleteFabricAsync(id, token);
+        if (res.IsSuccess)
+        {
+            TempData["Success"] = "Xóa vải thành công";
+        }
+        else
+        {
+            TempData["Error"] = res.Message ?? "Không thể xóa vải.";
+        }
+        return RedirectToAction(nameof(Fabrics));
     }
 }

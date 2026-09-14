@@ -178,22 +178,22 @@ public class HomeController : Controller
             {
                 await _cartApiClient.RemoveCartItemAsync(item.Id, token);
             }
+            else if (id.HasValue)
+            {
+                await _cartApiClient.RemoveCartItemAsync(id.Value, token);
+            }
             var fresh = await _cartApiClient.GetCartAsync(token);
             cartCount = fresh.Data?.Items.Sum(x => x.Quantity) ?? 0;
             if (isAjax) return Json(new { success = true, cartCount, message = "Đã xóa sản phẩm khỏi giỏ hàng." });
         }
         else
         {
-            var cart = SessionCartService.GetSessionCart(HttpContext.Session);
-            var item = cart.Items.FirstOrDefault(x => x.ProductId == productId || (id.HasValue && x.Id == id.Value));
-            if (item != null)
-            {
-                SessionCartService.RemoveItem(HttpContext.Session, item.Id);
-            }
+            SessionCartService.RemoveItem(HttpContext.Session, id ?? 0, productId);
             cartCount = SessionCartService.GetCount(HttpContext.Session);
             if (isAjax) return Json(new { success = true, cartCount, message = "Đã xóa sản phẩm khỏi giỏ hàng." });
         }
 
+        TempData["SuccessMessage"] = "Đã xóa sản phẩm khỏi giỏ hàng.";
         return RedirectToAction("Index", "ShoppingCart");
     }
 

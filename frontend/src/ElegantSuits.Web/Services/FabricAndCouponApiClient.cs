@@ -9,6 +9,12 @@ public interface IFabricApiClient
 {
     Task<ResponseDTO<List<FabricGroupViewModel>>> GetFabricGroupsAsync();
     Task<ResponseDTO<FabricViewModel>> GetFabricByIdAsync(int id);
+    Task<ResponseDTO<FabricDTO>> CreateFabricAsync(CreateFabricDTO dto, string? token = null);
+    Task<ResponseDTO<FabricDTO>> UpdateFabricAsync(int id, UpdateFabricDTO dto, string? token = null);
+    Task<ResponseDTO<bool>> DeleteFabricAsync(int id, string? token = null);
+    Task<ResponseDTO<FabricGroupDTO>> CreateFabricGroupAsync(CreateFabricGroupDTO dto, string? token = null);
+    Task<ResponseDTO<FabricGroupDTO>> UpdateFabricGroupAsync(int id, UpdateFabricGroupDTO dto, string? token = null);
+    Task<ResponseDTO<bool>> DeleteFabricGroupAsync(int id, string? token = null);
 }
 
 public class FabricApiClient : IFabricApiClient
@@ -20,6 +26,14 @@ public class FabricApiClient : IFabricApiClient
     {
         _httpClient = httpClient;
         _logger = logger;
+    }
+
+    private void AttachToken(string? token)
+    {
+        if (!string.IsNullOrEmpty(token))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        }
     }
 
     public async Task<ResponseDTO<List<FabricGroupViewModel>>> GetFabricGroupsAsync()
@@ -55,6 +69,152 @@ public class FabricApiClient : IFabricApiClient
         {
             _logger.LogError(ex, "Error getting fabric {Id}", id);
             return new ResponseDTO<FabricViewModel> { IsSuccess = false, Message = ex.Message };
+        }
+    }
+
+    public async Task<ResponseDTO<FabricDTO>> CreateFabricAsync(CreateFabricDTO dto, string? token = null)
+    {
+        try
+        {
+            AttachToken(token);
+            // Send as multipart if image is provided, otherwise JSON
+            HttpResponseMessage res;
+            if (dto.Image != null)
+            {
+                using var form = new MultipartFormDataContent();
+                form.Add(new StringContent(dto.Name), "Name");
+                form.Add(new StringContent(dto.Description ?? ""), "Description");
+                form.Add(new StringContent(dto.Composition ?? ""), "Composition");
+                form.Add(new StringContent(dto.ImageUrl ?? ""), "ImageUrl");
+                form.Add(new StringContent(dto.Price.ToString()), "Price");
+                form.Add(new StringContent(dto.FabricGroupId.ToString()), "FabricGroupId");
+                var stream = dto.Image.OpenReadStream();
+                form.Add(new StreamContent(stream), "Image", dto.Image.FileName);
+                res = await _httpClient.PostAsync("/api/fabrics", form);
+            }
+            else
+            {
+                res = await _httpClient.PostAsJsonAsync("/api/fabrics", new
+                {
+                    dto.Name, dto.Description, dto.Composition, dto.ImageUrl, dto.Price, dto.FabricGroupId
+                });
+            }
+
+            if (res.IsSuccessStatusCode)
+            {
+                var result = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricDTO>>();
+                return result ?? ResponseDTO<FabricDTO>.Fail("Lỗi phân tích phản hồi");
+            }
+            var err = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricDTO>>();
+            return err ?? ResponseDTO<FabricDTO>.Fail($"Lỗi: {res.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating fabric");
+            return ResponseDTO<FabricDTO>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ResponseDTO<FabricDTO>> UpdateFabricAsync(int id, UpdateFabricDTO dto, string? token = null)
+    {
+        try
+        {
+            AttachToken(token);
+            var res = await _httpClient.PutAsJsonAsync($"/api/fabrics/{id}", new
+            {
+                dto.Name, dto.Description, dto.Composition, dto.ImageUrl, dto.Price, dto.FabricGroupId, dto.IsAvailable
+            });
+
+            if (res.IsSuccessStatusCode)
+            {
+                var result = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricDTO>>();
+                return result ?? ResponseDTO<FabricDTO>.Fail("Lỗi phân tích phản hồi");
+            }
+            var err = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricDTO>>();
+            return err ?? ResponseDTO<FabricDTO>.Fail($"Lỗi: {res.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating fabric {Id}", id);
+            return ResponseDTO<FabricDTO>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ResponseDTO<bool>> DeleteFabricAsync(int id, string? token = null)
+    {
+        try
+        {
+            AttachToken(token);
+            var res = await _httpClient.DeleteAsync($"/api/fabrics/{id}");
+            if (res.IsSuccessStatusCode)
+                return ResponseDTO<bool>.Success(true);
+            var err = await res.Content.ReadFromJsonAsync<ResponseDTO<bool>>();
+            return err ?? ResponseDTO<bool>.Fail($"Lỗi: {res.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting fabric {Id}", id);
+            return ResponseDTO<bool>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ResponseDTO<FabricGroupDTO>> CreateFabricGroupAsync(CreateFabricGroupDTO dto, string? token = null)
+    {
+        try
+        {
+            AttachToken(token);
+            var res = await _httpClient.PostAsJsonAsync("/api/fabrics/groups", dto);
+            if (res.IsSuccessStatusCode)
+            {
+                var result = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricGroupDTO>>();
+                return result ?? ResponseDTO<FabricGroupDTO>.Fail("Lỗi phân tích phản hồi");
+            }
+            var err = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricGroupDTO>>();
+            return err ?? ResponseDTO<FabricGroupDTO>.Fail($"Lỗi: {res.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating fabric group");
+            return ResponseDTO<FabricGroupDTO>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ResponseDTO<FabricGroupDTO>> UpdateFabricGroupAsync(int id, UpdateFabricGroupDTO dto, string? token = null)
+    {
+        try
+        {
+            AttachToken(token);
+            var res = await _httpClient.PutAsJsonAsync($"/api/fabrics/groups/{id}", dto);
+            if (res.IsSuccessStatusCode)
+            {
+                var result = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricGroupDTO>>();
+                return result ?? ResponseDTO<FabricGroupDTO>.Fail("Lỗi phân tích phản hồi");
+            }
+            var err = await res.Content.ReadFromJsonAsync<ResponseDTO<FabricGroupDTO>>();
+            return err ?? ResponseDTO<FabricGroupDTO>.Fail($"Lỗi: {res.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating fabric group {Id}", id);
+            return ResponseDTO<FabricGroupDTO>.Fail(ex.Message);
+        }
+    }
+
+    public async Task<ResponseDTO<bool>> DeleteFabricGroupAsync(int id, string? token = null)
+    {
+        try
+        {
+            AttachToken(token);
+            var res = await _httpClient.DeleteAsync($"/api/fabrics/groups/{id}");
+            if (res.IsSuccessStatusCode)
+                return ResponseDTO<bool>.Success(true);
+            var err = await res.Content.ReadFromJsonAsync<ResponseDTO<bool>>();
+            return err ?? ResponseDTO<bool>.Fail($"Lỗi: {res.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting fabric group {Id}", id);
+            return ResponseDTO<bool>.Fail(ex.Message);
         }
     }
 }

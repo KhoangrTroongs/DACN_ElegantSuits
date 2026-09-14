@@ -92,8 +92,21 @@ public class CartController : ControllerBase
         return Ok(ResponseDTO<CartDTO>.Success(result));
     }
 
-    // DELETE: api/Cart/item/5
+    // PUT: api/Cart/item/5 or api/Cart/items/5
+    [HttpPut("item/{cartItemId:int}")]
+    [HttpPut("items/{cartItemId:int}")]
+    public async Task<ActionResult<ResponseDTO<CartDTO>>> UpdateCartItemRoute(
+        int cartItemId,
+        [FromBody] UpdateCartItemDTO dto,
+        CancellationToken cancellationToken)
+    {
+        dto.CartItemId = cartItemId;
+        return await UpdateCartItem(dto, cancellationToken);
+    }
+
+    // DELETE: api/Cart/item/5 or api/Cart/items/5
     [HttpDelete("item/{cartItemId:int}")]
+    [HttpDelete("items/{cartItemId:int}")]
     public async Task<ActionResult<ResponseDTO<bool>>> RemoveCartItem(
         int cartItemId,
         CancellationToken cancellationToken)
@@ -113,7 +126,8 @@ public class CartController : ControllerBase
         return Ok(ResponseDTO<bool>.Success(true, "Item removed successfully."));
     }
 
-    // DELETE: api/Cart/clear
+    // DELETE: api/Cart or api/Cart/clear
+    [HttpDelete]
     [HttpDelete("clear")]
     public async Task<ActionResult<ResponseDTO<bool>>> ClearCart(CancellationToken cancellationToken)
     {
