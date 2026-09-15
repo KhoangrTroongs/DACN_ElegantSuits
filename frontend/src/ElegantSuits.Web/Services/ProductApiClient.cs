@@ -56,13 +56,14 @@ public class ProductApiClient : IProductApiClient
         }
     }
 
-    public async Task<PaginatedList<ProductViewModel>?> GetPagedProductsAsync(int? categoryId = null, int pageIndex = 1, int pageSize = 10, CancellationToken cancellationToken = default)
+    public async Task<PaginatedList<ProductViewModel>?> GetPagedProductsAsync(int? categoryId = null, int pageIndex = 1, int pageSize = 10, string? keyword = null, CancellationToken cancellationToken = default)
     {
         try
         {
             AttachAuthToken();
             var url = $"api/Products/paged?pageIndex={pageIndex}&pageSize={pageSize}";
             if (categoryId.HasValue) url += $"&categoryId={categoryId.Value}";
+            if (!string.IsNullOrWhiteSpace(keyword)) url += $"&keyword={Uri.EscapeDataString(keyword)}";
 
             var res = await _httpClient.GetFromJsonAsync<ResponseDTO<PaginatedList<ProductViewModel>>>(url, _jsonOptions, cancellationToken);
             return res?.Data;
@@ -269,6 +270,64 @@ public class ProductApiClient : IProductApiClient
         {
             _logger.LogError(ex, "Exception calling DeleteProductAsync for id {Id}", id);
             return false;
+        }
+    }
+
+    public async Task<ResponseDTO<ProductReviewResponse>> AddReviewAsync(int productId, int rating, string? comment, string? token = null)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                AttachAuthToken();
+            }
+
+            var response = await _httpClient.PostAsJsonAsync($"api/Products/{productId}/reviews", new { rating, comment });
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<ResponseDTO<ProductReviewResponse>>(_jsonOptions);
+                return result ?? ResponseDTO<ProductReviewResponse>.Success(new ProductReviewResponse(), "Cảm ơn bạn đã đánh giá!");
+            }
+
+            var err = await response.Content.ReadFromJsonAsync<ResponseDTO<ProductReviewResponse>>(_jsonOptions);
+            return err ?? ResponseDTO<ProductReviewResponse>.Fail($"Lỗi: {response.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception calling AddReviewAsync for productId {ProductId}", productId);
+            return ResponseDTO<ProductReviewResponse>.Fail($"Lỗi kết nối máy chủ: {ex.Message}");
+        }
+    }
+
+    public async Task<ResponseDTO<bool>> DeleteReviewAsync(int productId, int reviewId, string? token = null)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+            else
+            {
+                AttachAuthToken();
+            }
+
+            var response = await _httpClient.DeleteAsync($"api/Products/{productId}/reviews/{reviewId}");
+            if (response.IsSuccessStatusCode)
+            {
+                return ResponseDTO<bool>.Success(true, "Đã xóa đánh giá thành công.");
+            }
+
+            return ResponseDTO<bool>.Fail($"Lỗi: {response.StatusCode}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Exception calling DeleteReviewAsync for productId {ProductId}, reviewId {ReviewId}", productId, reviewId);
+            return ResponseDTO<bool>.Fail($"Lỗi kết nối máy chủ: {ex.Message}");
         }
     }
 }

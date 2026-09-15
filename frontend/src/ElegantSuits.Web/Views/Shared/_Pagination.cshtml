@@ -12,11 +12,16 @@
     // Determine route values based on the current action
     var routeValues = new Dictionary<string, string>();
 
-    if (action == "Search" && ViewBag.SearchKeyword != null)
+    if (ViewBag.Keyword != null && !string.IsNullOrEmpty(ViewBag.Keyword.ToString()))
+    {
+        routeValues.Add("keyword", ViewBag.Keyword.ToString());
+    }
+    else if (ViewBag.SearchKeyword != null && !string.IsNullOrEmpty(ViewBag.SearchKeyword.ToString()))
     {
         routeValues.Add("keyword", ViewBag.SearchKeyword.ToString());
     }
-    else if (ViewBag.CategoryId != null)
+
+    if (ViewBag.CategoryId != null)
     {
         routeValues.Add("categoryId", ViewBag.CategoryId.ToString());
     }

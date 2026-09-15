@@ -150,6 +150,28 @@ public class ProductViewModel
     public List<int> SelectedFabricIds { get; set; } = new List<int>();
     public IEnumerable<ElegantSuits.Domain.Entities.Category> Categories { get; set; } = new List<ElegantSuits.Domain.Entities.Category>();
     public IEnumerable<FabricDTO> Fabrics { get; set; } = new List<FabricDTO>();
+    public List<ProductReviewResponse> Reviews { get; set; } = new();
+}
+
+public class ProductReviewResponse
+{
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public string UserId { get; set; } = "";
+    public string UserName { get; set; } = "";
+    public int Rating { get; set; }
+    public string? Comment { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class ReviewViewModel
+{
+    public int Id { get; set; }
+    public string UserId { get; set; } = "";
+    public string UserName { get; set; } = "";
+    public int Rating { get; set; }
+    public DateTime Date { get; set; }
+    public string Comment { get; set; } = "";
 }
 
 public class CreateProductViewModel

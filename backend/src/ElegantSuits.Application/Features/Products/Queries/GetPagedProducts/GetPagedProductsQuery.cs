@@ -5,7 +5,7 @@ using MediatR;
 
 namespace ElegantSuits.Application.Features.Products.Queries.GetPagedProducts;
 
-public record GetPagedProductsQuery(int? CategoryId, int PageIndex = 1, int PageSize = 10) : IRequest<PaginatedList<ProductResponse>>;
+public record GetPagedProductsQuery(int? CategoryId, int PageIndex = 1, int PageSize = 10, string? Keyword = null) : IRequest<PaginatedList<ProductResponse>>;
 
 public class GetPagedProductsQueryHandler : IRequestHandler<GetPagedProductsQuery, PaginatedList<ProductResponse>>
 {
@@ -26,6 +26,7 @@ public class GetPagedProductsQueryHandler : IRequestHandler<GetPagedProductsQuer
             request.PageIndex,
             request.PageSize,
             includeHidden: isAdmin,
-            cancellationToken);
+            keyword: request.Keyword,
+            cancellationToken: cancellationToken);
     }
 }

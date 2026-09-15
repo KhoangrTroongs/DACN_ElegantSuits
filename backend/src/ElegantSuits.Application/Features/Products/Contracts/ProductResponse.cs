@@ -16,4 +16,22 @@ public class ProductResponse
     public decimal ProfitMargin { get; set; }
     public double AverageRating { get; set; }
     public int ReviewCount { get; set; }
+    public List<ProductReviewResponse> Reviews { get; set; } = new();
+}
+
+public class ProductReviewResponse
+{
+    public int Id { get; set; }
+    public int ProductId { get; set; }
+    public string UserId { get; set; } = "";
+    public string UserName { get; set; } = "";
+    public int Rating { get; set; }
+    public string? Comment { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class CreateProductReviewRequest
+{
+    public int Rating { get; set; }
+    public string? Comment { get; set; }
 }

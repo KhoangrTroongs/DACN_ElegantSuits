@@ -210,38 +210,20 @@
                 <!-- Hiển thị đánh giá sản phẩm -->
                 @{
                     var reviews = new List<ReviewViewModel>();
-                    var reviewSection = "";
 
-                    if (!string.IsNullOrEmpty(Model.Description) &&
-                        Model.Description.Contains(reviewTag) &&
-                        Model.Description.Contains(endReviewTag))
+                    if (Model.ProductReviews != null && Model.ProductReviews.Any())
                     {
-                        var startIndex = Model.Description.IndexOf(reviewTag) + reviewTag.Length;
-                        var endIndex = Model.Description.IndexOf(endReviewTag);
-                        if (startIndex < endIndex)
+                        reviews = Model.ProductReviews.Select(r => new ReviewViewModel
                         {
-                            reviewSection = Model.Description.Substring(startIndex, endIndex - startIndex);
-
-                            var reviewPairs = reviewSection.Split('|');
-                            foreach (var pair in reviewPairs)
-                            {
-                                if (!string.IsNullOrEmpty(pair))
-                                {
-                                    var parts = pair.Split(new[] { "~~" }, StringSplitOptions.None);
-                                    if (parts.Length >= 5)
-                                    {
-                                        reviews.Add(new ReviewViewModel
-                                        {
-                                            UserId = parts[0],
-                                            UserName = parts[1],
-                                            Rating = int.TryParse(parts[2], out int r) ? r : 5,
-                                            Date = DateTime.TryParse(parts[3], out DateTime d) ? d : DateTime.Now,
-                                            Comment = parts[4]
-                                        });
-                                    }
-                                }
-                            }
-                        }
+                            Id = r.Id,
+                            UserId = r.UserId,
+                            UserName = !string.IsNullOrEmpty(r.User?.FullName)
+                                ? r.User.FullName
+                                : (!string.IsNullOrEmpty(r.User?.UserName) ? r.User.UserName : (!string.IsNullOrEmpty(r.User?.Email) ? r.User.Email : "Khách hàng")),
+                            Rating = r.Rating,
+                            Date = r.CreatedAt,
+                            Comment = r.Comment ?? ""
+                        }).ToList();
                     }
 
                     double averageRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
@@ -274,6 +256,7 @@
                 @functions {
                     public class ReviewViewModel
                     {
+                        public int Id { get; set; }
                         public string UserId { get; set; } = "";
                         public string UserName { get; set; } = "";
                         public int Rating { get; set; }
@@ -447,6 +430,7 @@
                             <div id="review-form" class="mb-4 p-3 border rounded" style="display: none;">
                                 <h4 class="mb-3">Viết đánh giá của bạn</h4>
                                 <form asp-controller="Product" asp-action="AddReview" method="post" id="review-form-submit" class="needs-validation" novalidate>
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" name="ProductId" value="@Model.Id" />
 
                                     <div class="mb-3">
@@ -510,12 +494,14 @@
                                                         }
                                                     }
                                                 </div>
-                                                @if (User.IsInRole("Administrator"))
+                                                @if (User.IsInRole("Administrator") || (User.Identity?.IsAuthenticated == true && (User.Identity.Name == review.UserName || User.Claims.Any(c => c.Value == review.UserId))))
                                                 {
                                                     <form asp-action="DeleteReview" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
                                                         <input type="hidden" name="productId" value="@Model.Id" />
-                                                        <input type="hidden" name="userId" value="@review.UserId" />
-                                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                        <input type="hidden" name="reviewId" value="@review.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                                title="Xóa đánh giá"
                                                                 onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');">
                                                             <i class="fas fa-trash"></i>
                                                         </button>

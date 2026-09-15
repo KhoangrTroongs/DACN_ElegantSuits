@@ -58,6 +58,7 @@ public class ProductReadRepository : IProductReadRepository
         int pageIndex,
         int pageSize,
         bool includeHidden = false,
+        string? keyword = null,
         CancellationToken cancellationToken = default)
     {
         var query = _context.Products.AsNoTracking();
@@ -70,6 +71,12 @@ public class ProductReadRepository : IProductReadRepository
         if (categoryId.HasValue)
         {
             query = query.Where(p => p.CategoryId == categoryId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var kw = keyword.Trim();
+            query = query.Where(p => p.Name.Contains(kw) || (p.Description != null && p.Description.Contains(kw)));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -131,7 +138,17 @@ public class ProductReadRepository : IProductReadRepository
                 LinearCode = p.LinearCode,
                 ProfitMargin = p.ProfitMargin,
                 AverageRating = p.ProductReviews.Any() ? p.ProductReviews.Average(r => (double)r.Rating) : 0,
-                ReviewCount = p.ProductReviews.Count
+                ReviewCount = p.ProductReviews.Count,
+                Reviews = p.ProductReviews.OrderByDescending(r => r.CreatedAt).Select(r => new ProductReviewResponse
+                {
+                    Id = r.Id,
+                    ProductId = r.ProductId,
+                    UserId = r.UserId,
+                    UserName = r.User != null ? (r.User.FullName ?? r.User.UserName ?? r.User.Email ?? "Khách hàng") : "Khách hàng",
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    CreatedAt = r.CreatedAt
+                }).ToList()
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

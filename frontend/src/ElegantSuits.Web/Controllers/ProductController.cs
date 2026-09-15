@@ -25,7 +25,7 @@ public class ProductController : Controller
         _logger = logger;
     }
 
-    public async Task<IActionResult> Index(int? categoryId, int pageNumber = 1, string sortBy = "", string order = "asc", string filter = "")
+    public async Task<IActionResult> Index(int? categoryId, string? keyword, int pageNumber = 1, string sortBy = "", string order = "asc", string filter = "")
     {
         const int pageSize = 12;
 
@@ -34,6 +34,8 @@ public class ProductController : Controller
         ViewBag.Categories = categories;
         ViewBag.CategoryId = categoryId;
         ViewBag.SelectedCategory = categoryId.HasValue ? categories.FirstOrDefault(c => c.Id == categoryId.Value) : null;
+        ViewBag.Keyword = keyword;
+        ViewBag.SearchKeyword = keyword;
         ViewBag.CurrentPage = pageNumber;
         ViewBag.PageSize = pageSize;
         ViewBag.SortBy = sortBy;
@@ -41,7 +43,7 @@ public class ProductController : Controller
         ViewBag.CurrentSort = !string.IsNullOrEmpty(sortBy) ? $"{sortBy}-{order}" : "";
         ViewBag.CurrentFilter = filter;
 
-        var result = await _productApiClient.GetPagedProductsAsync(categoryId, pageNumber, pageSize);
+        var result = await _productApiClient.GetPagedProductsAsync(categoryId, pageNumber, pageSize, keyword);
         var products = result ?? new PaginatedList<ProductViewModel>(new List<ProductViewModel>(), 0, 1, pageSize);
 
         ViewBag.TotalItems = products.TotalItems;
@@ -104,7 +106,17 @@ public class ProductController : Controller
             IsHidden = p.IsHidden,
             CategoryId = p.CategoryId,
             LinearCode = p.LinearCode,
-            Category = p.CategoryName != null ? new Category { Id = p.CategoryId, Name = p.CategoryName } : null
+            Category = p.CategoryName != null ? new Category { Id = p.CategoryId, Name = p.CategoryName } : null,
+            ProductReviews = p.Reviews.Select(r => new ProductReview
+            {
+                Id = r.Id,
+                ProductId = r.ProductId,
+                UserId = r.UserId,
+                Rating = r.Rating,
+                Comment = r.Comment,
+                CreatedAt = r.CreatedAt,
+                User = new ApplicationUser { FullName = r.UserName, UserName = r.UserName, Email = r.UserName }
+            }).ToList()
         };
 
         var fabricsRes = await _fabricApiClient.GetFabricGroupsAsync();
@@ -113,51 +125,9 @@ public class ProductController : Controller
         return View(product);
     }
 
-    public async Task<IActionResult> Search(string keyword, int pageNumber = 1)
+    public IActionResult Search(string? keyword, int pageNumber = 1)
     {
-        const int pageSize = 12;
-        var catRes = await _categoryApiClient.GetAllCategoriesAsync();
-        ViewBag.Categories = catRes.Data ?? new List<CategoryViewModel>();
-        ViewBag.Keyword = keyword;
-        ViewBag.SearchKeyword = keyword;
-
-        var result = await _productApiClient.SearchProductsAsync(keyword, pageNumber, pageSize);
-        var products = result ?? new PaginatedList<ProductViewModel>(new List<ProductViewModel>(), 0, 1, pageSize);
-
-        ViewBag.ResultCount = products.TotalItems;
-        ViewBag.TotalItems = products.TotalItems;
-        ViewBag.TotalPages = products.TotalPages;
-        ViewBag.CurrentPage = pageNumber;
-        ViewBag.PageSize = pageSize;
-        ViewBag.HasPreviousPage = products.HasPreviousPage;
-        ViewBag.HasNextPage = products.HasNextPage;
-
-        var catDict = (catRes.Data ?? new List<CategoryViewModel>())
-            .ToDictionary(c => c.Id, c => c.Name);
-
-        var mapped = products.Select(p => new Product
-        {
-            Id = p.Id,
-            Name = p.Name,
-            Description = p.Description,
-            Price = p.Price,
-            ImageUrl = p.ImageUrl,
-            Model3DUrl = p.Model3DUrl,
-            Quantity = p.Quantity,
-            IsHidden = p.IsHidden,
-            CategoryId = p.CategoryId,
-            LinearCode = p.LinearCode,
-            Category = new Category
-            {
-                Id = p.CategoryId,
-                Name = !string.IsNullOrWhiteSpace(p.CategoryName)
-                    ? p.CategoryName
-                    : (catDict.TryGetValue(p.CategoryId, out var cName) ? cName : "Sản phẩm")
-            }
-        }).ToList();
-
-        var paginated = new PaginatedList<Product>(mapped, products.TotalItems, products.PageIndex, products.PageSize);
-        return View("Search", paginated);
+        return RedirectToAction(nameof(Index), new { keyword, pageNumber });
     }
 
     [Authorize(Roles = "Administrator")]
@@ -324,5 +294,49 @@ public class ProductController : Controller
             Sizes = new List<ProductSizeViewModel>()
         };
         return View(vm);
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddReview(int productId, int rating, string? comment)
+    {
+        if (rating < 1 || rating > 5)
+        {
+            TempData["Error"] = "Đánh giá phải từ 1 đến 5 sao.";
+            return RedirectToAction(nameof(Details), new { id = productId });
+        }
+
+        var token = HttpContext.Session.GetString("JwtToken");
+        var res = await _productApiClient.AddReviewAsync(productId, rating, comment, token);
+        if (res.IsSuccess)
+        {
+            TempData["Success"] = "Cảm ơn bạn đã đánh giá sản phẩm!";
+        }
+        else
+        {
+            TempData["Error"] = res.Message ?? "Không thể gửi đánh giá.";
+        }
+
+        return RedirectToAction(nameof(Details), new { id = productId });
+    }
+
+    [HttpPost]
+    [Authorize]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteReview(int productId, int reviewId)
+    {
+        var token = HttpContext.Session.GetString("JwtToken");
+        var res = await _productApiClient.DeleteReviewAsync(productId, reviewId, token);
+        if (res.IsSuccess)
+        {
+            TempData["Success"] = "Đã xóa đánh giá thành công.";
+        }
+        else
+        {
+            TempData["Error"] = res.Message ?? "Không thể xóa đánh giá.";
+        }
+
+        return RedirectToAction(nameof(Details), new { id = productId });
     }
 }

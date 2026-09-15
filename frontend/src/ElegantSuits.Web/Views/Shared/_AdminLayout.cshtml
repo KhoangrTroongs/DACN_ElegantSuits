@@ -101,10 +101,10 @@
         <div id="content">
             <nav class="navbar navbar-expand-lg navbar-light bg-light" aria-label="Top navigation">
                 <div class="container-fluid">
-                    <form class="d-flex" asp-controller="Product" asp-action="Search" method="get">
+                    <form class="d-flex" asp-controller="Product" asp-action="Index" method="get">
                         <div class="input-group">
                             <input type="text" name="keyword" class="form-control form-control-sm search-input"
-                                placeholder="Tìm kiếm sản phẩm..." aria-label="Search" required>
+                                placeholder="Tìm kiếm sản phẩm..." aria-label="Search" value="@(ViewBag.Keyword ?? ViewBag.SearchKeyword ?? "")" required>
                             <button class="btn btn-elegant-primary btn-sm" type="submit">
                                 <i class="fas fa-search"></i>
                             </button>
