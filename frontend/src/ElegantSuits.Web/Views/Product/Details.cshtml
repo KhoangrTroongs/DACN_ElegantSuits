@@ -148,10 +148,8 @@
                     var description = Model.Description;
                     var sizeTag = "[SIZES]";
                     var endSizeTag = "[/SIZES]";
-                    var reviewTag = "[REVIEWS]";
-                    var endReviewTag = "[/REVIEWS]";
 
-                    // Loại bỏ phần kỹ thuật khỏi mô tả
+                    // Loại bỏ phần thông tin kích thước kỹ thuật khỏi mô tả hiển thị
                     if (!string.IsNullOrEmpty(description))
                     {
                         if (description.Contains(sizeTag) && description.Contains(endSizeTag))
@@ -164,17 +162,6 @@
                             }
                         }
 
-                        if (description.Contains(reviewTag) && description.Contains(endReviewTag))
-                        {
-                            var startIndex = description.IndexOf(reviewTag);
-                            var endIndex = description.IndexOf(endReviewTag) + endReviewTag.Length;
-                            if (startIndex < endIndex)
-                            {
-                                description = description.Remove(startIndex, endIndex - startIndex);
-                            }
-                        }
-
-                        // Loại bỏ khoảng trắng thừa
                         description = description.Trim();
                     }
                 }
@@ -253,17 +240,6 @@
                     </div>
                 </div>
 
-                @functions {
-                    public class ReviewViewModel
-                    {
-                        public int Id { get; set; }
-                        public string UserId { get; set; } = "";
-                        public string UserName { get; set; } = "";
-                        public int Rating { get; set; }
-                        public DateTime Date { get; set; }
-                        public string Comment { get; set; } = "";
-                    }
-                }
 
                 <!-- Hiển thị số lượng tổng (chỉ cho admin) -->
                 @if (User.IsInRole("Administrator"))
@@ -643,89 +619,9 @@
         </script>
     }
 
-    <!-- JavaScript cho chọn size -->
+    <!-- JavaScript cho chi tiết sản phẩm -->
     <script>
         $(document).ready(function() {
-            // Xử lý chọn size
-            $('.size-box').click(function() {
-                // Bỏ chọn tất cả size khác
-                $('.size-box').removeClass('selected');
-
-                // Chọn size hiện tại
-                $(this).addClass('selected');
-
-                // Lưu size đã chọn
-                var selectedSize = $(this).data('size');
-                $('#selectedSize').val(selectedSize);
-
-                // Kích hoạt nút thêm vào giỏ hàng
-                $('#addToCartBtn').prop('disabled', false);
-            });
-
-            // Kiểm tra form submit
-            $('.add-to-cart-form').submit(function(e) {
-                var selectedSize = $('#selectedSize').val();
-                if (!selectedSize) {
-                    e.preventDefault();
-                    alert('Vui lòng chọn kích cỡ trước khi thêm vào giỏ hàng!');
-                    return false;
-                }
-            });
-        });
-    </script>
-
-    <script>
-        $(document).ready(function () {
-            // Xử lý form thêm vào giỏ hàng
-            $('.add-to-cart-form').on('submit', function (e) {
-                e.preventDefault();
-                var form = $(this);
-
-                // Kiểm tra xem người dùng đã đăng nhập chưa
-                var isAuthenticated = @(User.Identity.IsAuthenticated ? "true" : "false");
-                if (!isAuthenticated) {
-                    // Chuyển hướng đến trang đăng nhập
-                    window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
-                    return;
-                }
-
-                // Kiểm tra xem đã chọn size chưa (nếu có size)
-                if ($('.size-box').length > 0 && !$('.size-box.selected').length) {
-                    alert('Vui lòng chọn kích cỡ trước khi thêm vào giỏ hàng.');
-                    return;
-                }
-
-                // Thêm size vào form nếu đã chọn
-                if ($('.size-box.selected').length) {
-                    var selectedSize = $('.size-box.selected').data('size');
-                    form.append('<input type="hidden" name="size" value="' + selectedSize + '">');
-                }
-
-                $.ajax({
-                    url: form.attr('action'),
-                    method: 'POST',
-                    data: form.serialize(),
-                    success: function (response) {
-                        if (response.success) {
-                            // Update cart badge
-                            $('.badge.bg-danger').text(response.cartCount);
-                            // Optional: Show success message
-                            alert('Đã thêm sản phẩm vào giỏ hàng!');
-                        } else if (response.message) {
-                            alert(response.message);
-                        }
-                    },
-                    error: function (xhr) {
-                        if (xhr.status === 401) {
-                            // Người dùng chưa đăng nhập
-                            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
-                        } else {
-                            alert('Có lỗi xảy ra khi thêm vào giỏ hàng.');
-                        }
-                    }
-                });
-            });
-
             // Xử lý chọn size
             $('.size-box').on('click', function() {
                 if ($(this).hasClass('disabled')) {
@@ -734,6 +630,56 @@
 
                 $('.size-box').removeClass('selected');
                 $(this).addClass('selected');
+
+                var selectedSize = $(this).data('size');
+                $('#selectedSize').val(selectedSize);
+                $('#addToCartBtn').prop('disabled', false);
+            });
+
+            // Xử lý form thêm vào giỏ hàng
+            $('.add-to-cart-form').on('submit', function(e) {
+                e.preventDefault();
+                var form = $(this);
+
+                // Kiểm tra xem đã chọn size chưa (nếu sản phẩm có các size)
+                if ($('.size-box').length > 0 && !$('#selectedSize').val()) {
+                    alert('Vui lòng chọn kích cỡ trước khi thêm vào giỏ hàng!');
+                    return;
+                }
+
+                var btn = form.find('button[type="submit"]');
+                var originalHtml = btn.html();
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang thêm...');
+
+                $.ajax({
+                    url: form.attr('action'),
+                    method: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        btn.prop('disabled', false).html(originalHtml);
+                        if (response && response.success) {
+                            if (response.cartCount !== undefined) {
+                                $('.cart-badge, .cart-count, .badge.bg-danger').text(response.cartCount);
+                            }
+                            alert('Đã thêm sản phẩm vào giỏ hàng!');
+                        } else if (response && response.message) {
+                            alert(response.message);
+                        } else {
+                            alert('Đã thêm sản phẩm vào giỏ hàng!');
+                        }
+                    },
+                    error: function(xhr) {
+                        btn.prop('disabled', false).html(originalHtml);
+                        if (xhr.status === 401) {
+                            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                        } else {
+                            alert('Có lỗi xảy ra khi thêm vào giỏ hàng.');
+                        }
+                    }
+                });
             });
 
             // Xử lý hiển thị form đánh giá

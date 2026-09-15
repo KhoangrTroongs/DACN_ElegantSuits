@@ -1,110 +1,62 @@
-@model List<ElegantSuits.Domain.Entities.Product>
 @{
-    ViewData["Title"] = "Trang chủ";
+    ViewData["Title"] = "Chính sách bảo mật";
 }
 
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="display-4">Chào mừng đến với cửa hàng</h1>
-            <p class="lead">Khám phá các sản phẩm của chúng tôi dưới đây hoặc duyệt theo danh mục.</p>
-        </div>
-    </div>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h2 class="mb-0 text-dark"><i class="fas fa-shield-alt text-primary me-2"></i>Chính sách bảo mật thông tin</h2>
+                    <small class="text-muted">Cập nhật lần cuối: 15/09/2026</small>
+                </div>
+                <div class="card-body p-4">
+                    <section class="mb-4">
+                        <h5 class="fw-bold text-dark"><i class="fas fa-info-circle text-primary me-2"></i>1. Mục đích thu thập thông tin</h5>
+                        <p class="text-muted">
+                            Elegant Suits cam kết bảo vệ sự riêng tư và thông tin cá nhân của quý khách hàng. Chúng tôi chỉ thu thập các thông tin cần thiết phục vụ cho việc:
+                        </p>
+                        <ul class="text-muted">
+                            <li>Xử lý và hoàn tất đơn hàng, giao nhận sản phẩm tận nơi.</li>
+                            <li>Tư vấn chọn mẫu vest, đo may theo số đo và hỗ trợ trải nghiệm thử đồ 3D.</li>
+                            <li>Cập nhật thông tin ưu đãi, mã giảm giá và dịch vụ hậu mãi.</li>
+                            <li>Nâng cao trải nghiệm mua sắm trực tuyến của khách hàng trên hệ thống.</li>
+                        </ul>
+                    </section>
 
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="list-group">
-                <a href="@Url.Action("Index", "Home")" class="list-group-item list-group-item-action @(ViewBag.SelectedCategory == null ? "active" : "")">
-                    Tất cả danh mục
-                </a>
+                    <section class="mb-4">
+                        <h5 class="fw-bold text-dark"><i class="fas fa-user-lock text-primary me-2"></i>2. Phạm vi thông tin thu thập</h5>
+                        <p class="text-muted">
+                            Thông tin thu thập bao gồm: Họ và tên, số điện thoại, địa chỉ nhận hàng, địa chỉ email, số đo trang phục (nếu sử dụng dịch vụ may đo/thiết kế riêng) và lịch sử giao dịch.
+                        </p>
+                    </section>
 
-@foreach (var category in ViewBag.Categories)
-{
-    <a href="@Url.Action("Index", "Home", new { categoryId = category.Id })" class="list-group-item list-group-item-action @(ViewBag.SelectedCategory?.Id == category.Id ? "active" : "")">
-        @category.Name
-    </a>
-}
+                    <section class="mb-4">
+                        <h5 class="fw-bold text-dark"><i class="fas fa-lock text-primary me-2"></i>3. Cam kết bảo mật</h5>
+                        <p class="text-muted">
+                            Mọi thông tin cá nhân và dữ liệu thanh toán của khách hàng đều được mã hóa và bảo mật nghiêm ngặt. Elegant Suits tuyệt đối không bán, chia sẻ hoặc tiết lộ thông tin của quý khách cho bất kỳ bên thứ ba nào vì mục đích thương mại, ngoại trừ các đơn vị vận chuyển đối tác nhằm phục vụ việc giao hàng.
+                        </p>
+                    </section>
 
-            </div>
-        </div>
-        <div class="col-md-9">
-            <h2>@(ViewBag.SelectedCategory == null ? "Tất cả sản phẩm" : ViewBag.SelectedCategory.Name)</h2>
+                    <section class="mb-4">
+                        <h5 class="fw-bold text-dark"><i class="fas fa-headset text-primary me-2"></i>4. Liên hệ hỗ trợ</h5>
+                        <p class="text-muted">
+                            Nếu có bất kỳ thắc mắc nào về chính sách bảo mật, quý khách vui lòng liên hệ với chúng tôi qua:
+                        </p>
+                        <ul class="list-unstyled text-muted">
+                            <li><i class="fas fa-envelope me-2 text-primary"></i>Email: contact@elegantsuits.com</li>
+                            <li><i class="fas fa-phone-alt me-2 text-primary"></i>Hotline: 1900 6868</li>
+                            <li><i class="fas fa-map-marker-alt me-2 text-primary"></i>Địa chỉ: TP. Hồ Chí Minh, Việt Nam</li>
+                        </ul>
+                    </section>
 
-@if (!Model.Any())
-{
-    <p>Không có sản phẩm nào trong danh mục này.</p>
-}
-else
-{
-    <div class="row">
-        @foreach (var product in Model)
-        {
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    @if (!string.IsNullOrEmpty(product.ImageUrl))
-                    {
-                        <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;">
-                    }
-                    else
-                    {
-                        <div class="card-img-top bg-secondary text-white d-flex align-items-center justify-content-center" style="height: 200px;">
-                            <span>Không có hình ảnh</span>
-                        </div>
-                    }
-                    <div class="card-body">
-                        <h5 class="card-title">@product.Name</h5>
-                        <p class="card-text text-muted">@(product.Category?.Name ?? "")</p>
-                        @{
-                            var description = product.Description;
-                            var sizeTag = "[SIZES]";
-                            var endSizeTag = "[/SIZES]";
-                            var reviewTag = "[REVIEWS]";
-                            var endReviewTag = "[/REVIEWS]";
-
-                            // Loại bỏ phần kỹ thuật khỏi mô tả
-                            if (!string.IsNullOrEmpty(description))
-                            {
-                                // Loại bỏ phần kích thước
-                                if (description.Contains(sizeTag) && description.Contains(endSizeTag))
-                                {
-                                    var startIndex = description.IndexOf(sizeTag);
-                                    var endIndex = description.IndexOf(endSizeTag) + endSizeTag.Length;
-                                    if (startIndex < endIndex)
-                                    {
-                                        description = description.Remove(startIndex, endIndex - startIndex);
-                                    }
-                                }
-
-                                // Loại bỏ phần đánh giá
-                                if (description.Contains(reviewTag) && description.Contains(endReviewTag))
-                                {
-                                    var startIndex = description.IndexOf(reviewTag);
-                                    var endIndex = description.IndexOf(endReviewTag) + endReviewTag.Length;
-                                    if (startIndex < endIndex)
-                                    {
-                                        description = description.Remove(startIndex, endIndex - startIndex);
-                                    }
-                                }
-
-                                // Loại bỏ khoảng trắng thừa
-                                description = description.Trim();
-                            }
-
-                            // Cắt ngắn mô tả nếu quá dài
-                            var displayDescription = description?.Length > 100
-                                ? description.Substring(0, 100) + "..."
-                                : description;
-                        }
-                        <p class="card-text">@displayDescription</p>
-                        <p class="card-text"><strong>@product.Price.ToString("N0") VNĐ</strong></p>
-                        <a asp-controller="Product" asp-action="Details" asp-route-id="@product.Id" class="btn btn-primary">Chi tiết</a>
+                    <div class="text-center mt-4 pt-3 border-top">
+                        <a asp-controller="Home" asp-action="Index" class="btn btn-elegant-primary">
+                            <i class="fas fa-arrow-left me-1"></i>Về trang chủ
+                        </a>
                     </div>
                 </div>
             </div>
-        }
-    </div>
-}
-
         </div>
     </div>
 </div>
